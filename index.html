@@ -20,7 +20,7 @@
         .auth-box button { width: 100%; padding: 12px; margin-top: 10px; background: #fff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 14px; }
         .auth-toggle { margin-top: 15px; color: #888; font-size: 13px; cursor: pointer; text-decoration: underline; }
 
-        /* Header Principale */
+        /* Header Principal */
         header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #222; margin-bottom: 20px; }
         h1 { font-size: 22px; letter-spacing: 2px; text-transform: uppercase; }
         .user-badge { display: flex; align-items: center; gap: 10px; }
@@ -41,10 +41,12 @@
         .card .price { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 12px; }
         .card button { background: #fff; color: #000; width: 100%; padding: 8px; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
-        /* Mon Panier Fictif */
-        .cart-box { width: 300px; background: #111; border: 1px solid #222; border-radius: 6px; padding: 15px; }
+        /* Le Panier Multi-Articles */
+        .cart-box { width: 320px; background: #111; border: 1px solid #222; border-radius: 6px; padding: 15px; }
         .cart-box h3 { font-size: 15px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .cart-item { display: flex; justify-content: space-between; font-size: 13px; margin: 8px 0; color: #ccc; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin: 10px 0; color: #ccc; background: #181818; padding: 6px; border-radius: 4px; }
+        .cart-item-actions { display: flex; gap: 5px; align-items: center; }
+        .btn-cart-qty { background: #333; color: #fff; border: none; padding: 2px 6px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 3px; }
         .btn-order-cart { background: #22aa22; color: #fff; width: 100%; padding: 10px; margin-top: 15px; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
         /* Tableaux */
@@ -114,10 +116,9 @@
                 <thead>
                     <tr>
                         <th>N° Commande</th>
-                        <th>Article</th>
-                        <th>Prix Achat</th>
+                        <th>Articles commandés</th>
+                        <th>Prix Total</th>
                         <th>Statut</th>
-                        <th>Chat</th>
                     </tr>
                 </thead>
                 <tbody id="client-table-body"></tbody>
@@ -131,10 +132,10 @@
                     <tr>
                         <th>N° Commande</th>
                         <th>Client (ID & Pseudo)</th>
-                        <th>Article</th>
+                        <th>Articles</th>
                         <th>Prix Total</th>
                         <th>Statut</th>
-                        <th>Actions / Discussion</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="vendeur-table-body"></tbody>
@@ -147,7 +148,8 @@
         const SUPABASE_KEY = "sb_publishable_vESTqx5M-mdXuVj-lUrkSA_CGHyC7XS"; 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let panier = null; 
+        // Panier sous forme de tableau d'objets pour stocker plusieurs articles distincts ou identiques
+        let panier = []; 
         let localUser = { id: null, login: null, admin: false, vendeur: false };
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -246,25 +248,114 @@
             });
         }
 
+        // Nouvelle logique panier : Ajoute ou incrémente la quantité
         function ajouterAuPanier(nom, prix) {
-            panier = { nom, prix };
-            document.getElementById('cart-items-list').innerHTML = `<div class="cart-item"><span>${nom}</span><b>${prix} €</b></div>`;
-            document.getElementById('cart-total-price').textContent = `Total : ${prix} €`;
-            document.getElementById('cart-total-price').classList.remove('hidden');
-            document.getElementById('btn-validate-cart').classList.remove('hidden');
+            const articleExistant = panier.find(item => item.nom === nom);
+            
+            if (articleExistant) {
+                articleExistant.quantite += 1;
+            } else {
+                panier.push({ nom: nom, prix: prix, quantite: 1 });
+            }
+            
+            renderPanier();
         }
 
+        function modifierQuantitePanier(nom, changement) {
+            const article = panier.find(item => item.nom === nom);
+            if (!article) return;
+
+            article.quantite += changement;
+            if (article.quantite <= 0) {
+                panier = panier.filter(item => item.nom !== nom);
+            }
+            renderPanier();
+        }
+
+        function renderPanier() {
+            const boxList = document.getElementById('cart-items-list');
+            const totalText = document.getElementById('cart-total-price');
+            const btnValidate = document.getElementById('btn-validate-cart');
+
+            if (panier.length === 0) {
+                boxList.innerHTML = `<p style="color:#555; font-size:13px; text-align:center;">Votre panier est vide.</p>`;
+                totalText.classList.add('hidden');
+                btnValidate.classList.add('hidden');
+                return;
+            }
+
+            boxList.innerHTML = "";
+            let totalGeneral = 0;
+
+            panier.forEach(item => {
+                const sousTotal = item.prix * item.quantite;
+                totalGeneral += sousTotal;
+
+                boxList.innerHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <div style="font-weight:bold;">${item.nom}</div>
+                            <div style="color:#777; font-size:11px;">${item.prix} € u.</div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button class="btn-cart-qty" onclick="modifierQuantitePanier('${item.nom}', -1)">-</button>
+                            <span style="font-weight:bold; color:#fff;">x${item.quantite}</span>
+                            <button class="btn-cart-qty" onclick="modifierQuantitePanier('${item.nom}', 1)">+</button>
+                            <span style="margin-left:5px; font-weight:bold; color:#22aa22;">${sousTotal} €</span>
+                        </div>
+                    </div>`;
+            });
+
+            totalText.textContent = `Total : ${totalGeneral} €`;
+            totalText.classList.remove('hidden');
+            btnValidate.classList.remove('hidden');
+        }
+
+        // Validation du panier : Crée 1 commande et insère CHAQUE article dans details_commande
         document.getElementById('btn-validate-cart').addEventListener('click', async () => {
-            if(!panier) return;
-            const { data: cmd } = await supabaseClient.from('commandes').insert([{ client_id: localUser.id, client_pseudo: localUser.login, statut: 'En attente' }]).select();
-            await supabaseClient.from('details_commande').insert([{ id_commande: cmd[0].id, nom_article: panier.nom, prix_achat: panier.prix }]);
-            
-            alert("Commande transmise avec succès !");
-            panier = null;
-            document.getElementById('cart-items-list').innerHTML = `<p style="color:#555; font-size:13px; text-align:center;">Votre panier est vide.</p>`;
-            document.getElementById('cart-total-price').classList.add('hidden');
-            document.getElementById('btn-validate-cart').classList.add('hidden');
-            loadClientOrders(); loadVendeurOrders();
+            if(panier.length === 0) return;
+
+            document.getElementById('btn-validate-cart').disabled = true;
+            document.getElementById('btn-validate-cart').textContent = "Traitement...";
+
+            // 1. Insertion de la Commande générale
+            const { data: cmd, error: errCmd } = await supabaseClient
+                .from('commandes')
+                .insert([{ client_id: localUser.id, client_pseudo: localUser.login, statut: 'En attente' }])
+                .select();
+
+            if (errCmd) {
+                alert("Erreur création commande : " + errCmd.message);
+                document.getElementById('btn-validate-cart').disabled = false;
+                document.getElementById('btn-validate-cart').textContent = "Valider la commande";
+                return;
+            }
+
+            const idCommandeGeneree = cmd[0].id;
+
+            // 2. Préparation des lignes pour la table 'details_commande'
+            const lignesDetails = panier.map(item => ({
+                id_commande: idCommandeGeneree,
+                nom_article: item.nom,
+                quantite: item.quantite,
+                prix_achat: item.prix * item.quantite
+            }));
+
+            // 3. Insertion groupée dans Supabase
+            const { error: errDetails } = await supabaseClient.from('details_commande').insert(lignesDetails);
+
+            if (errDetails) {
+                alert("Erreur enregistrement des articles : " + errDetails.message);
+            } else {
+                alert("Votre commande multi-articles a été validée avec succès !");
+                panier = [];
+                renderPanier();
+                loadClientOrders(); 
+                loadVendeurOrders();
+            }
+
+            document.getElementById('btn-validate-cart').disabled = false;
+            document.getElementById('btn-validate-cart').textContent = "Valider la commande";
         });
 
         function formatNum(id, dateStr) {
@@ -273,36 +364,64 @@
             return `#LOST-${ymd}-${String(id).padStart(4,'0')}`;
         }
 
+        // Chargement côté Client : Fusionne l'affichage si plusieurs articles reliés
         async function loadClientOrders() {
             const tbody = document.getElementById('client-table-body');
-            const { data: orders } = await supabaseClient.from('commandes').select('id, statut, date_commande, details_commande(nom_article, prix_achat)').eq('client_id', localUser.id).eq('client_pseudo', localUser.login);
+            if(!tbody) return;
+
+            const { data: orders } = await supabaseClient
+                .from('commandes')
+                .select('id, statut, date_commande, details_commande(nom_article, quantite, prix_achat)')
+                .eq('client_id', localUser.id)
+                .eq('client_pseudo', localUser.login)
+                .order('id', { ascending: false });
+
             tbody.innerHTML = "";
             orders?.forEach(o => {
-                const det = o.details_commande?.[0] || { nom_article: 'Sans nom', prix_achat: 0 };
+                let texteArticles = "";
+                let totalCommande = 0;
+
+                o.details_commande?.forEach(d => {
+                    texteArticles += `${d.nom_article} (x${d.quantite})<br>`;
+                    totalCommande += d.prix_achat;
+                });
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${formatNum(o.id, o.date_commande)}</td>
-                        <td>${det.nom_article}</td>
-                        <td>${det.prix_achat} €</td>
+                        <td>${texteArticles || 'Aucun article'}</td>
+                        <td style="color:#22aa22; font-weight:bold;">${totalCommande} €</td>
                         <td><span class="tag">${o.statut}</span></td>
-                        <td><button class="btn-action" onclick="alert('Espace de discussion disponible côté vendeur.')">💬</button></td>
                     </tr>`;
             });
         }
 
+        // Chargement côté Vendeur : Liste toutes les commandes avec leurs détails complets
         async function loadVendeurOrders() {
             const tbody = document.getElementById('vendeur-table-body');
             if(!tbody) return;
-            const { data: orders } = await supabaseClient.from('commandes').select('id, client_id, client_pseudo, statut, vendeur_affecte, date_commande, details_commande(nom_article, prix_achat)');
+
+            const { data: orders } = await supabaseClient
+                .from('commandes')
+                .select('id, client_id, client_pseudo, statut, vendeur_affecte, date_commande, details_commande(nom_article, quantite, prix_achat)')
+                .order('id', { ascending: false });
+
             tbody.innerHTML = "";
             orders?.forEach(o => {
-                const det = o.details_commande?.[0] || { nom_article: 'Inconnu', prix_achat: 0 };
+                let texteArticles = "";
+                let totalCommande = 0;
+
+                o.details_commande?.forEach(d => {
+                    texteArticles += `${d.nom_article} (x${d.quantite})<br>`;
+                    totalCommande += d.prix_achat;
+                });
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${formatNum(o.id, o.date_commande)}</td>
                         <td>ID: ${o.client_id} (${o.client_pseudo})</td>
-                        <td>${det.nom_article}</td>
-                        <td>${det.prix_achat} €</td>
+                        <td>${texteArticles || 'Inconnu'}</td>
+                        <td style="color:#22aa22; font-weight:bold;">${totalCommande} €</td>
                         <td><b>${o.statut}</b></td>
                         <td>
                             <button class="btn-action" onclick="prendreCmd(${o.id})">S'affecter</button>
