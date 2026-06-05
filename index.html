@@ -646,11 +646,11 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURATION SUPABASE INTERNE ---
-        // --- 1. CONFIGURATION SUPABASE INTERNE ---
-        const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co";
+
+// --- 1. CONFIGURATION SUPABASE INTERNE ---
+        const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
-                
+        
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
@@ -668,37 +668,46 @@
         let currentArchiveScope = 'all'; 
         let currentClientOrdersTab = 'active'; 
 
-        // --- 3. INITIALISATION & CHARGEMENT EN LIGNE (SUPABASE) ---
+        // --- 3. INITIALISATION & CHARGEMENT EN LIGNE (CORRIGÉ POUR VOS TABLES) ---
         async function initApp() {
             try {
-                // Chargement des Utilisateurs
-                const { data: uData, error: uErr } = await supabase.from('lost_users').select('*');
-                if (!uErr && uData) users = uData;
-
-                // Chargement des Grilles Tarifaires
-                const { data: rData, error: rErr } = await supabase.from('lost_price_ranks').select('*');
-                if (!rErr && rData) priceRanks = rData;
-                else if (priceRanks.length === 0) {
-                    priceRanks = [
-                        { id: "normal", name: "NORMAL", discount: 0 },
-                        { id: "vip", name: "VIP", discount: 10 },
-                        { id: "lost", name: "LOST", discount: 20 }
-                    ];
+                // Chargement des Utilisateurs depuis votre table 'utilisateurs'
+                const { data: uData, error: uErr } = await supabase.from('utilisateurs').select('*');
+                if (!uErr && uData) {
+                    // Adaptation pour que le reste du script comprenne vos colonnes login/mot_de_passe
+                    users = uData.map(u => ({
+                        username: `${u.login}|${u.id_serveur}`,
+                        password: u.mot_de_passe || u.password,
+                        roles: u.roles || ["client"],
+                        rank: u.rank || "normal"
+                    }));
                 }
 
-                // Chargement du Catalogue d'Articles
-                const { data: cData, error: cErr } = await supabase.from('lost_catalog').select('*');
-                if (!cErr && cData) catalog = cData;
+                // Chargement des Grilles Tarifaires (Valeurs par défaut si pas de table)
+                priceRanks = [
+                    { id: "normal", name: "NORMAL", discount: 0 },
+                    { id: "vip", name: "VIP", discount: 10 },
+                    { id: "lost", name: "LOST", discount: 20 }
+                ];
 
-                // Chargement des Codes Promos
-                const { data: cpData, error: cpErr } = await supabase.from('lost_coupons').select('*');
-                if (!cpErr && cpData) coupons = cpData;
+                // Chargement du Catalogue depuis votre table 'articles'
+                const { data: cData, error: cErr } = await supabase.from('articles').select('*');
+                if (!cErr && cData) {
+                    catalog = cData.map(c => ({
+                        id: c.id,
+                        name: c.nom || c.name,
+                        price: c.prix || c.price || 0,
+                        desc: c.description || c.desc || '',
+                        mag: c.capacite || c.mag || 'N/A',
+                        cat: c.categorie || c.cat || 'weapons'
+                    }));
+                }
 
-                // Chargement global de toutes les commandes
-                const { data: oData, error: oErr } = await supabase.from('lost_orders').select('*');
+                // Chargement des Commandes depuis votre table 'commandes'
+                const { data: oData, error: oErr } = await supabase.from('commandes').select('*');
                 if (!oErr && oData) orders = oData;
 
-                console.log("Supabase : Données synchronisées avec succès.");
+                console.log("Supabase : Données adaptées et synchronisées avec succès.");
             } catch (err) {
                 console.error("Erreur durant l'initialisation de Supabase :", err);
             }
@@ -718,12 +727,8 @@
             const p = document.getElementById('password').value;
             
             const combinedFormat = `${pureLogin}|${cityNum}`.toLowerCase();
-            const singleFormat = pureLogin.toLowerCase();
             
-            const found = users.find(x => 
-                (x.username.toLowerCase() === combinedFormat || x.username.toLowerCase() === singleFormat) 
-                && x.password === p
-            );
+            const found = users.find(x => x.username.toLowerCase() === combinedFormat && x.password === p);
 
             if(found) { 
                 currentUser = found; 
@@ -746,13 +751,27 @@
                 return alert("Cet identifiant est déjà enregistré.");
             }
             
-            const newUser = { username: finalCombinedUsername, password: p, roles: ["client"], rank: "normal" };
+            // Enregistrement avec les vrais noms de colonnes de votre table Supabase
+            const newUserSupabase = { 
+                id_serveur: parseInt(cityNum), 
+                login: pureUser, 
+                mot_de_passe: p,
+                roles: ["client"],
+                rank: "normal"
+            };
             
-            const { error } = await supabase.from('lost_users').insert([newUser]);
+            const { error } = await supabase.from('utilisateurs').insert([newUserSupabase]);
             if (error) return alert("Erreur d'inscription Supabase : " + error.message);
 
-            users.push(newUser);
-            alert(`Compte sécurisé enregistré !`); 
+            // Ajouter localement pour pouvoir se connecter de suite
+            users.push({
+                username: finalCombinedUsername,
+                password: p,
+                roles: ["client"],
+                rank: "normal"
+            });
+
+            alert(`Compte sécurisé enregistré avec succès !`); 
             toggleAuth(false);
         };
 
