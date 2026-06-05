@@ -99,11 +99,11 @@
         }
 
         select[multiple] {
-            height: 100px;
+            height: 80px;
             padding: 5px;
         }
         select[multiple] option {
-            padding: 6px 8px;
+            padding: 4px 8px;
             border-radius: 2px;
             margin-bottom: 2px;
         }
@@ -395,7 +395,7 @@
 
     <div id="auth-screen">
         <div class="auth-container" id="login-form-div">
-            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+            <img src="The lost mc logo.png" alt="The Lost MC Logo" class="auth-logo-img">
             <div class="auth-logo">The Lost MC Shop</div>
             <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
             <form id="auth-form">
@@ -417,7 +417,7 @@
         </div>
 
         <div class="auth-container hidden" id="register-form-div">
-            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+            <img src="The lost mc logo.png" alt="The Lost MC Logo" class="auth-logo-img">
             <div class="auth-logo">Enregistrement</div>
             <div class="auth-subtitle">Créer son compte sécurisé</div>
             <form id="reg-form">
@@ -442,7 +442,7 @@
         <div id="sidebar">
             <div>
                 <div class="sidebar-brand-container">
-                    <img src="logo.png" alt="The Lost MC Logo" class="sidebar-logo-img">
+                    <img src="The lost mc logo.png" alt="The Lost MC Logo" class="sidebar-logo-img">
                     <div class="sidebar-brand">The Lost MC Shop</div>
                 </div>
                 <ul class="menu-list">
@@ -498,7 +498,7 @@
                 <h2 class="view-title">Liste de mes commandes</h2>
                 <div class="cat-nav" style="margin-bottom: 20px;">
                     <button class="cat-btn active" id="client-tab-active" onclick="switchClientOrdersTab('active')">Commandes en cours</button>
-                    <button class="cat-btn" id="client-tab-history" onclick="switchClientOrdersTab('history')">Historique (Livrées / Annulées)</button>
+                    <button class="cat-btn" id="client-tab-history" onclick="switchClientOrdersTab('history')">Historique</button>
                 </div>
                 <div id="my-orders-list"></div>
             </div>
@@ -506,42 +506,41 @@
             <div id="tab-vendre" class="tab-content hidden">
                 <h2 class="view-title">Suivi Logistique des Commandes</h2>
                 <div class="cat-nav" style="margin-bottom: 20px;">
-                    <button class="cat-btn" id="v-filter-all" onclick="setVendeurFilter('all')">Toutes en cours (0)</button>
+                    <button class="cat-btn" id="v-filter-all" onclick="setVendeurFilter('all')">Toutes (0)</button>
                     <button class="cat-btn" id="v-filter-todo" onclick="setVendeurFilter('todo')">À prendre (0)</button>
                     <button class="cat-btn" id="v-filter-mine" onclick="setVendeurFilter('mine')">Mes livraisons (0)</button>
-                    <button class="cat-btn" id="v-filter-done" onclick="setVendeurFilter('done')">Archives du Club (0)</button>
+                    <button class="cat-btn" id="v-filter-done" onclick="setVendeurFilter('done')">Archives (0)</button>
                 </div>
 
-                <div id="archive-sub-filters" class="hidden" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 4px; border: 1px solid var(--lost-border); display: flex; flex-direction: column; gap: 15px;">
-                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
-                        <div style="display: flex; flex-direction: column; flex: 1; min-width: 200px;">
-                            <label>Filtrer par Vendeur assigné :</label>
-                            <select id="vendeur-archive-staff-select" multiple onchange="loadVendeurView()"></select>
-                        </div>
-                        <div style="display: flex; flex-direction: column; flex: 1; min-width: 200px;">
-                            <label>Filtrer par Client :</label>
-                            <select id="vendeur-archive-client-select" multiple onchange="loadVendeurView()"></select>
-                        </div>
+                <div id="archive-sub-filters" class="hidden" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 4px; border: 1px solid var(--lost-border); flex-direction: column; gap: 12px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size:12px; text-transform:uppercase; font-weight:600; color:var(--text-muted);">Périmètre :</span>
+                        <button class="btn btn-small" id="arch-btn-all" onclick="setArchiveScope('all')">Toutes les archives</button>
+                        <button class="btn btn-small btn-secondary" id="arch-btn-me" onclick="setArchiveScope('me')">Uniquement mes ventes</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; max-width: 300px; margin-top: 5px;">
+                        <label style="margin-bottom: 2px;">Filtrer par Client :</label>
+                        <select id="vendeur-archive-client-select" multiple onchange="loadVendeurView()" style="margin-bottom: 2px;"></select>
                     </div>
                 </div>
 
                 <div id="vendeur-stats-panel" class="hidden" style="margin-bottom:20px;">
                     <div class="stats-grid" style="margin-bottom:15px;">
                         <div class="stat-card">
-                            <div class="stat-label">Chiffre d'affaires Réel</div>
+                            <div class="stat-label">Chiffre d'affaires</div>
                             <div class="stat-value" id="stat-revenue">0 $</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Ventes Réussies (Livrées)</div>
-                            <div class="stat-value" id="stat-orders-count" style="color:var(--status-done)">0</div>
+                            <div class="stat-label">Ventes Réelles Réussies</div>
+                            <div class="stat-value" id="stat-orders-count" style="color:var(--status-process)">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Total Articles Livrés</div>
+                            <div class="stat-label">Articles livrés</div>
                             <div class="stat-value" id="stat-items-count" style="color:#a855f7">0</div>
                         </div>
                     </div>
                     <div class="items-detail-box">
-                        <div class="items-detail-title">📦 Inventaire des Volumes Vendus (Exclut les Annulées)</div>
+                        <div class="items-detail-title">📦 Inventaire des Volumes vendus</div>
                         <div id="vendeur-items-breakdown-list"></div>
                     </div>
                 </div>
@@ -549,9 +548,9 @@
                 <div id="vendeur-orders-list"></div>
 
                 <div id="archive-split-containers" class="hidden">
-                    <div class="archive-section-title" style="color: var(--status-done);">✔️ Ventes Réelles Terminées</div>
+                    <div class="archive-section-title">📦 Ventes Réelles Terminées</div>
                     <div id="archived-success-list"></div>
-                    <div class="archive-section-title" style="color: var(--accent-red);">❌ Commandes Annulées / Archivées</div>
+                    <div class="archive-section-title" style="color: var(--accent-red);">❌ Commandes Annulées</div>
                     <div id="archived-cancelled-list"></div>
                 </div>
             </div>
@@ -566,19 +565,41 @@
                 </div>
 
                 <div id="admin-sub-users" class="hidden">
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--lost-border); border-radius: 6px; padding: 20px; margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 20px;">
+                            <h3 style="margin: 0; font-size: 14px; text-transform: uppercase; color: var(--accent-red);">📊 Bilan du Shop</h3>
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap; flex: 1; justify-content: flex-end;">
+                                <div style="display: flex; flex-direction: column; min-width: 180px;">
+                                    <label style="font-size: 11px;">Filtre Vendeurs :</label>
+                                    <select id="admin-finance-vendeur-select" multiple onchange="loadAdminFinancialData()"></select>
+                                </div>
+                                <div style="display: flex; flex-direction: column; min-width: 180px;">
+                                    <label style="font-size: 11px;">Filtre Clients :</label>
+                                    <select id="admin-finance-client-select" multiple onchange="loadAdminFinancialData()"></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid" style="margin-bottom: 15px;">
+                            <div class="stat-card" style="background: var(--bg-main);"><div class="stat-label">CA Réel</div><div class="stat-value" id="admin-fin-revenue">0 $</div></div>
+                            <div class="stat-card" style="background: var(--bg-main);"><div class="stat-label">Commandes Réussies</div><div class="stat-value" id="admin-fin-success-count" style="color: var(--status-process);">0</div></div>
+                            <div class="stat-card" style="background: var(--bg-main);"><div class="stat-label">Annulations</div><div class="stat-value" id="admin-fin-cancelled-count" style="color: var(--accent-red);">0</div></div>
+                        </div>
+                        <div class="items-detail-box" style="background: var(--bg-main);"><div id="admin-items-breakdown-list"></div></div>
+                    </div>
                     <div id="admin-users-list"></div>
                 </div>
 
                 <div id="admin-sub-ranks" class="hidden">
-                    <button class="btn btn-small" onclick="openRankModal()">+ Créer un Profil Prix</button>
+                    <button class="btn btn-small" onclick="openRankModal()">+ Profil Prix</button>
                     <div id="admin-ranks-list"></div>
                 </div>
                 <div id="admin-sub-catalog" class="hidden">
-                    <button class="btn btn-small" style="margin-bottom:15px;" onclick="openItemModal()">+ Ajouter une référence</button>
+                    <button class="btn btn-small" style="margin-bottom:15px;" onclick="openItemModal()">+ Référence</button>
                     <div id="admin-catalog-list"></div>
                 </div>
                 <div id="admin-sub-coupons" class="hidden">
-                    <button class="btn btn-small" style="margin-bottom:15px;" onclick="openCouponModal()">+ Générer un code</button>
+                    <button class="btn btn-small" style="margin-bottom:15px;" onclick="openCouponModal()">+ Code réduction</button>
                     <div id="admin-coupons-list"></div>
                 </div>
             </div>
@@ -625,12 +646,13 @@
     </div>
 
     <script>
-        // 1. CONFIGURATION DE LA CONNEXION SUPABASE
-        const SUPABASE_URL = "METS_TON_URL_SUPABASE_ICI";
-        const SUPABASE_ANON_KEY = "METS_TA_CLE_ANON_ICI";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // --- 1. CONFIGURATION SUPABASE INTERNE ---
+        const SUPABASE_URL = "https://VOTRE_PROJECT_REF.supabase.co"; // REPLACER PAR L'URL PROJET
+        const SUPABASE_ANON_KEY = "VOTRE_CLE_ANON_SUPABASE";       // REPLACER PAR VOTRE CLÉ PUBLIQUE ANON
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Variables globales de l'état de l'application
+        // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
         let catalog = [];
         let priceRanks = [];
         let users = [];
@@ -642,75 +664,95 @@
         let activeShopCat = 'weapons';
         let activeCoupon = null;
         let currentVendeurFilter = 'all';
+        let currentArchiveScope = 'all'; 
         let currentClientOrdersTab = 'active'; 
 
-        // 2. FONCTION D'INITIALISATION : CHARGEMENT DES TABLES DEPUIS SUPABASE
+        // --- 3. INITIALISATION & CHARGEMENT EN LIGNE (SUPABASE) ---
         async function initApp() {
             try {
-                // On récupère en parallèle les lignes de toutes les tables distantes
-                const [resCatalog, resRanks, resUsers, resCoupons, resOrders] = await Promise.all([
-                    supabaseClient.from('lost_catalog').select('*'),
-                    supabaseClient.from('lost_price_ranks').select('*'),
-                    supabaseClient.from('lost_users').select('*'),
-                    supabaseClient.from('lost_coupons').select('*'),
-                    supabaseClient.from('lost_orders').select('*')
-                ]);
+                // Chargement des Utilisateurs
+                const { data: uData, error: uErr } = await supabase.from('lost_users').select('*');
+                if (!uErr && uData) users = uData;
 
-                catalog = resCatalog.data || [];
-                priceRanks = resRanks.data || [];
-                users = resUsers.data || [];
-                coupons = resCoupons.data || [];
-                orders = resOrders.data || [];
+                // Chargement des Grilles Tarifaires
+                const { data: rData, error: rErr } = await supabase.from('lost_price_ranks').select('*');
+                if (!rErr && rData) priceRanks = rData;
+                else if (priceRanks.length === 0) {
+                    priceRanks = [
+                        { id: "normal", name: "NORMAL", discount: 0 },
+                        { id: "vip", name: "VIP", discount: 10 },
+                        { id: "lost", name: "LOST", discount: 20 }
+                    ];
+                }
 
-                console.log("Données synchronisées avec succès depuis Supabase !");
-            } catch (error) {
-                console.error("Erreur d'initialisation Supabase :", error);
+                // Chargement du Catalogue d'Articles
+                const { data: cData, error: cErr } = await supabase.from('lost_catalog').select('*');
+                if (!cErr && cData) catalog = cData;
+
+                // Chargement des Codes Promos
+                const { data: cpData, error: cpErr } = await supabase.from('lost_coupons').select('*');
+                if (!cpErr && cpData) coupons = cpData;
+
+                // Chargement global de toutes les commandes
+                const { data: oData, error: oErr } = await supabase.from('lost_orders').select('*');
+                if (!oErr && oData) orders = oData;
+
+                console.log("Supabase : Données synchronisées avec succès.");
+            } catch (err) {
+                console.error("Erreur durant l'initialisation de Supabase :", err);
             }
         }
-
-        // Lancement immédiat de la récupération
         initApp();
 
+        // --- 4. FLUX D'AUTHENTIFICATION ---
         function toggleAuth(isReg) {
             document.getElementById('login-form-div').classList.toggle('hidden', isReg);
             document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
         }
 
-        // MANAGEMENT DU FORMULAIRE DE LOG-IN
         document.getElementById('auth-form').onsubmit = (e) => {
             e.preventDefault();
             const pureLogin = document.getElementById('login-pure-username').value.trim();
             const cityNum = document.getElementById('login-city-number').value.trim();
             const p = document.getElementById('password').value;
+            
             const combinedFormat = `${pureLogin}|${cityNum}`.toLowerCase();
             const singleFormat = pureLogin.toLowerCase();
             
-            const found = users.find(x => (x.username.toLowerCase() === combinedFormat || x.username.toLowerCase() === singleFormat) && x.password === p);
-            if(found) { currentUser = found; loginSuccess(); } else { alert("Accès refusé. Vérifiez vos identifiants."); }
+            const found = users.find(x => 
+                (x.username.toLowerCase() === combinedFormat || x.username.toLowerCase() === singleFormat) 
+                && x.password === p
+            );
+
+            if(found) { 
+                currentUser = found; 
+                loginSuccess(); 
+            } else { 
+                alert("Accès refusé. Informations incorrectes."); 
+            }
         };
 
-        // ENREGISTREMENT ET INSCRIPTION DIRECTEMENT SUR SUPABASE
         document.getElementById('reg-form').onsubmit = async (e) => {
             e.preventDefault();
             const pureUser = document.getElementById('reg-pure-username').value.trim();
             const cityNum = document.getElementById('reg-city-number').value.trim();
             const p = document.getElementById('reg-password').value;
+            
             if(pureUser.includes('|')) return alert("Le pseudo ne doit pas contenir de barre '|'.");
             const finalCombinedUsername = `${pureUser}|${cityNum}`;
 
-            if(users.find(x => x.username.toLowerCase() === finalCombinedUsername.toLowerCase())) return alert("Identifiant déjà utilisé.");
+            if(users.find(x => x.username.toLowerCase() === finalCombinedUsername.toLowerCase())) {
+                return alert("Cet identifiant est déjà enregistré.");
+            }
             
             const newUser = { username: finalCombinedUsername, password: p, roles: ["client"], rank: "normal" };
+            
+            const { error } = await supabase.from('lost_users').insert([newUser]);
+            if (error) return alert("Erreur d'inscription Supabase : " + error.message);
 
-            // Insertion dans la table des membres sur Supabase
-            const { error } = await supabaseClient.from('lost_users').insert([newUser]);
-            if(error) {
-                alert("Erreur de sauvegarde Supabase : " + error.message);
-            } else {
-                users.push(newUser);
-                alert(`Compte enregistré !`); 
-                toggleAuth(false);
-            }
+            users.push(newUser);
+            alert(`Compte sécurisé enregistré !`); 
+            toggleAuth(false);
         };
 
         function loginSuccess() {
@@ -718,8 +760,8 @@
             document.getElementById('app-structure').classList.remove('hidden');
             document.getElementById('user-display').innerHTML = `Membre : <strong>${currentUser.username}</strong>`;
             refreshMenusVisibility(); 
-            setupMultipleFiltersDropdowns();
             updateVendeurBadgesCounters();
+            setupMultipleFiltersDropdowns();
             showTab('shop');
         }
 
@@ -730,6 +772,7 @@
             document.getElementById('menu-admin').classList.toggle('hidden', !currentUser.roles.includes('admin'));
         }
 
+        // --- 5. LOGIQUE BOUTIQUE & CALCULS ---
         function getDiscountedPrice(basePrice) {
             let pct = 0;
             const userRank = priceRanks.find(r => r.id === currentUser.rank);
@@ -756,7 +799,7 @@
             rankStatus.innerHTML = `<span class="badge" style="background:${badgeBg}">${currentRankObj.name} (-${currentRankObj.discount}%)</span>`;
 
             const filtered = catalog.filter(item => item.cat === activeShopCat);
-            if(!filtered.length) { container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Vide.</div>`; return; }
+            if(!filtered.length) { container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Aucune référence disponible.</div>`; return; }
 
             container.innerHTML = filtered.map(w => {
                 const calc = getDiscountedPrice(w.price);
@@ -773,7 +816,7 @@
                             ${calc.discounted ? `<span class="old-price">${w.price.toLocaleString()} $</span>` : ''}
                             <span class="price-tag">${calc.price.toLocaleString()} $</span>
                         </div>
-                        <button class="btn btn-small" style="width:100%; margin-top:12px;" onclick="addToCart(${w.id})">Ajouter au panier</button>
+                        <button class="btn btn-small" style="width:100%; margin-top:12px;" onclick="addToCart(${w.id})">Ajouter</button>
                     </div>
                 </div>`;
             }).join('');
@@ -783,10 +826,10 @@
             const code = document.getElementById('cart-coupon-input').value.trim().toUpperCase();
             const status = document.getElementById('coupon-status');
             const currentRankObj = priceRanks.find(r => r.id === currentUser.rank);
-            if(currentRankObj && currentRankObj.discount > 0) { status.innerHTML = `<span style="color:var(--status-pending)">Remises rang prioritaires.</span>`; return; }
+            if(currentRankObj && currentRankObj.discount > 0) { status.innerHTML = `<span style="color:var(--status-pending)">Remises de rang prioritaires.</span>`; return; }
             const found = coupons.find(c => c.code.toUpperCase() === code);
-            if(found) { activeCoupon = found; status.innerHTML = `<span style="color:var(--status-done)">Code actif : -${found.pct}%</span>`; loadCatalogue(); updateCart(); }
-            else { activeCoupon = null; status.innerHTML = `<span style="color:var(--accent-red)">Inconnu.</span>`; loadCatalogue(); updateCart(); }
+            if(found) { activeCoupon = found; status.innerHTML = `<span style="color:var(--status-done)">Code appliqué : -${found.pct}%</span>`; loadCatalogue(); updateCart(); }
+            else { activeCoupon = null; status.innerHTML = `<span style="color:var(--accent-red)">Code inconnu.</span>`; loadCatalogue(); updateCart(); }
         }
 
         function addToCart(id) {
@@ -808,7 +851,6 @@
             document.getElementById('cart-total').textContent = total.toLocaleString() + " $";
         }
 
-        // ENREGISTREMENT DE LA COMMANDE SUR SUPABASE (CHECKOUT)
         async function checkout() {
             if(!cart.length) return;
             const newOrder = {
@@ -820,19 +862,22 @@
                 msgs: [{ auth: 'Système', text: 'Demande transmise.' }]
             };
 
-            const { error } = await supabaseClient.from('lost_orders').insert([newOrder]);
-            if(error) {
-                alert("Erreur lors de la validation du panier : " + error.message);
-            } else {
-                orders.push(newOrder);
-                cart = []; activeCoupon = null; updateCart(); alert("Commande envoyée."); showTab('orders');
-            }
+            const { error } = await supabase.from('lost_orders').insert([newOrder]);
+            if (error) return alert("Erreur de transmission Supabase : " + error.message);
+
+            orders.push(newOrder);
+            cart = []; 
+            activeCoupon = null; 
+            updateCart(); 
+            alert("Commande validée et enregistrée en ligne."); 
+            showTab('orders');
         }
 
+        // --- 6. RENDER & AFFICHAGE DES COMMANDES ---
         function renderOrderHTML(o, contextView) {
             const total = o.items.reduce((s, i) => s + (i.finalPrice * i.qty), 0);
             let statusColor = "var(--status-pending)";
-            if(o.status === "En cours") statusColor = "var(--status-process)";
+            if(o.status === "Pris en charge") statusColor = "var(--status-process)";
             if(o.status === "Prêt à livrer") statusColor = "#a855f7";
             if(o.status === "Terminée") statusColor = "var(--status-done)";
             if(o.status === "Annulée") statusColor = "var(--accent-red)";
@@ -842,11 +887,11 @@
             
             if(contextView === 'vendeur') {
                 if(o.status === 'En attente') {
-                    actionsHTML = `<button class="btn btn-small" style="background:var(--status-process)" onclick="updateStatus('${o.id}', 'En cours')">🎯 S'attribuer la commande</button>`;
-                } else if(o.status === 'En cours' && (o.vendeur === currentUser.username || isAdmin)) {
+                    actionsHTML = `<button class="btn btn-small" style="background:var(--status-process)" onclick="updateStatus('${o.id}', 'Pris en charge')">🎯 S'attribuer la commande</button>`;
+                } else if(o.status === 'Pris en charge' && (o.vendeur === currentUser.username || isAdmin)) {
                     actionsHTML = `<button class="btn btn-small" style="background:#a855f7" onclick="updateStatus('${o.id}', 'Prêt à livrer')">📦 Prêt à livrer</button>`;
                 } else if(o.status === 'Prêt à livrer' && (o.vendeur === currentUser.username || isAdmin)) {
-                    actionsHTML = `<button class="btn btn-small btn-success" onclick="updateStatus('${o.id}', 'Terminée')">✔️ Clôturer la vente</button>`;
+                    actionsHTML = `<button class="btn btn-success btn-small" onclick="updateStatus('${o.id}', 'Terminée')">✔️ Clôturer la vente</button>`;
                 }
                 if(o.status !== 'Terminée' && o.status !== 'Annulée' && (!o.vendeur || o.vendeur === currentUser.username || isAdmin)) {
                     actionsHTML += ` <button class="btn btn-small btn-danger" onclick="updateStatus('${o.id}', 'Annulée')">✕ Annuler</button>`;
@@ -857,7 +902,8 @@
                 actionsHTML = `<button class="btn btn-small btn-danger" onclick="clientCancelOrder('${o.id}')">✕ Annuler la demande</button>`;
             }
 
-            const chatHTML = (o.msgs || []).map(m => {
+            const messageList = o.msgs || [];
+            const chatHTML = messageList.map(m => {
                 let msgClass = "other";
                 if(m.auth === 'Système') msgClass = "system";
                 else if(m.auth === currentUser.username) msgClass = "me";
@@ -866,12 +912,7 @@
 
             return `<div class="order-item" id="item-${o.id}">
                 <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
-                    <div>
-                        <strong style="color:var(--accent-red); font-size:15px; margin-right:10px;">${o.id}</strong>
-                        <span style="color:var(--text-muted); font-size:13px;">
-                            ${contextView==='vendeur'?'Client: '+o.client:'Vendeur: '+(o.vendeur || 'En attente')}
-                        </span>
-                    </div>
+                    <div><strong style="color:var(--accent-red); font-size:15px; margin-right:10px;">${o.id}</strong><span style="color:var(--text-muted); font-size:13px;">${contextView==='vendeur'?'Client: '+o.client:'Suivi'}</span></div>
                     <div style="display:flex; align-items:center; gap:15px;">
                         <span style="font-size:14px; font-weight:bold; color:var(--status-done)">${total.toLocaleString()} $</span>
                         <span class="badge" style="background:${statusColor}">${o.status}</span>
@@ -892,6 +933,7 @@
             </div>`;
         }
 
+        // --- 7. LOGISTIQUE & MODULE VENDEURS ---
         function switchClientOrdersTab(subTab) {
             currentClientOrdersTab = subTab;
             document.getElementById('client-tab-active').classList.toggle('active', subTab === 'active');
@@ -903,23 +945,15 @@
             const container = document.getElementById('my-orders-list');
             const myAll = orders.filter(o => o.client === currentUser.username);
             let filtered = currentClientOrdersTab === 'active' ? myAll.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée') : myAll.filter(o => o.status === 'Terminée' || o.status === 'Annulée');
-            container.innerHTML = filtered.length ? filtered.map(o => renderOrderHTML(o, 'client')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande dans cette section.</div>";
+            container.innerHTML = filtered.length ? filtered.map(o => renderOrderHTML(o, 'client')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande.</div>";
         }
 
         function setupMultipleFiltersDropdowns() {
             const archiveCliSelect = document.getElementById('vendeur-archive-client-select');
-            const archiveStaffSelect = document.getElementById('vendeur-archive-staff-select');
-            
-            const tousVendeurs = [...new Set(users.filter(u => u.roles.includes('vendeur')).map(u => u.username))];
             const tousClients = [...new Set(orders.map(o => o.client))];
-
             if(archiveCliSelect) {
                 archiveCliSelect.innerHTML = '<option value="all" selected>Tous les Clients</option>';
                 tousClients.forEach(c => archiveCliSelect.innerHTML += `<option value="${c}">${c}</option>`);
-            }
-            if(archiveStaffSelect) {
-                archiveStaffSelect.innerHTML = '<option value="all" selected>Tous les Vendeurs</option>';
-                tousVendeurs.forEach(v => archiveStaffSelect.innerHTML += `<option value="${v}">${v}</option>`);
             }
         }
 
@@ -943,136 +977,122 @@
             loadVendeurView();
         }
 
+        function setArchiveScope(scope) {
+            currentArchiveScope = scope;
+            document.getElementById('arch-btn-all').classList.toggle('btn-secondary', scope === 'me');
+            document.getElementById('arch-btn-all').classList.toggle('btn-success', scope === 'all');
+            document.getElementById('arch-btn-me').classList.toggle('btn-secondary', scope === 'all');
+            document.getElementById('arch-btn-me').classList.toggle('btn-success', scope === 'me');
+            loadVendeurView();
+        }
+
         function updateVendeurBadgesCounters() {
-            document.getElementById('v-filter-all').textContent = `Toutes en cours (${orders.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée').length})`;
+            document.getElementById('v-filter-all').textContent = `Toutes (${orders.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée').length})`;
             document.getElementById('v-filter-todo').textContent = `À prendre (${orders.filter(o => o.status === 'En attente').length})`;
             document.getElementById('v-filter-mine').textContent = `Mes livraisons (${orders.filter(o => o.vendeur === currentUser.username && o.status !== 'Terminée' && o.status !== 'Annulée').length})`;
-            document.getElementById('v-filter-done').textContent = `Archives du Club (${orders.filter(o => o.status === 'Terminée' || o.status === 'Annulée').length})`;
+            document.getElementById('v-filter-done').textContent = `Archives (${orders.filter(o => o.status === 'Terminée' || o.status === 'Annulée').length})`;
         }
 
         function loadVendeurView() {
             updateVendeurBadgesCounters();
-            
             if(currentVendeurFilter !== 'done') {
                 const container = document.getElementById('vendeur-orders-list');
                 let filtered = [];
                 if(currentVendeurFilter === 'all') filtered = orders.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée');
                 if(currentVendeurFilter === 'todo') filtered = orders.filter(o => o.status === 'En attente');
                 if(currentVendeurFilter === 'mine') filtered = orders.filter(o => o.vendeur === currentUser.username && o.status !== 'Terminée' && o.status !== 'Annulée');
-                container.innerHTML = filtered.length ? filtered.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande en cours.</div>";
+                container.innerHTML = filtered.length ? filtered.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande.</div>";
                 return;
             }
 
             const successContainer = document.getElementById('archived-success-list');
             const cancelledContainer = document.getElementById('archived-cancelled-list');
-            
             const selectedClients = getSelectedOptions(document.getElementById('vendeur-archive-client-select'));
-            const selectedVendeurs = getSelectedOptions(document.getElementById('vendeur-archive-staff-select'));
 
             let doneOrders = orders.filter(o => o.status === 'Terminée');
             let cancelledOrders = orders.filter(o => o.status === 'Annulée');
 
-            if(selectedVendeurs.length > 0 && !selectedVendeurs.includes('all')) {
-                doneOrders = doneOrders.filter(o => selectedVendeurs.includes(o.vendeur));
-                cancelledOrders = cancelledOrders.filter(o => selectedVendeurs.includes(o.vendeur));
+            if(currentArchiveScope === 'me') {
+                doneOrders = doneOrders.filter(o => o.vendeur === currentUser.username);
+                cancelledOrders = cancelledOrders.filter(o => o.vendeur === currentUser.username);
             }
             if(selectedClients.length > 0 && !selectedClients.includes('all')) {
                 doneOrders = doneOrders.filter(o => selectedClients.includes(o.client));
                 cancelledOrders = cancelledOrders.filter(o => selectedClients.includes(o.client));
             }
 
-            let totalRevenue = 0;
-            let totalItemsCount = 0;
-            let itemsBreakdown = {};
-
-            doneOrders.forEach(o => {
-                o.items.forEach(i => {
-                    totalRevenue += (i.finalPrice * i.qty);
-                    totalItemsCount += i.qty;
-                    if(!itemsBreakdown[i.name]) itemsBreakdown[i.name] = 0;
-                    itemsBreakdown[i.name] += i.qty;
-                });
-            });
-
+            let totalRevenue = doneOrders.reduce((s, o) => s + o.items.reduce((sum, i) => sum + (i.finalPrice * i.qty), 0), 0);
             document.getElementById('stat-revenue').textContent = totalRevenue.toLocaleString() + " $";
             document.getElementById('stat-orders-count').textContent = doneOrders.length;
-            document.getElementById('stat-items-count').textContent = totalItemsCount;
+            document.getElementById('stat-items-count').textContent = doneOrders.reduce((s,o)=> s + o.items.reduce((sum,i)=>sum+i.qty,0),0);
 
-            const breakdownContainer = document.getElementById('vendeur-items-breakdown-list');
-            const itemKeys = Object.keys(itemsBreakdown);
-            if(itemKeys.length === 0) {
-                breakdownContainer.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">Aucun produit livré avec les filtres actuels.</div>`;
-            } else {
-                breakdownContainer.innerHTML = itemKeys.map(k => `
-                    <div class="item-detail-row">
-                        <span>📦 <strong>${k}</strong></span>
-                        <span>Livrés : <strong style="color:var(--status-done)">x${itemsBreakdown[k]}</strong></span>
-                    </div>
-                `).join('');
-            }
-
-            successContainer.innerHTML = doneOrders.length ? doneOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:10px;'>Aucune archive.</div>";
-            cancelledContainer.innerHTML = cancelledOrders.length ? cancelledOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:10px;'>Aucune commande annulée.</div>";
+            successContainer.innerHTML = doneOrders.length ? doneOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "Aucune.";
+            cancelledContainer.innerHTML = cancelledOrders.length ? cancelledOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "Aucune.";
         }
 
-        // METTRE À JOUR LE STATUT D'UNE COMMANDE DANS SUPABASE
         async function updateStatus(orderId, newStatus) {
             const o = orders.find(x => x.id === orderId);
             if(!o) return;
+            
+            let originalVendeur = o.vendeur;
+            if(newStatus === 'Pris en charge' && !o.vendeur) originalVendeur = currentUser.username;
+            
+            let updatedMsgs = [...o.msgs, { auth: 'Système', text: `Statut : ${newStatus}` }];
 
-            let prevStatus = o.status;
-            let prevVendeur = o.vendeur;
+            const { error } = await supabase.from('lost_orders')
+                .update({ status: newStatus, vendeur: originalVendeur, msgs: updatedMsgs })
+                .eq('id', orderId);
+
+            if (error) return alert("Erreur Supabase lors de la mise à jour : " + error.message);
 
             o.status = newStatus;
-            if(newStatus === 'En cours' && !o.vendeur) {
-                o.vendeur = currentUser.username;
-            }
-            o.msgs.push({ auth: 'Système', text: `Statut modifié : ${newStatus} (Vendeur: ${o.vendeur || 'Aucun'})` });
-
-            // On update la base de données distante
-            const { error } = await supabaseClient.from('lost_orders').update({ status: o.status, vendeur: o.vendeur, msgs: o.msgs }).eq('id', orderId);
-            if(error) {
-                alert("Erreur Supabase lors du changement de statut : " + error.message);
-                o.status = prevStatus; o.vendeur = prevVendeur; o.msgs.pop(); // Rollback en cas d'erreur
-            } else {
-                setupMultipleFiltersDropdowns();
-                loadVendeurView();
-            }
+            o.vendeur = originalVendeur;
+            o.msgs = updatedMsgs;
+            loadVendeurView();
         }
 
-        // ANNULATION CLIENT DANS SUPABASE
         async function clientCancelOrder(orderId) {
             const o = orders.find(x => x.id === orderId);
-            if(o && confirm("Voulez-vous vraiment annuler votre demande ?")) { 
-                let prevStatus = o.status;
-                o.status = 'Annulée'; 
-                o.msgs.push({ auth: 'Système', text: 'Annulé par le client.' }); 
+            if(o && confirm("Voulez-vous vraiment annuler votre commande ?")) {
+                let updatedMsgs = [...o.msgs, { auth: 'Système', text: 'Annulé par le client.' }];
+                
+                const { error } = await supabase.from('lost_orders')
+                    .update({ status: 'Annulée', msgs: updatedMsgs })
+                    .eq('id', orderId);
 
-                const { error } = await supabaseClient.from('lost_orders').update({ status: o.status, msgs: o.msgs }).eq('id', orderId);
-                if(error) {
-                    alert("Erreur d'annulation : " + error.message);
-                    o.status = prevStatus; o.msgs.pop();
-                } else {
-                    loadMyOrders(); 
-                }
+                if (error) return alert("Erreur d'annulation : " + error.message);
+
+                o.status = 'Annulée';
+                o.msgs = updatedMsgs;
+                loadMyOrders();
             }
         }
 
-        // ENVOI DE MESSAGE DANS LE TCHAT DE LA COMMANDE (SUPABASE UPDATE)
         async function sendOrderMsg(orderId) {
             const input = document.getElementById(`input-${orderId}`);
             if(!input.value.trim()) return;
             const o = orders.find(x => x.id === orderId);
-            o.msgs.push({ auth: currentUser.username, text: input.value.trim() });
+            
+            let updatedMsgs = [...o.msgs, { auth: currentUser.username, text: input.value.trim() }];
 
-            const { error } = await supabaseClient.from('lost_orders').update({ msgs: o.msgs }).eq('id', orderId);
-            if(error) {
-                alert("Message non envoyé : " + error.message);
-                o.msgs.pop();
-            } else {
-                input.value = "";
-                if(document.getElementById('tab-orders').classList.contains('hidden')) loadVendeurView(); else loadMyOrders();
-            }
+            const { error } = await supabase.from('lost_orders')
+                .update({ msgs: updatedMsgs })
+                .eq('id', orderId);
+
+            if (error) return alert("Impossible d'envoyer le message : " + error.message);
+
+            o.msgs = updatedMsgs;
+            input.value = "";
+            if(document.getElementById('tab-orders').classList.contains('hidden')) loadVendeurView(); else loadMyOrders();
+        }
+
+        // --- 8. FINANCES & ADMINISTRATION ---
+        function loadAdminFinancialData() {
+            let doneOrders = orders.filter(o => o.status === 'Terminée');
+            let totalRevenue = doneOrders.reduce((s, o) => s + o.items.reduce((sum, i) => sum + (i.finalPrice * i.qty), 0), 0);
+            document.getElementById('admin-fin-revenue').textContent = totalRevenue.toLocaleString() + " $";
+            document.getElementById('admin-fin-success-count').textContent = doneOrders.length;
+            document.getElementById('admin-fin-cancelled-count').textContent = orders.filter(o => o.status === 'Annulée').length;
         }
 
         function setAdminSubTab(sub) {
@@ -1082,7 +1102,7 @@
             document.getElementById('admin-sub-ranks').classList.toggle('hidden', sub !== 'ranks');
             document.getElementById('admin-sub-catalog').classList.toggle('hidden', sub !== 'catalog');
             document.getElementById('admin-sub-coupons').classList.toggle('hidden', sub !== 'coupons');
-            if(sub === 'users') loadAdminUsers();
+            if(sub === 'users') { loadAdminUsers(); loadAdminFinancialData(); }
             if(sub === 'ranks') loadAdminRanks();
             if(sub === 'catalog') loadAdminCatalog();
             if(sub === 'coupons') loadAdminCoupons();
@@ -1090,16 +1110,18 @@
 
         function loadAdminUsers() {
             const container = document.getElementById('admin-users-list');
-            container.innerHTML = `<table><tr><th>Membre</th><th>Rangs & Accès</th><th>Actions</th></tr>
+            container.innerHTML = `<table><tr><th>Membre</th><th>Rangs</th><th>Actions</th></tr>
                 ${users.map((u, i) => `<tr><td><strong>${u.username}</strong></td>
                 <td>${u.roles.join(', ')} [${u.rank}]</td>
                 <td><button class="btn btn-danger btn-small" onclick="deleteUser('${u.username}', ${i})">Supprimer</button></td></tr>`).join('')}</table>`;
         }
 
-        async function deleteUser(username, index) {
-            if(confirm("Supprimer ce membre ?")) {
-                const { error } = await supabaseClient.from('lost_users').delete().eq('username', username);
-                if(!error) { users.splice(index,1); loadAdminUsers(); }
+        async function deleteUser(username, localIndex) {
+            if(confirm(`Supprimer l'accès de ${username} ?`)) {
+                const { error } = await supabase.from('lost_users').delete().eq('username', username);
+                if(error) return alert("Erreur Supabase : " + error.message);
+                users.splice(localIndex, 1);
+                loadAdminUsers();
             }
         }
 
@@ -1110,28 +1132,38 @@
         function openRankModal() { document.getElementById('modal-rank').classList.remove('hidden'); }
         async function saveRank() {
             const newRank = { id: document.getElementById('rank-name').value.toLowerCase(), name: document.getElementById('rank-name').value, discount: parseInt(document.getElementById('rank-discount').value) };
-            const { error } = await supabaseClient.from('lost_price_ranks').insert([newRank]);
-            if(!error) { priceRanks.push(newRank); document.getElementById('modal-rank').classList.add('hidden'); loadAdminRanks(); }
+            const { error } = await supabase.from('lost_price_ranks').insert([newRank]);
+            if(error) return alert(error.message);
+            priceRanks.push(newRank);
+            document.getElementById('modal-rank').classList.add('hidden'); 
+            loadAdminRanks();
         }
 
         function loadAdminCatalog() {
-            document.getElementById('admin-catalog-list').innerHTML = catalog.map((item, i) => `<div>${item.name} - ${item.price}$</div>`).join('');
+            document.getElementById('admin-catalog-list').innerHTML = catalog.map((item) => `<div>• <strong>${item.name}</strong> - ${item.price.toLocaleString()} $ (${item.cat})</div>`).join('');
         }
         function openItemModal() { document.getElementById('modal-item').classList.remove('hidden'); }
         async function saveItem() {
-            const newItem = { id: Date.now(), name: document.getElementById('edit-name').value, price: parseInt(document.getElementById('edit-price').value), desc: document.getElementById('edit-desc').value, mag: document.getElementById('edit-mag').value, cat: document.getElementById('edit-cat').value };
-            const { error } = await supabaseClient.from('lost_catalog').insert([newItem]);
-            if(!error) { catalog.push(newItem); document.getElementById('modal-item').classList.add('hidden'); loadAdminCatalog(); }
+            const newItem = { id: Date.now(), name: document.getElementById('edit-name').value, price: parseInt(document.getElementById('edit-price').value), desc: document.getElementById('edit-desc').value, mag: document.getElementById('edit-mag').value, cat: document.getElementById('edit-cat').value, img: "" };
+            const { error } = await supabase.from('lost_catalog').insert([newItem]);
+            if(error) return alert(error.message);
+            catalog.push(newItem);
+            document.getElementById('modal-item').classList.add('hidden'); 
+            loadAdminCatalog();
         }
 
-        function loadAdminCoupons() { document.getElementById('admin-coupons-list').innerHTML = coupons.map(c => `<div>${c.code} (-${c.pct}%)</div>`).join(''); }
+        function loadAdminCoupons() { document.getElementById('admin-coupons-list').innerHTML = coupons.map(c => `<div>Code : <strong>${c.code}</strong> (-${c.pct}%)</div>`).join(''); }
         function openCouponModal() { document.getElementById('modal-coupon').classList.remove('hidden'); }
         async function saveCoupon() {
-            const newCoupon = { id: Date.now(), code: document.getElementById('coupon-code').value, pct: parseInt(document.getElementById('coupon-pct').value) };
-            const { error } = await supabaseClient.from('lost_coupons').insert([newCoupon]);
-            if(!error) { coupons.push(newCoupon); document.getElementById('modal-coupon').classList.add('hidden'); loadAdminCoupons(); }
+            const newCoupon = { id: Date.now(), code: document.getElementById('coupon-code').value.toUpperCase(), pct: parseInt(document.getElementById('coupon-pct').value) };
+            const { error } = await supabase.from('lost_coupons').insert([newCoupon]);
+            if(error) return alert(error.message);
+            coupons.push(newCoupon);
+            document.getElementById('modal-coupon').classList.add('hidden'); 
+            loadAdminCoupons();
         }
 
+        // --- 9. GESTION DES ONGLETS GLOBAUX ---
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -1140,7 +1172,7 @@
             if(tabId === 'shop') { loadCatalogue(); updateCart(); }
             if(tabId === 'admin') setAdminSubTab('users');
             if(tabId === 'orders') switchClientOrdersTab('active');
-            if(tabId === 'vendre') { setupMultipleFiltersDropdowns(); setVendeurFilter(currentVendeurFilter); }
+            if(tabId === 'vendre') setVendeurFilter(currentVendeurFilter);
         }
     </script>
 </body>
