@@ -647,9 +647,10 @@
 
     <script>
         // --- 1. CONFIGURATION SUPABASE INTERNE ---
-        const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; // REPLACER PAR L'URL PROJET
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";       // REPLACER PAR VOTRE CLÉ PUBLIQUE ANON
-        
+        // --- 1. CONFIGURATION SUPABASE INTERNE ---
+        const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
+                
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
