@@ -7,52 +7,74 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #0a0a0a; color: #fff; padding: 20px; }
-        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #222; margin-bottom: 20px; }
-        h1 { font-size: 24px; letter-spacing: 2px; color: #fff; text-transform: uppercase; }
-        
-        .user-badge { display: flex; align-items: center; gap: 10px; }
-        .tag { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #444; }
-        
-        button { padding: 8px 15px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-logout { background: #aa2222; color: #fff; }
-        .btn-logout:hover { background: #cc3333; }
-        
-        nav { display: flex; gap: 10px; margin-bottom: 20px; }
-        .nav-tab { background: #222; color: #888; }
-        .nav-tab.active { background: #fff; color: #000; }
+        body { background-color: #0d0d0d; color: #fff; padding: 20px; }
         
         .hidden { display: none !important; }
         
-        /* Catalogue */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #111; border: 1px solid #222; border-radius: 6px; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-        .card h3 { text-transform: uppercase; margin-bottom: 10px; }
-        .card p { color: #888; font-size: 13px; margin-bottom: 15px; }
-        .card .price { font-size: 20px; font-weight: bold; margin-bottom: 15px; }
-        .btn-commander { background: #fff; color: #000; width: 100%; }
-        
-        /* Tableaux de suivi */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #111; border-radius: 6px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
-        th { background: #181818; text-transform: uppercase; font-size: 13px; color: #888; }
-        
-        /* Connexion écran complet */
-        #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0a; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index: 1000; }
-        .login-box { background:#111; padding:30px; border-radius:8px; border:1px solid #222; width:100%; max-width:400px; text-align:center; }
-        .login-box input { width:100%; padding:10px; margin:10px 0; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:4px; }
-        .login-box button { width:100%; background:#fff; color:#000; padding:10px; margin-top:10px; }
+        /* Écran d'Authentification */
+        #auth-screen { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: #070707; }
+        .auth-box { background: #111; padding: 30px; border-radius: 8px; border: 1px solid #222; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
+        .auth-box img { max-width: 150px; height: auto; margin-bottom: 15px; border-radius: 4px; }
+        .auth-box h2 { font-size: 22px; letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }
+        .auth-box input { width: 100%; padding: 11px; margin: 8px 0; background: #181818; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 14px; }
+        .auth-box button { width: 100%; padding: 12px; margin-top: 10px; background: #fff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 14px; }
+        .auth-toggle { margin-top: 15px; color: #888; font-size: 13px; cursor: pointer; text-decoration: underline; }
+
+        /* Header Principale */
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #222; margin-bottom: 20px; }
+        h1 { font-size: 22px; letter-spacing: 2px; text-transform: uppercase; }
+        .user-badge { display: flex; align-items: center; gap: 10px; }
+        .tag { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #444; color: #fff; text-transform: uppercase; }
+        .btn-logout { background: #aa2222; color: #fff; padding: 7px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+        /* Menu de Navigation */
+        nav { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .nav-tab { background: #161616; color: #888; padding: 10px 18px; border: 1px solid #222; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .nav-tab.active { background: #fff; color: #000; border-color: #fff; }
+
+        /* Layout Structure */
+        .shop-container { display: flex; gap: 20px; align-items: flex-start; }
+        .catalog-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .card { background: #111; border: 1px solid #222; border-radius: 6px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
+        .card h3 { text-transform: uppercase; font-size: 15px; margin-bottom: 8px; color: #fff; }
+        .card p { color: #777; font-size: 12px; margin-bottom: 15px; min-height: 36px; }
+        .card .price { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 12px; }
+        .card button { background: #fff; color: #000; width: 100%; padding: 8px; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
+
+        /* Mon Panier Fictif */
+        .cart-box { width: 300px; background: #111; border: 1px solid #222; border-radius: 6px; padding: 15px; }
+        .cart-box h3 { font-size: 15px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .cart-item { display: flex; justify-content: space-between; font-size: 13px; margin: 8px 0; color: #ccc; }
+        .btn-order-cart { background: #22aa22; color: #fff; width: 100%; padding: 10px; margin-top: 15px; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
+
+        /* Tableaux */
+        table { width: 100%; border-collapse: collapse; background: #111; border-radius: 6px; overflow: hidden; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; font-size: 14px; }
+        th { background: #161616; color: #777; text-transform: uppercase; font-size: 12px; }
+        .btn-action { background: #333; color: #fff; border: 1px solid #444; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>THE LOST MC SHOP</h2>
-            <p style="color:#666; font-size:13px; margin-bottom:15px;">Connexion au système de gestion</p>
-            <input type="number" id="login-id" placeholder="ID Serveur (ex: 51871)">
-            <input type="text" id="login-name" placeholder="Nom d'utilisateur (ex: Carnicero)">
-            <button id="btn-login">SE CONNECTER</button>
+    <div id="auth-screen">
+        <div id="box-login" class="auth-box">
+            <img src="logo.png" alt="Logo The Lost MC">
+            <h2>Connexion</h2>
+            <input type="number" id="login-id" placeholder="ID Ville (ex: 51871)">
+            <input type="text" id="login-pseudo" placeholder="Pseudo (ex: Carnicero)">
+            <input type="password" id="login-mdp" placeholder="Mot de passe">
+            <button id="btn-execute-login">Se connecter</button>
+            <p class="auth-toggle" onclick="toggleAuthMode(false)">Pas de compte ? Créer un compte</p>
+        </div>
+
+        <div id="box-register" class="auth-box hidden">
+            <img src="logo.png" alt="Logo The Lost MC">
+            <h2>Inscription</h2>
+            <input type="number" id="register-id" placeholder="ID Ville (ex: 51871)">
+            <input type="text" id="register-pseudo" placeholder="Pseudo (ex: Bernardo)">
+            <input type="password" id="register-mdp" placeholder="Choisir un mot de passe">
+            <button id="btn-execute-register">Créer mon compte</button>
+            <p class="auth-toggle" onclick="toggleAuthMode(true)">Déjà un compte ? Se connecter</p>
         </div>
     </div>
 
@@ -67,247 +89,236 @@
         </header>
 
         <nav>
-            <button class="nav-tab active" onclick="showTab('shop')">🛒 Catalogue</button>
-            <button class="nav-tab" onclick="showTab('orders')">📋 Suivi Commandes</button>
-            <button id="nav-vendeur" class="nav-tab hidden" onclick="showTab('vendedor-panel')">💼 Espace Vendeur</button>
+            <button id="nav-shop" class="nav-tab active" onclick="switchTab('shop')">🛒 Catalogue</button>
+            <button id="nav-orders" class="nav-tab" onclick="switchTab('orders')">📋 Suivi Commandes</button>
+            <button id="nav-vendeur" class="nav-tab hidden" onclick="switchTab('vendeur')">💼 Espace Vendeur</button>
         </nav>
 
         <div id="tab-shop" class="tab-content">
-            <h2>Articles disponibles</h2>
-            <div class="catalog-grid" id="catalog-grid">
+            <div class="shop-container">
+                <div class="catalog-grid" id="catalog-grid"></div>
+                <div class="cart-box">
+                    <h3>Mon Panier</h3>
+                    <div id="cart-items-list">
+                        <p style="color:#555; font-size:13px; text-align:center;">Votre panier est vide.</p>
+                    </div>
+                    <div id="cart-total-price" style="margin-top:15px; font-weight:bold; text-align:right; font-size:15px;" class="hidden">Total : 0 €</div>
+                    <button id="btn-validate-cart" class="btn-order-cart hidden">Valider la commande</button>
                 </div>
+            </div>
         </div>
 
-        <div id="tab-orders" class="tab-content class hidden">
-            <h2>Mes Commandes</h2>
+        <div id="tab-orders" class="tab-content hidden">
+            <h2>Mes Commandes Passées</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>ID Cmd</th>
+                        <th>N° Commande</th>
                         <th>Article</th>
-                        <th>Prix</th>
+                        <th>Prix Achat</th>
                         <th>Statut</th>
+                        <th>Chat</th>
                     </tr>
                 </thead>
-                <tbody id="client-orders-rows">
-                    </tbody>
+                <tbody id="client-table-body"></tbody>
             </table>
         </div>
 
-        <div id="tab-vendedor-panel" class="tab-content hidden">
-            <h2>Gestion des Commandes Vendeurs</h2>
+        <div id="tab-vendeur" class="tab-content hidden">
+            <h2>Gestion Générale (Vendeurs & Admins)</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>ID Cmd</th>
-                        <th>Client ID</th>
+                        <th>N° Commande</th>
+                        <th>Client (ID & Pseudo)</th>
                         <th>Article</th>
-                        <th>Prix</th>
+                        <th>Prix Total</th>
                         <th>Statut</th>
-                        <th>Vendeur</th>
+                        <th>Actions / Discussion</th>
                     </tr>
                 </thead>
-                <tbody id="vendeur-orders-rows">
-                    </tbody>
+                <tbody id="vendeur-table-body"></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION SUPABASE
         const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_vESTqx5M-mdXuVj-lUrkSA_CGHyC7XS"; 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Éléments du DOM
-        const loginScreen = document.getElementById('login-screen');
-        const mainInterface = document.getElementById('main-interface');
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
+        let panier = null; 
+        let localUser = { id: null, login: null, admin: false, vendeur: false };
 
-        // Gestion de la session
         window.addEventListener('DOMContentLoaded', () => {
-            const userId = localStorage.getItem('user_id');
-            const userLogin = localStorage.getItem('user_login');
-            if (userId && userLogin) {
-                connexionReussie(userId, userLogin);
+            const storedId = localStorage.getItem('lost_id');
+            const storedLogin = localStorage.getItem('lost_login');
+            if(storedId && storedLogin) {
+                connexionActive(storedId, storedLogin);
             }
         });
 
-        btnLogin.addEventListener('click', async () => {
-            const idInput = document.getElementById('login-id').value;
-            const nameInput = document.getElementById('login-name').value;
+        function toggleAuthMode(showLogin) {
+            document.getElementById('box-login').classList.toggle('hidden', !showLogin);
+            document.getElementById('box-register').classList.toggle('hidden', showLogin);
+        }
 
-            if(!idInput || !nameInput) {
-                alert("Veuillez remplir les deux champs.");
-                return;
-            }
+        // Action Inscription : Rôle client par défaut
+        document.getElementById('btn-execute-register').addEventListener('click', async () => {
+            const id = document.getElementById('register-id').value;
+            const pseudo = document.getElementById('register-pseudo').value.trim();
+            const mdp = document.getElementById('register-mdp').value;
 
-            // Vérifier ou créer l'utilisateur dans Supabase
-            const { data: user, error } = await supabaseClient
-                .from('utilisateurs')
-                .select('*')
-                .eq('id_serveur', parseInt(idInput))
-                .maybeSingle();
+            if(!id || !pseudo || !mdp) return alert("Remplissez tous les champs.");
 
-            if (!user) {
-                // Créer le profil client s'il n'existe pas encore
-                await supabaseClient.from('utilisateurs').insert([{ id_serveur: parseInt(idInput), login: nameInput }]);
-            }
+            const { data: exist } = await supabaseClient.from('utilisateurs').select('*').eq('id_serveur', parseInt(id)).eq('login', pseudo).maybeSingle();
+            if(exist) return alert("Ce compte (ID + Pseudo) existe déjà.");
 
-            localStorage.setItem('user_id', idInput);
-            localStorage.setItem('user_login', nameInput);
-            connexionReussie(idInput, nameInput);
+            const { error } = await supabaseClient.from('utilisateurs').insert([{ id_serveur: parseInt(id), login: pseudo, mot_de_pass: mdp, role_admin: false, role_vendeur: false }]);
+            if(error) return alert("Erreur d'inscription : " + error.message);
+
+            alert("Compte créé avec succès ! Connectez-vous.");
+            toggleAuthMode(true);
         });
 
-        btnLogout.addEventListener('click', () => {
+        // Action Connexion
+        document.getElementById('btn-execute-login').addEventListener('click', async () => {
+            const id = document.getElementById('login-id').value;
+            const pseudo = document.getElementById('login-pseudo').value.trim();
+            const mdp = document.getElementById('login-mdp').value;
+
+            const { data: user, error } = await supabaseClient.from('utilisateurs').select('*').eq('id_serveur', parseInt(id)).eq('login', pseudo).maybeSingle();
+            
+            if(error || !user || user.mot_de_pass !== mdp) {
+                return alert("Identifiants incorrects ou introuvables.");
+            }
+
+            localStorage.setItem('lost_id', user.id_serveur);
+            localStorage.setItem('lost_login', user.login);
+            connexionActive(user.id_serveur, user.login);
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
             localStorage.clear();
             window.location.reload();
         });
 
-        async function connexionReussie(id, login) {
-            loginScreen.classList.add('hidden');
-            mainInterface.classList.remove('hidden');
-            document.getElementById('player-name').textContent = login;
+        async function connexionActive(id, login) {
+            const { data: user } = await supabaseClient.from('utilisateurs').select('*').eq('id_serveur', parseInt(id)).eq('login', login).maybeSingle();
+            if(!user) return;
 
-            // Charger les rôles
-            const { data: user } = await supabaseClient.from('utilisateurs').select('*').eq('id_serveur', parseInt(id)).maybeSingle();
+            localUser.id = user.id_serveur; localUser.login = user.login;
+            localUser.admin = user.role_admin; localUser.vendeur = user.role_vendeur;
+
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-interface').classList.remove('hidden');
+            document.getElementById('player-name').textContent = localUser.login;
+
             const tag = document.getElementById('player-tag');
-            
-            if (user?.role_admin || user?.role_vendeur) {
-                tag.textContent = user.role_admin ? "ADMIN" : "VENDEUR";
-                tag.style.backgroundColor = user.role_admin ? "#aa2222" : "#d4af37";
-                tag.style.color = user.role_admin ? "#fff" : "#000";
-                document.getElementById('nav-vendeur').classList.remove('hidden');
-            }
+            if(localUser.admin) { tag.textContent="ADMIN"; tag.style.background="#aa2222"; document.getElementById('nav-vendeur').classList.remove('hidden'); }
+            else if(localUser.vendeur) { tag.textContent="VENDEUR"; tag.style.background="#d4af37"; tag.style.color="#000"; document.getElementById('nav-vendeur').classList.remove('hidden'); }
+            else { tag.textContent="CLIENT"; tag.style.background="#444"; }
 
             loadCatalogue();
             loadClientOrders();
             loadVendeurOrders();
         }
 
-        // Navigation par onglets
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            event.target.classList.add('active');
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('nav-' + tabName).classList.add('active');
         }
 
-        // Charger les articles de Supabase
         async function loadCatalogue() {
             const grid = document.getElementById('catalog-grid');
             const { data: articles } = await supabaseClient.from('articles').select('*');
-            
-            if(!grid) return;
             grid.innerHTML = "";
-
-            if (!articles || articles.length === 0) {
-                grid.innerHTML = "<p>Aucun article en vente pour le moment.</p>";
-                return;
-            }
-
-            articles.forEach(art => {
-                const card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `
-                    <div>
-                        <h3>${art.nom}</h3>
-                        <p>${art.description || ''}</p>
-                    </div>
-                    <div>
-                        <div class="price">${art.prix_de_base} €</div>
-                        <button class="btn-commander" onclick="commanderArticle('${art.nom}', ${art.prix_de_base}, this)">Commander</button>
-                    </div>
-                `;
-                grid.appendChild(card);
+            articles?.forEach(a => {
+                grid.innerHTML += `
+                    <div class="card">
+                        <h3>${a.nom}</h3>
+                        <p>${a.description || ''}</p>
+                        <div class="price">${a.prix_de_base} €</div>
+                        <button onclick="ajouterAuPanier('${a.nom}', ${a.prix_de_base})">Ajouter au panier</button>
+                    </div>`;
             });
         }
 
-        // Traiter une commande
-        async function commanderArticle(nom, prix, bouton) {
-            const userId = localStorage.getItem('user_id');
-            bouton.disabled = true;
-            bouton.textContent = "Envoi...";
-
-            // 1. Insertion Commande principale
-            const { data: cmd, error: err1 } = await supabaseClient
-                .from('commandes')
-                .insert([{ client_id: parseInt(userId), statut: 'En attente' }])
-                .select();
-
-            if (err1) {
-                alert("Erreur commande : " + err1.message);
-                bouton.disabled = false;
-                bouton.textContent = "Commander";
-                return;
-            }
-
-            // 2. Insertion Détails commande
-            const { error: err2 } = await supabaseClient
-                .from('details_commande')
-                .insert([{ id_commande: cmd[0].id, nom_article: nom, quantite: 1, prix_achat: prix }]);
-
-            if (err2) {
-                alert("Erreur détails : " + err2.message);
-            } else {
-                bouton.textContent = "COMMANDÉ !";
-                bouton.style.backgroundColor = "#22aa22";
-                bouton.style.color = "#fff";
-                loadClientOrders();
-                loadVendeurOrders();
-            }
+        function ajouterAuPanier(nom, prix) {
+            panier = { nom, prix };
+            document.getElementById('cart-items-list').innerHTML = `<div class="cart-item"><span>${nom}</span><b>${prix} €</b></div>`;
+            document.getElementById('cart-total-price').textContent = `Total : ${prix} €`;
+            document.getElementById('cart-total-price').classList.remove('hidden');
+            document.getElementById('btn-validate-cart').classList.remove('hidden');
         }
 
-        // Charger les commandes d'un client
+        document.getElementById('btn-validate-cart').addEventListener('click', async () => {
+            if(!panier) return;
+            const { data: cmd } = await supabaseClient.from('commandes').insert([{ client_id: localUser.id, client_pseudo: localUser.login, statut: 'En attente' }]).select();
+            await supabaseClient.from('details_commande').insert([{ id_commande: cmd[0].id, nom_article: panier.nom, prix_achat: panier.prix }]);
+            
+            alert("Commande transmise avec succès !");
+            panier = null;
+            document.getElementById('cart-items-list').innerHTML = `<p style="color:#555; font-size:13px; text-align:center;">Votre panier est vide.</p>`;
+            document.getElementById('cart-total-price').classList.add('hidden');
+            document.getElementById('btn-validate-cart').classList.add('hidden');
+            loadClientOrders(); loadVendeurOrders();
+        });
+
+        function formatNum(id, dateStr) {
+            const d = dateStr ? new Date(dateStr) : new Date();
+            const ymd = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+            return `#LOST-${ymd}-${String(id).padStart(4,'0')}`;
+        }
+
         async function loadClientOrders() {
-            const userId = localStorage.getItem('user_id');
-            const tbody = document.getElementById('client-orders-rows');
-            if(!tbody) return;
-
-            const { data: orders } = await supabaseClient
-                .from('commandes')
-                .select('id, statut, details_commande(nom_article, prix_achat)')
-                .eq('client_id', parseInt(userId));
-
+            const tbody = document.getElementById('client-table-body');
+            const { data: orders } = await supabaseClient.from('commandes').select('id, statut, date_commande, details_commande(nom_article, prix_achat)').eq('client_id', localUser.id).eq('client_pseudo', localUser.login);
             tbody.innerHTML = "";
             orders?.forEach(o => {
-                const detail = o.details_commande?.[0] || { nom_article: 'Inconnu', prix_achat: 0 };
+                const det = o.details_commande?.[0] || { nom_article: 'Sans nom', prix_achat: 0 };
                 tbody.innerHTML += `
                     <tr>
-                        <td>#${o.id}</td>
-                        <td>${detail.nom_article}</td>
-                        <td>${detail.prix_achat} €</td>
+                        <td>${formatNum(o.id, o.date_commande)}</td>
+                        <td>${det.nom_article}</td>
+                        <td>${det.prix_achat} €</td>
                         <td><span class="tag">${o.statut}</span></td>
-                    </tr>
-                `;
+                        <td><button class="btn-action" onclick="alert('Espace de discussion disponible côté vendeur.')">💬</button></td>
+                    </tr>`;
             });
         }
 
-        // Charger toutes les commandes (Espace Vendeur)
         async function loadVendeurOrders() {
-            const tbody = document.getElementById('vendeur-orders-rows');
+            const tbody = document.getElementById('vendeur-table-body');
             if(!tbody) return;
-
-            const { data: orders } = await supabaseClient
-                .from('commandes')
-                .select('id, client_id, statut, vendeur_affecte, details_commande(nom_article, prix_achat)');
-
+            const { data: orders } = await supabaseClient.from('commandes').select('id, client_id, client_pseudo, statut, vendeur_affecte, date_commande, details_commande(nom_article, prix_achat)');
             tbody.innerHTML = "";
             orders?.forEach(o => {
-                const detail = o.details_commande?.[0] || { nom_article: 'Inconnu', prix_achat: 0 };
+                const det = o.details_commande?.[0] || { nom_article: 'Inconnu', prix_achat: 0 };
                 tbody.innerHTML += `
                     <tr>
-                        <td>#${o.id}</td>
-                        <td>${o.client_id}</td>
-                        <td>${detail.nom_article}</td>
-                        <td>${detail.prix_achat} €</td>
-                        <td><strong>${o.statut}</strong></td>
-                        <td>${o.vendeur_affecte || 'Personne'}</td>
-                    </tr>
-                `;
+                        <td>${formatNum(o.id, o.date_commande)}</td>
+                        <td>ID: ${o.client_id} (${o.client_pseudo})</td>
+                        <td>${det.nom_article}</td>
+                        <td>${det.prix_achat} €</td>
+                        <td><b>${o.statut}</b></td>
+                        <td>
+                            <button class="btn-action" onclick="prendreCmd(${o.id})">S'affecter</button>
+                            <button class="btn-action" onclick="livrerCmd(${o.id})">Livrer</button>
+                        </td>
+                    </tr>`;
             });
+        }
+
+        async function prendreCmd(id) {
+            await supabaseClient.from('commandes').update({ vendeur_affecte: localUser.login }).eq('id', id);
+            loadVendeurOrders();
+        }
+        async function livrerCmd(id) {
+            await supabaseClient.from('commandes').update({ statut: 'Livrée' }).eq('id', id);
+            loadVendeurOrders();
         }
     </script>
 </body>
