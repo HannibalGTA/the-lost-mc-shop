@@ -402,36 +402,32 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
+        // Le catalogue est géré localement (évite le bug de la table 'articles' inexistante)
         let catalog = [
             { id: 1, name: "Pistolet de combat", price: 50000, desc: "Arme de poing légère", mag: "12 balles", cat: "weapons", img: "" },
             { id: 2, name: "Micro Uzi", price: 120000, desc: "Cadence de tir élevée", mag: "30 balles", cat: "weapons", img: "" },
             { id: 3, name: "Gilet par-balles", price: 5000, desc: "Protection moyenne", mag: "100%", cat: "others", img: "" }
         ];
         
-        // Plus de tableaux globaux chargeant l'entièreté de la base de données
+        // Plus de tableaux globaux obsolètes ou non sécurisés !
         let currentUser = null;
         let cart = [];
         let activeShopCat = 'weapons';
 
         // --- 3. INITIALISATION ---
-        async function initApp() {
-            console.log("Application connectée avec succès à Supabase !");
-        }
-        initApp();
-
-        // --- 4. FLUX D'AUTHENTIFICATION ---
         function toggleAuth(isReg) {
             document.getElementById('login-form-div').classList.toggle('hidden', isReg);
             document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
         }
 
+        // --- 4. FLUX D'AUTHENTIFICATION ---
         document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
             const pureLogin = document.getElementById('login-pure-username').value.trim();
             const cityNum = parseInt(document.getElementById('login-city-number').value.trim());
             const p = document.getElementById('password').value;
             
-            // Requête ciblée sécurisée sur Supabase
+            // Requête ciblée sécurisée sur la table 'utilisateurs'
             const { data: userData, error } = await supabase
                 .from('utilisateurs')
                 .select('*')
@@ -448,7 +444,7 @@
                 }; 
                 loginSuccess(); 
             } else { 
-                alert("Accès refusé. Vérifiez vos identifiants."); 
+                alert("Accès refusé. Vérifiez vos identifiants ou créez un compte."); 
             }
         };
 
@@ -458,7 +454,7 @@
             const cityNum = parseInt(document.getElementById('reg-city-number').value.trim());
             const p = document.getElementById('reg-password').value;
             
-            // Vérification si l'utilisateur existe déjà
+            // Vérification si le compte existe déjà
             const { data: existing } = await supabase
                 .from('utilisateurs')
                 .select('login')
@@ -470,7 +466,7 @@
                 return alert("Ce compte (Pseudo + Numéro de ville) existe déjà.");
             }
             
-            // Insertion stricte selon vos colonnes SQL
+            // Payload aligné sur vos colonnes SQL réelles
             const registerPayload = { 
                 id_serveur: cityNum, 
                 login: pureUser, 
@@ -495,7 +491,7 @@
             document.getElementById('app-structure').classList.remove('hidden');
             document.getElementById('user-display').innerHTML = `Membre : <strong>${currentUser.login_pure} (#${currentUser.id_serveur})</strong>`;
             
-            // Gestion des onglets selon les rôles du schéma SQL
+            // Affichage de l'onglet gestion de ventes selon les rôles du SQL
             const isStaff = currentUser.role_admin || currentUser.role_vendeur;
             document.getElementById('menu-vendre').classList.toggle('hidden', !isStaff);
             
@@ -561,7 +557,7 @@
         async function checkout() {
             if(!cart.length) return;
             
-            // 1. Insertion de la commande parente
+            // 1. Insertion dans la table parent 'commandes'
             const newOrderPayload = {
                 client_id: currentUser.id_serveur,
                 client_pseudo: currentUser.login_pure,
@@ -573,7 +569,7 @@
 
             const insertedOrderId = orderData[0].id;
 
-            // 2. Construction et insertion des lignes associées dans details_commande
+            // 2. Insertion des lignes enfants reliées dans 'details_commande'
             const linesPayload = cart.map(item => ({
                 id_commande: insertedOrderId,
                 nom_article: item.name,
@@ -590,7 +586,7 @@
             showTab('orders');
         }
 
-        // --- 6. SUIVI ET VISUALISATION DES COMMANDES ---
+        // --- 6. RENDU ET SYNC DES TABLES COMMANDES & DETAILS ---
         function renderOrderHTML(o, contextView) {
             let statusColor = o.statut === "Terminée" ? "var(--status-done)" : "var(--status-pending)";
             let actionBtn = "";
@@ -599,7 +595,7 @@
                 actionBtn = `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id})">✔️ Marquer comme Livrée</button>`;
             }
 
-            // Calcul du total de la commande depuis les détails
+            // Calcul dynamique du total grâce à la jointure SQL details_commande
             let totalCommande = 0;
             let rowsHtml = "";
             if (o.details_commande && o.details_commande.length > 0) {
@@ -653,7 +649,7 @@
         async function loadMyOrders() {
             const container = document.getElementById('my-orders-list');
             
-            // On récupère uniquement mes commandes + jointure sur leurs détails
+            // Jointure directe via Supabase (* = colonnes de commande, details_commande(*) = les sous-lignes)
             const { data, error } = await supabase
                 .from('commandes')
                 .select('*, details_commande(*)')
@@ -671,7 +667,6 @@
         async function loadVendeurView() {
             const container = document.getElementById('vendeur-orders-list');
             
-            // Les vendeurs ont accès à toutes les commandes en attente + leurs détails
             const { data, error } = await supabase
                 .from('commandes')
                 .select('*, details_commande(*)')
