@@ -290,7 +290,7 @@
 
     <div id="auth-screen">
         <div class="auth-container" id="login-form-div">
-            <img src="The lost mc logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
             <div class="auth-logo">The Lost MC Shop</div>
             <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
             <form id="auth-form">
@@ -312,7 +312,7 @@
         </div>
 
         <div class="auth-container hidden" id="register-form-div">
-            <img src="The lost mc logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
             <div class="auth-logo">Enregistrement</div>
             <div class="auth-subtitle">Créer son compte sécurisé</div>
             <form id="reg-form">
@@ -337,7 +337,7 @@
         <div id="sidebar">
             <div>
                 <div class="sidebar-brand-container">
-                    <img src="The lost mc logo.png" alt="The Lost MC Logo" class="sidebar-logo-img">
+                    <img src="logo.png" alt="The Lost MC Logo" class="sidebar-logo-img">
                     <div class="sidebar-brand">The Lost MC Shop</div>
                 </div>
                 <ul class="menu-list">
@@ -399,7 +399,7 @@
         const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
         // Le catalogue est géré localement (évite le bug de la table 'articles' inexistante)
@@ -428,7 +428,7 @@
             const p = document.getElementById('password').value;
             
             // Requête ciblée sécurisée sur la table 'utilisateurs'
-            const { data: userData, error } = await supabase
+            const { data: userData, error } = await supabaseClient
                 .from('utilisateurs')
                 .select('*')
                 .eq('login', pureLogin)
@@ -455,7 +455,7 @@
             const p = document.getElementById('reg-password').value;
             
             // Vérification si le compte existe déjà
-            const { data: existing } = await supabase
+            const { data: existing } = await supabaseClient
                 .from('utilisateurs')
                 .select('login')
                 .eq('login', pureUser)
@@ -475,7 +475,7 @@
                 role_vendeur: pureUser.toLowerCase() === "admin"
             };
             
-            const { error } = await supabase.from('utilisateurs').insert([registerPayload]);
+            const { error } = await supabaseClient.from('utilisateurs').insert([registerPayload]);
             
             if (error) {
                 alert("Erreur d'enregistrement Supabase : " + error.message);
@@ -564,7 +564,7 @@
                 statut: 'En attente'
             };
 
-            const { data: orderData, error: orderErr } = await supabase.from('commandes').insert([newOrderPayload]).select();
+            const { data: orderData, error: orderErr } = await supabaseClient.from('commandes').insert([newOrderPayload]).select();
             if (orderErr) return alert("Erreur lors de la commande : " + orderErr.message);
 
             const insertedOrderId = orderData[0].id;
@@ -577,7 +577,7 @@
                 prix_achat: item.price
             }));
 
-            const { error: linesErr } = await supabase.from('details_commande').insert(linesPayload);
+            const { error: linesErr } = await supabaseClient.from('details_commande').insert(linesPayload);
             if (linesErr) return alert("Erreur lors de l'enregistrement des détails : " + linesErr.message);
 
             cart = []; 
@@ -650,7 +650,7 @@
             const container = document.getElementById('my-orders-list');
             
             // Jointure directe via Supabase (* = colonnes de commande, details_commande(*) = les sous-lignes)
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('commandes')
                 .select('*, details_commande(*)')
                 .eq('client_pseudo', currentUser.login_pure)
@@ -667,7 +667,7 @@
         async function loadVendeurView() {
             const container = document.getElementById('vendeur-orders-list');
             
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('commandes')
                 .select('*, details_commande(*)')
                 .eq('statut', 'En attente')
@@ -681,7 +681,7 @@
         }
 
         async function completeOrder(idDb) {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('commandes')
                 .update({ statut: 'Terminée', vendeur_affecte: currentUser.login_pure })
                 .eq('id', idDb);
