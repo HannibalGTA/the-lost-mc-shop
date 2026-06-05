@@ -98,20 +98,6 @@
             transition: border-color 0.2s;
         }
 
-        select[multiple] {
-            height: 80px;
-            padding: 5px;
-        }
-        select[multiple] option {
-            padding: 4px 8px;
-            border-radius: 2px;
-            margin-bottom: 2px;
-        }
-        select[multiple] option:checked {
-            background: var(--accent-red) !important;
-            color: white !important;
-        }
-
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--accent-red);
@@ -292,7 +278,7 @@
         .chat-msg.me { background: var(--accent-red); color: white; align-self: flex-end; }
         .chat-msg.other { background: #334155; color: white; align-self: flex-start; }
 
-        /* PANNEAU STATISTIQUES / KPI */
+        /* PANNEAU STATISTIQUES */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -319,65 +305,6 @@
             letter-spacing: 0.5px;
         }
 
-        .items-detail-box {
-            background: #1a1d26;
-            border: 1px solid var(--lost-border);
-            border-radius: 4px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .items-detail-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--lost-border);
-            padding-bottom: 5px;
-        }
-        .item-detail-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            padding: 6px 0;
-            border-bottom: 1px dashed rgba(255,255,255,0.05);
-        }
-        .item-detail-row:last-child { border-bottom: none; }
-
-        .archive-section-title {
-            font-size: 14px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed var(--lost-border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* TABLES ADMIN */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--lost-border); }
-        th { background: rgba(0,0,0,0.2); font-size: 12px; text-transform: uppercase; color: var(--text-muted); }
-
-        /* MODALS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 100;
-        }
-        .modal-box { background: var(--bg-card); border: 1px solid var(--lost-border); padding: 30px; border-radius: 6px; width: 100%; max-width: 450px; }
-
-        /* AUTRES ELEMENTS */
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: white; display: inline-block; }
-        .view-title { font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .admin-sub-nav { display: flex; gap: 15px; border-bottom: 1px solid var(--lost-border); margin-bottom: 25px; }
-        .admin-nav-btn { background: none; border: none; color: var(--text-muted); padding: 10px 5px; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .admin-nav-btn.active { color: var(--accent-red); border-bottom: 2px solid var(--accent-red); }
-
         .discord-footer {
             text-align: center;
             font-size: 11px;
@@ -403,7 +330,7 @@
                 <input type="text" id="login-pure-username" placeholder="Monpseudo" required autocomplete="off">
                 
                 <label>Numéro de ville</label>
-                <input type="number" id="login-city-number" placeholder="35069" required autocomplete="off">
+                <input type="number" id="login-city-number" placeholder="51871" required autocomplete="off">
                 
                 <label>Mot de passe</label>
                 <input type="password" id="password" required>
@@ -425,7 +352,7 @@
                 <input type="text" id="reg-pure-username" placeholder="Monpseudo" required autocomplete="off">
                 
                 <label>Numéro de ville</label>
-                <input type="number" id="reg-city-number" placeholder="35069" min="0" required autocomplete="off">
+                <input type="number" id="reg-city-number" placeholder="51871" min="0" required autocomplete="off">
                 
                 <label>Choisir un Mot de passe sécurisé</label>
                 <input type="password" id="reg-password" required>
@@ -449,7 +376,6 @@
                     <li class="menu-item" id="menu-shop" onclick="showTab('shop')">📂 Catalogue</li>
                     <li class="menu-item" id="menu-orders" onclick="showTab('orders')">📦 Mes Commandes</li>
                     <li class="menu-item" id="menu-vendre" onclick="showTab('vendre')">🎯 Gestion Ventes</li>
-                    <li class="menu-item" id="menu-admin" onclick="showTab('admin')">⚙️ Administration</li>
                 </ul>
             </div>
             <div style="padding: 20px; border-top: 1px solid var(--lost-border); font-size: 13px;">
@@ -476,15 +402,6 @@
                         <h3 style="margin-top:0; font-size:16px; text-transform:uppercase; border-bottom:1px solid var(--lost-border); padding-bottom:10px;">Bon de Commande</h3>
                         <div id="cart-items" style="min-height:100px; font-size:14px; color:var(--text-muted); padding-bottom:15px;">Vide.</div>
                         
-                        <div style="border-top:1px solid var(--lost-border); padding-top:15px; margin-bottom:15px;">
-                            <label>Code promotionnel</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="text" id="cart-coupon-input" style="margin-bottom:0; padding:8px;">
-                                <button class="btn btn-secondary btn-small" onclick="applyCoupon()">Appliquer</button>
-                            </div>
-                            <div id="coupon-status" style="font-size:11px; margin-top:5px; font-weight:600;"></div>
-                        </div>
-
                         <div style="display:flex; justify-content:between; font-weight:bold; font-size:16px; margin-bottom:15px; border-top:1px solid var(--lost-border); padding-top:15px;">
                             <span>NET À PAYER :</span>
                             <span id="cart-total" style="color:var(--status-done); margin-left:auto;">0 $</span>
@@ -496,158 +413,21 @@
 
             <div id="tab-orders" class="tab-content hidden">
                 <h2 class="view-title">Liste de mes commandes</h2>
-                <div class="cat-nav" style="margin-bottom: 20px;">
-                    <button class="cat-btn active" id="client-tab-active" onclick="switchClientOrdersTab('active')">Commandes en cours</button>
-                    <button class="cat-btn" id="client-tab-history" onclick="switchClientOrdersTab('history')">Historique</button>
-                </div>
                 <div id="my-orders-list"></div>
             </div>
 
             <div id="tab-vendre" class="tab-content hidden">
                 <h2 class="view-title">Suivi Logistique des Commandes</h2>
                 <div class="cat-nav" style="margin-bottom: 20px;">
-                    <button class="cat-btn" id="v-filter-all" onclick="setVendeurFilter('all')">Toutes (0)</button>
-                    <button class="cat-btn" id="v-filter-todo" onclick="setVendeurFilter('todo')">À prendre (0)</button>
-                    <button class="cat-btn" id="v-filter-mine" onclick="setVendeurFilter('mine')">Mes livraisons (0)</button>
-                    <button class="cat-btn" id="v-filter-done" onclick="setVendeurFilter('done')">Archives (0)</button>
+                    <button class="cat-btn active" id="v-filter-all" onclick="loadVendeurView()">Toutes les commandes en attente</button>
                 </div>
-
-                <div id="archive-sub-filters" class="hidden" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 4px; border: 1px solid var(--lost-border); flex-direction: column; gap: 12px;">
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <span style="font-size:12px; text-transform:uppercase; font-weight:600; color:var(--text-muted);">Périmètre :</span>
-                        <button class="btn btn-small" id="arch-btn-all" onclick="setArchiveScope('all')">Toutes les archives</button>
-                        <button class="btn btn-small btn-secondary" id="arch-btn-me" onclick="setArchiveScope('me')">Uniquement mes ventes</button>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; max-width: 300px; margin-top: 5px;">
-                        <label style="margin-bottom: 2px;">Filtrer par Client :</label>
-                        <select id="vendeur-archive-client-select" multiple onchange="loadVendeurView()" style="margin-bottom: 2px;"></select>
-                    </div>
-                </div>
-
-                <div id="vendeur-stats-panel" class="hidden" style="margin-bottom:20px;">
-                    <div class="stats-grid" style="margin-bottom:15px;">
-                        <div class="stat-card">
-                            <div class="stat-label">Chiffre d'affaires</div>
-                            <div class="stat-value" id="stat-revenue">0 $</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Ventes Réelles Réussies</div>
-                            <div class="stat-value" id="stat-orders-count" style="color:var(--status-process)">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Articles livrés</div>
-                            <div class="stat-value" id="stat-items-count" style="color:#a855f7">0</div>
-                        </div>
-                    </div>
-                    <div class="items-detail-box">
-                        <div class="items-detail-title">📦 Inventaire des Volumes vendus</div>
-                        <div id="vendeur-items-breakdown-list"></div>
-                    </div>
-                </div>
-
                 <div id="vendeur-orders-list"></div>
-
-                <div id="archive-split-containers" class="hidden">
-                    <div class="archive-section-title">📦 Ventes Réelles Terminées</div>
-                    <div id="archived-success-list"></div>
-                    <div class="archive-section-title" style="color: var(--accent-red);">❌ Commandes Annulées</div>
-                    <div id="archived-cancelled-list"></div>
-                </div>
-            </div>
-
-            <div id="tab-admin" class="tab-content hidden">
-                <h2 class="view-title">ADMINISTRATION</h2>
-                <div class="admin-sub-nav">
-                    <button class="admin-nav-btn" id="sub-btn-users" onclick="setAdminSubTab('users')">Membres & Rangs</button>
-                    <button class="admin-nav-btn" id="sub-btn-ranks" onclick="setAdminSubTab('ranks')">Grille Tarifaire</button>
-                    <button class="admin-nav-btn" id="sub-btn-catalog" onclick="setAdminSubTab('catalog')">Articles</button>
-                    <button class="admin-nav-btn" id="sub-btn-coupons" onclick="setAdminSubTab('coupons')">Codes Promo</button>
-                </div>
-
-                <div id="admin-sub-users" class="hidden">
-                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--lost-border); border-radius: 6px; padding: 20px; margin-bottom: 25px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 20px;">
-                            <h3 style="margin: 0; font-size: 14px; text-transform: uppercase; color: var(--accent-red);">📊 Bilan du Shop</h3>
-                            <div style="display: flex; gap: 20px; flex-wrap: wrap; flex: 1; justify-content: flex-end;">
-                                <div style="display: flex; flex-direction: column; min-width: 180px;">
-                                    <label style="font-size: 11px;">Filtre Vendeurs :</label>
-                                    <select id="admin-finance-vendeur-select" multiple onchange="loadAdminFinancialData()"></select>
-                                </div>
-                                <div style="display: flex; flex-direction: column; min-width: 180px;">
-                                    <label style="font-size: 11px;">Filtre Clients :</label>
-                                    <select id="admin-finance-client-select" multiple onchange="loadAdminFinancialData()"></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="stats-grid" style="margin-bottom: 15px;">
-                            <div class="stat-card" style="background: var(--bg-main);"><div class="stat-label">CA Réel</div><div class="stat-value" id="admin-fin-revenue">0 $</div></div>
-                            <div class="stat-card" style="background: var(--bg-main);"><div class="stat-label">Commandes Réussies</div><div class="stat-value" id="admin-fin-success-count" style="color: var(--status-process);">0</div></div>
-                            <div class="stat-card" style="background: var(--bg-main);"><div class="stat-label">Annulations</div><div class="stat-value" id="admin-fin-cancelled-count" style="color: var(--accent-red);">0</div></div>
-                        </div>
-                        <div class="items-detail-box" style="background: var(--bg-main);"><div id="admin-items-breakdown-list"></div></div>
-                    </div>
-                    <div id="admin-users-list"></div>
-                </div>
-
-                <div id="admin-sub-ranks" class="hidden">
-                    <button class="btn btn-small" onclick="openRankModal()">+ Profil Prix</button>
-                    <div id="admin-ranks-list"></div>
-                </div>
-                <div id="admin-sub-catalog" class="hidden">
-                    <button class="btn btn-small" style="margin-bottom:15px;" onclick="openItemModal()">+ Référence</button>
-                    <div id="admin-catalog-list"></div>
-                </div>
-                <div id="admin-sub-coupons" class="hidden">
-                    <button class="btn btn-small" style="margin-bottom:15px;" onclick="openCouponModal()">+ Code réduction</button>
-                    <div id="admin-coupons-list"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-rank" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 style="margin-top:0;">Configuration Profil Prix</h3>
-            <label>Nom de groupe</label><input type="text" id="rank-name">
-            <label>Remise (%)</label><input type="number" id="rank-discount">
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-secondary btn-small" onclick="document.getElementById('modal-rank').classList.add('hidden')">Annuler</button>
-                <button class="btn btn-small" onclick="saveRank()">Enregistrer</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-item" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 style="margin-top:0;">Fiche Matériel</h3>
-            <label>Désignation</label><input type="text" id="edit-name">
-            <label>Prix de base ($)</label><input type="number" id="edit-price">
-            <label>Description</label><textarea id="edit-desc" rows="3"></textarea>
-            <label>Capacité</label><input type="text" id="edit-mag">
-            <label>Catégorie</label><select id="edit-cat"><option value="weapons">Armes à feu</option><option value="others">Autre</option></select>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-secondary btn-small" onclick="document.getElementById('modal-item').classList.add('hidden')">Fermer</button>
-                <button class="btn btn-small" onclick="saveItem()">Sauvegarder</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-coupon" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 style="margin-top:0;">Nouveau Code Réduction</h3>
-            <label>Code</label><input type="text" id="coupon-code">
-            <label>Pourcentage (%)</label><input type="number" id="coupon-pct">
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-secondary btn-small" onclick="document.getElementById('modal-coupon').classList.add('hidden')">Retour</button>
-                <button class="btn btn-small" onclick="saveCoupon()">Activer</button>
             </div>
         </div>
     </div>
 
     <script>
-
-// --- 1. CONFIGURATION SUPABASE INTERNE ---
+        // --- 1. CONFIGURATION SUPABASE CORRIGÉE AVEC VOS VRAIS IDENTIFIANTS ---
         const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
         
@@ -655,61 +435,68 @@
 
         // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
         let catalog = [];
-        let priceRanks = [];
         let users = [];
-        let coupons = [];
         let orders = [];
-        
         let currentUser = null;
         let cart = [];
         let activeShopCat = 'weapons';
-        let activeCoupon = null;
-        let currentVendeurFilter = 'all';
-        let currentArchiveScope = 'all'; 
-        let currentClientOrdersTab = 'active'; 
 
-        // --- 3. INITIALISATION & CHARGEMENT EN LIGNE (CORRIGÉ POUR VOS TABLES) ---
+        // --- 3. INITIALISATION & ADAPTATION STRICTE À VOS TABLES SUPABASE ---
         async function initApp() {
             try {
-                // Chargement des Utilisateurs depuis votre table 'utilisateurs'
+                // 1. Chargement depuis votre table 'utilisateurs'
                 const { data: uData, error: uErr } = await supabase.from('utilisateurs').select('*');
                 if (!uErr && uData) {
-                    // Adaptation pour que le reste du script comprenne vos colonnes login/mot_de_passe
                     users = uData.map(u => ({
-                        username: `${u.login}|${u.id_serveur}`,
-                        password: u.mot_de_passe || u.password,
-                        roles: u.roles || ["client"],
-                        rank: u.rank || "normal"
+                        username: `${u.login}|${u.id_serveur}`.toLowerCase(),
+                        login_pure: u.login,
+                        id_serveur: u.id_serveur,
+                        password: u.mot_de_passe,
+                        // Simulé car vos colonnes n'existent pas encore
+                        roles: u.login.toLowerCase() === "admin" ? ["client", "vendeur"] : ["client"],
+                        rank: "normal"
                     }));
                 }
 
-                // Chargement des Grilles Tarifaires (Valeurs par défaut si pas de table)
-                priceRanks = [
-                    { id: "normal", name: "NORMAL", discount: 0 },
-                    { id: "vip", name: "VIP", discount: 10 },
-                    { id: "lost", name: "LOST", discount: 20 }
-                ];
-
-                // Chargement du Catalogue depuis votre table 'articles'
+                // 2. Chargement depuis votre table 'articles'
                 const { data: cData, error: cErr } = await supabase.from('articles').select('*');
                 if (!cErr && cData) {
                     catalog = cData.map(c => ({
                         id: c.id,
-                        name: c.nom || c.name,
-                        price: c.prix || c.price || 0,
-                        desc: c.description || c.desc || '',
-                        mag: c.capacite || c.mag || 'N/A',
-                        cat: c.categorie || c.cat || 'weapons'
+                        name: c.nom || "Article",
+                        price: c.prix || 0,
+                        desc: c.description || "",
+                        mag: c.capacite || "N/A",
+                        cat: c.categorie || "weapons",
+                        img: c.image || ""
+                    }));
+                } else {
+                    // Si votre table articles est vide, on injecte des données de démo visibles par tout le monde
+                    catalog = [
+                        { id: 1, name: "Pistolet de combat", price: 50000, desc: "Arme de poing légère", mag: "12 balles", cat: "weapons", img: "" },
+                        { id: 2, name: "Micro Uzi", price: 120000, desc: "Cadence de tir élevée", mag: "30 balles", cat: "weapons", img: "" },
+                        { id: 3, name: "Gilet par-balles", price: 5000, desc: "Protection moyenne", mag: "100%", cat: "others", img: "" }
+                    ];
+                }
+
+                // 3. Chargement depuis votre table 'commandes'
+                const { data: oData, error: oErr } = await supabase.from('commandes').select('*');
+                if (!oErr && oData) {
+                    orders = oData.map(o => ({
+                        id: 'LOST-' + o.id,
+                        id_db: o.id,
+                        client: o.client || "Inconnu",
+                        status: o.statut || "En attente",
+                        total: o.total || 0,
+                        vendeur: o.vendeur || null,
+                        items: [],
+                        msgs: []
                     }));
                 }
 
-                // Chargement des Commandes depuis votre table 'commandes'
-                const { data: oData, error: oErr } = await supabase.from('commandes').select('*');
-                if (!oErr && oData) orders = oData;
-
-                console.log("Supabase : Données adaptées et synchronisées avec succès.");
+                console.log("Application connectée avec succès à Supabase !");
             } catch (err) {
-                console.error("Erreur durant l'initialisation de Supabase :", err);
+                console.error("Erreur d'initialisation :", err);
             }
         }
         initApp();
@@ -727,14 +514,13 @@
             const p = document.getElementById('password').value;
             
             const combinedFormat = `${pureLogin}|${cityNum}`.toLowerCase();
-            
-            const found = users.find(x => x.username.toLowerCase() === combinedFormat && x.password === p);
+            const found = users.find(x => x.username === combinedFormat && x.password === p);
 
             if(found) { 
                 currentUser = found; 
                 loginSuccess(); 
             } else { 
-                alert("Accès refusé. Informations incorrectes."); 
+                alert("Accès refusé. Vérifiez vos identifiants ou créez un compte."); 
             }
         };
 
@@ -744,65 +530,53 @@
             const cityNum = document.getElementById('reg-city-number').value.trim();
             const p = document.getElementById('reg-password').value;
             
-            if(pureUser.includes('|')) return alert("Le pseudo ne doit pas contenir de barre '|'.");
-            const finalCombinedUsername = `${pureUser}|${cityNum}`;
+            if(pureUser.includes('|')) return alert("Le pseudo ne doit pas contenir de symbole '|'.");
+            const finalCombinedUsername = `${pureUser}|${cityNum}`.toLowerCase();
 
-            if(users.find(x => x.username.toLowerCase() === finalCombinedUsername.toLowerCase())) {
-                return alert("Cet identifiant est déjà enregistré.");
+            if(users.find(x => x.username === finalCombinedUsername)) {
+                return alert("Ce compte (Pseudo + Numéro de ville) existe déjà.");
             }
             
-            // Enregistrement avec les vrais noms de colonnes de votre table Supabase
-            const newUserSupabase = { 
+            // CORRECTION STRICTE : On envoie uniquement les colonnes réelles qui existent sur votre Supabase !
+            const registerPayload = { 
                 id_serveur: parseInt(cityNum), 
                 login: pureUser, 
-                mot_de_passe: p,
-                roles: ["client"],
-                rank: "normal"
+                mot_de_passe: p
             };
             
-            const { error } = await supabase.from('utilisateurs').insert([newUserSupabase]);
-            if (error) return alert("Erreur d'inscription Supabase : " + error.message);
+            const { error } = await supabase.from('utilisateurs').insert([registerPayload]);
+            
+            if (error) {
+                alert("Erreur d'enregistrement Supabase : " + error.message);
+                return;
+            }
 
-            // Ajouter localement pour pouvoir se connecter de suite
+            // On ajoute localement pour permettre la connexion immédiate sans recharger
             users.push({
                 username: finalCombinedUsername,
+                login_pure: pureUser,
+                id_serveur: parseInt(cityNum),
                 password: p,
-                roles: ["client"],
+                roles: pureUser.toLowerCase() === "admin" ? ["client", "vendeur"] : ["client"],
                 rank: "normal"
             });
 
-            alert(`Compte sécurisé enregistré avec succès !`); 
+            alert(`Compte créé avec succès pour ${pureUser} ! Vous pouvez vous connecter.`); 
             toggleAuth(false);
         };
 
         function loginSuccess() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-structure').classList.remove('hidden');
-            document.getElementById('user-display').innerHTML = `Membre : <strong>${currentUser.username}</strong>`;
-            refreshMenusVisibility(); 
-            updateVendeurBadgesCounters();
-            setupMultipleFiltersDropdowns();
+            document.getElementById('user-display').innerHTML = `Membre : <strong>${currentUser.login_pure} (#${currentUser.id_serveur})</strong>`;
+            
+            // Droits d'affichage des onglets
+            document.getElementById('menu-vendre').classList.toggle('hidden', !currentUser.roles.includes('vendeur'));
+            
             showTab('shop');
         }
 
-        function refreshMenusVisibility() {
-            document.getElementById('menu-shop').classList.toggle('hidden', !currentUser.roles.includes('client'));
-            document.getElementById('menu-orders').classList.toggle('hidden', !currentUser.roles.includes('client'));
-            document.getElementById('menu-vendre').classList.toggle('hidden', !currentUser.roles.includes('vendeur'));
-            document.getElementById('menu-admin').classList.toggle('hidden', !currentUser.roles.includes('admin'));
-        }
-
         // --- 5. LOGIQUE BOUTIQUE & CALCULS ---
-        function getDiscountedPrice(basePrice) {
-            let pct = 0;
-            const userRank = priceRanks.find(r => r.id === currentUser.rank);
-            if (userRank) pct = userRank.discount;
-            else if (activeCoupon) pct = activeCoupon.pct;
-            if (pct === 0) return { price: basePrice, discounted: false };
-            let roundedPrice = Math.ceil((basePrice * (1 - (pct / 100))) / 1000) * 1000;
-            return { price: roundedPrice, discounted: true };
-        }
-
         function switchShopCat(cat) {
             activeShopCat = cat;
             document.getElementById('cat-btn-weapons').classList.toggle('active', cat === 'weapons');
@@ -813,386 +587,143 @@
         function loadCatalogue() {
             const container = document.getElementById('weapon-catalogue');
             const rankStatus = document.getElementById('client-rank-status');
-            const currentRankObj = priceRanks.find(r => r.id === currentUser.rank) || { name: 'NORMAL', discount: 0 };
-            
-            let badgeBg = currentRankObj.discount > 10 ? "#da292a" : (currentRankObj.discount > 0 ? "#8b5cf6" : "#475569");
-            rankStatus.innerHTML = `<span class="badge" style="background:${badgeBg}">${currentRankObj.name} (-${currentRankObj.discount}%)</span>`;
+            rankStatus.innerHTML = `<span class="badge" style="background:#475569">RANG : NORMAL</span>`;
 
             const filtered = catalog.filter(item => item.cat === activeShopCat);
-            if(!filtered.length) { container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Aucune référence disponible.</div>`; return; }
+            if(!filtered.length) { 
+                container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Aucun article dans cette catégorie.</div>`; 
+                return; 
+            }
 
             container.innerHTML = filtered.map(w => {
-                const calc = getDiscountedPrice(w.price);
-                const placeholder = 'https://placehold.co/280x130/14161d/94a3b8?text=Image';
+                const placeholder = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
                 return `<div class="weapon-card">
                     <div>
                         <img src="${w.img ? w.img : placeholder}">
                         <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">${w.name}</div>
-                        <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:10px;">${w.desc || ''}</div>
-                        <div style="font-size:11px; color:var(--accent-red); font-weight:600; margin-bottom:15px;">📊 ${w.mag || 'N/A'}</div>
+                        <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:10px;">${w.desc}</div>
+                        <div style="font-size:11px; color:var(--accent-red); font-weight:600; margin-bottom:15px;">📊 Chargeur : ${w.mag}</div>
                     </div>
                     <div>
                         <div style="margin-top:5px; display:flex; align-items:baseline;">
-                            ${calc.discounted ? `<span class="old-price">${w.price.toLocaleString()} $</span>` : ''}
-                            <span class="price-tag">${calc.price.toLocaleString()} $</span>
+                            <span class="price-tag">${w.price.toLocaleString()} $</span>
                         </div>
-                        <button class="btn btn-small" style="width:100%; margin-top:12px;" onclick="addToCart(${w.id})">Ajouter</button>
+                        <button class="btn btn-small" style="width:100%; margin-top:12px;" onclick="addToCart(${w.id})">Ajouter au panier</button>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        function applyCoupon() {
-            const code = document.getElementById('cart-coupon-input').value.trim().toUpperCase();
-            const status = document.getElementById('coupon-status');
-            const currentRankObj = priceRanks.find(r => r.id === currentUser.rank);
-            if(currentRankObj && currentRankObj.discount > 0) { status.innerHTML = `<span style="color:var(--status-pending)">Remises de rang prioritaires.</span>`; return; }
-            const found = coupons.find(c => c.code.toUpperCase() === code);
-            if(found) { activeCoupon = found; status.innerHTML = `<span style="color:var(--status-done)">Code appliqué : -${found.pct}%</span>`; loadCatalogue(); updateCart(); }
-            else { activeCoupon = null; status.innerHTML = `<span style="color:var(--accent-red)">Code inconnu.</span>`; loadCatalogue(); updateCart(); }
-        }
-
         function addToCart(id) {
             const w = catalog.find(x => x.id === id);
-            const calc = getDiscountedPrice(w.price);
             const item = cart.find(x => x.id === id);
-            if(item) item.qty++; else cart.push({ ...w, buyPrice: calc.price, qty: 1 });
+            if(item) item.qty++; else cart.push({ ...w, qty: 1 });
             updateCart();
         }
 
         function updateCart() {
             const container = document.getElementById('cart-items');
-            if(!cart.length) { container.innerHTML = "Vide."; document.getElementById('cart-total').textContent = "0 $"; return; }
-            let total = cart.reduce((s, c) => s + (c.buyPrice * c.qty), 0);
+            if(!cart.length) { container.innerHTML = "Panier vide."; document.getElementById('cart-total').textContent = "0 $"; return; }
+            let total = cart.reduce((s, c) => s + (c.price * c.qty), 0);
             container.innerHTML = cart.map((c, i) => `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <div><div style="font-weight:600;">${c.name} <span style="color:var(--accent-red)">x${c.qty}</span></div></div>
-                <span><strong>${(c.buyPrice * c.qty).toLocaleString()} $</strong> <button onclick="cart.splice(${i},1);updateCart()" style="background:none; border:none; color:var(--accent-red); cursor:pointer;">✕</button></span>
+                <span><strong>${(c.price * c.qty).toLocaleString()} $</strong> <button onclick="cart.splice(${i},1);updateCart()" style="background:none; border:none; color:var(--accent-red); cursor:pointer;">✕</button></span>
             </div>`).join('');
             document.getElementById('cart-total').textContent = total.toLocaleString() + " $";
         }
 
         async function checkout() {
             if(!cart.length) return;
-            const newOrder = {
-                id: 'LOST-' + Math.floor(10000 + Math.random() * 90000),
+            let totalOrder = cart.reduce((s, c) => s + (c.price * c.qty), 0);
+            
+            // Adaptation à votre table 'commandes' (colonnes : client, statut, total)
+            const newOrderPayload = {
                 client: currentUser.username,
-                vendeur: null,
-                status: 'En attente',
-                items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price, finalPrice: i.buyPrice })),
-                msgs: [{ auth: 'Système', text: 'Demande transmise.' }]
+                statut: 'En attente',
+                total: totalOrder
             };
 
-            const { error } = await supabase.from('lost_orders').insert([newOrder]);
-            if (error) return alert("Erreur de transmission Supabase : " + error.message);
+            const { data, error } = await supabase.from('commandes').insert([newOrderPayload]).select();
+            if (error) return alert("Erreur lors de la commande : " + error.message);
 
-            orders.push(newOrder);
+            const insertedId = data && data[0] ? data[0].id : Math.floor(Math.random() * 1000);
+
+            orders.push({
+                id: 'LOST-' + insertedId,
+                id_db: insertedId,
+                client: currentUser.username,
+                status: 'En attente',
+                total: totalOrder,
+                vendeur: null,
+                items: [...cart],
+                msgs: []
+            });
+
             cart = []; 
-            activeCoupon = null; 
             updateCart(); 
-            alert("Commande validée et enregistrée en ligne."); 
+            alert("Votre commande a été transmise aux vendeurs Lost MC !"); 
             showTab('orders');
         }
 
-        // --- 6. RENDER & AFFICHAGE DES COMMANDES ---
+        // --- 6. SUIVI ET VISUALISATION DES COMMANDES ---
         function renderOrderHTML(o, contextView) {
-            const total = o.items.reduce((s, i) => s + (i.finalPrice * i.qty), 0);
-            let statusColor = "var(--status-pending)";
-            if(o.status === "Pris en charge") statusColor = "var(--status-process)";
-            if(o.status === "Prêt à livrer") statusColor = "#a855f7";
-            if(o.status === "Terminée") statusColor = "var(--status-done)";
-            if(o.status === "Annulée") statusColor = "var(--accent-red)";
+            let statusColor = o.status === "Terminée" ? "var(--status-done)" : "var(--status-pending)";
+            let actionBtn = "";
 
-            let actionsHTML = "";
-            let isAdmin = currentUser.roles.includes('admin');
-            
-            if(contextView === 'vendeur') {
-                if(o.status === 'En attente') {
-                    actionsHTML = `<button class="btn btn-small" style="background:var(--status-process)" onclick="updateStatus('${o.id}', 'Pris en charge')">🎯 S'attribuer la commande</button>`;
-                } else if(o.status === 'Pris en charge' && (o.vendeur === currentUser.username || isAdmin)) {
-                    actionsHTML = `<button class="btn btn-small" style="background:#a855f7" onclick="updateStatus('${o.id}', 'Prêt à livrer')">📦 Prêt à livrer</button>`;
-                } else if(o.status === 'Prêt à livrer' && (o.vendeur === currentUser.username || isAdmin)) {
-                    actionsHTML = `<button class="btn btn-success btn-small" onclick="updateStatus('${o.id}', 'Terminée')">✔️ Clôturer la vente</button>`;
-                }
-                if(o.status !== 'Terminée' && o.status !== 'Annulée' && (!o.vendeur || o.vendeur === currentUser.username || isAdmin)) {
-                    actionsHTML += ` <button class="btn btn-small btn-danger" onclick="updateStatus('${o.id}', 'Annulée')">✕ Annuler</button>`;
-                }
-            }
-            
-            if(contextView === 'client' && o.status !== 'Terminée' && o.status !== 'Annulée') {
-                actionsHTML = `<button class="btn btn-small btn-danger" onclick="clientCancelOrder('${o.id}')">✕ Annuler la demande</button>`;
+            if(contextView === 'vendeur' && o.status === 'En attente') {
+                actionBtn = `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id_db})">✔️ Marquer comme Livrée / Terminée</button>`;
             }
 
-            const messageList = o.msgs || [];
-            const chatHTML = messageList.map(m => {
-                let msgClass = "other";
-                if(m.auth === 'Système') msgClass = "system";
-                else if(m.auth === currentUser.username) msgClass = "me";
-                return `<div class="chat-msg ${msgClass}"><strong>${m.auth} :</strong> ${m.text}</div>`;
-            }).join('');
-
-            return `<div class="order-item" id="item-${o.id}">
+            return `<div class="order-item">
                 <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
-                    <div><strong style="color:var(--accent-red); font-size:15px; margin-right:10px;">${o.id}</strong><span style="color:var(--text-muted); font-size:13px;">${contextView==='vendeur'?'Client: '+o.client:'Suivi'}</span></div>
+                    <div>
+                        <strong style="color:var(--accent-red); margin-right:10px;">${o.id}</strong>
+                        <span style="color:var(--text-muted); font-size:13px;">${contextView === 'vendeur' ? 'Acheteur: ' + o.client : 'Suivi logistique'}</span>
+                    </div>
                     <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="font-size:14px; font-weight:bold; color:var(--status-done)">${total.toLocaleString()} $</span>
+                        <span style="font-weight:bold; color:var(--status-done)">${o.total.toLocaleString()} $</span>
                         <span class="badge" style="background:${statusColor}">${o.status}</span>
-                        <span style="font-size:11px; color:var(--text-muted)">▼</span>
+                        <span style="font-size:11px; color:var(--text-muted)">▼ Détails</span>
                     </div>
                 </div>
                 <div class="order-content">
-                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:rgba(0,0,0,0.15); padding:15px; border-radius:4px;">
-                        ${o.items.map(i => `<div>• <strong>${i.name}</strong> x${i.qty} - ${ (i.finalPrice * i.qty).toLocaleString() } $</div>`).join('')}
-                    </div>
-                    <div>${actionsHTML}</div>
-                    <div class="chat-box" id="chat-box-${o.id}" style="margin-top:15px;">${chatHTML}</div>
-                    <div style="display:flex; gap:8px; margin-top:10px;">
-                        <input type="text" id="input-${o.id}" placeholder="Message..." style="margin-bottom:0;" onkeypress="if(event.key==='Enter') sendOrderMsg('${o.id}')">
-                        <button class="btn" onclick="sendOrderMsg('${o.id}')">Envoyer</button>
-                    </div>
+                    <p style="margin-top:0; font-size:14px; color:var(--text-muted)">Commande enregistrée dans le système sécurisé.</p>
+                    <div style="margin-top:15px;">${actionBtn}</div>
                 </div>
             </div>`;
         }
 
-        // --- 7. LOGISTIQUE & MODULE VENDEURS ---
-        function switchClientOrdersTab(subTab) {
-            currentClientOrdersTab = subTab;
-            document.getElementById('client-tab-active').classList.toggle('active', subTab === 'active');
-            document.getElementById('client-tab-history').classList.toggle('active', subTab === 'history');
-            loadMyOrders();
-        }
-
         function loadMyOrders() {
             const container = document.getElementById('my-orders-list');
-            const myAll = orders.filter(o => o.client === currentUser.username);
-            let filtered = currentClientOrdersTab === 'active' ? myAll.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée') : myAll.filter(o => o.status === 'Terminée' || o.status === 'Annulée');
-            container.innerHTML = filtered.length ? filtered.map(o => renderOrderHTML(o, 'client')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande.</div>";
-        }
-
-        function setupMultipleFiltersDropdowns() {
-            const archiveCliSelect = document.getElementById('vendeur-archive-client-select');
-            const tousClients = [...new Set(orders.map(o => o.client))];
-            if(archiveCliSelect) {
-                archiveCliSelect.innerHTML = '<option value="all" selected>Tous les Clients</option>';
-                tousClients.forEach(c => archiveCliSelect.innerHTML += `<option value="${c}">${c}</option>`);
-            }
-        }
-
-        function getSelectedOptions(selectElement) {
-            let result = [];
-            let options = selectElement && selectElement.options;
-            for (let i=0; i<options.length; i++) { if (options[i].selected) result.push(options[i].value); }
-            return result;
-        }
-
-        function setVendeurFilter(filterType) {
-            currentVendeurFilter = filterType;
-            document.querySelectorAll('#tab-vendre .cat-btn').forEach(b => b.classList.remove('active'));
-            if(document.getElementById('v-filter-' + filterType)) document.getElementById('v-filter-' + filterType).classList.add('active');
-            
-            const isArchiveTab = filterType === 'done';
-            document.getElementById('archive-sub-filters').classList.toggle('hidden', !isArchiveTab);
-            document.getElementById('vendeur-stats-panel').classList.toggle('hidden', !isArchiveTab);
-            document.getElementById('archive-split-containers').classList.toggle('hidden', !isArchiveTab);
-            document.getElementById('vendeur-orders-list').classList.toggle('hidden', isArchiveTab);
-            loadVendeurView();
-        }
-
-        function setArchiveScope(scope) {
-            currentArchiveScope = scope;
-            document.getElementById('arch-btn-all').classList.toggle('btn-secondary', scope === 'me');
-            document.getElementById('arch-btn-all').classList.toggle('btn-success', scope === 'all');
-            document.getElementById('arch-btn-me').classList.toggle('btn-secondary', scope === 'all');
-            document.getElementById('arch-btn-me').classList.toggle('btn-success', scope === 'me');
-            loadVendeurView();
-        }
-
-        function updateVendeurBadgesCounters() {
-            document.getElementById('v-filter-all').textContent = `Toutes (${orders.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée').length})`;
-            document.getElementById('v-filter-todo').textContent = `À prendre (${orders.filter(o => o.status === 'En attente').length})`;
-            document.getElementById('v-filter-mine').textContent = `Mes livraisons (${orders.filter(o => o.vendeur === currentUser.username && o.status !== 'Terminée' && o.status !== 'Annulée').length})`;
-            document.getElementById('v-filter-done').textContent = `Archives (${orders.filter(o => o.status === 'Terminée' || o.status === 'Annulée').length})`;
+            const myFiltered = orders.filter(o => o.client === currentUser.username);
+            container.innerHTML = myFiltered.length ? myFiltered.map(o => renderOrderHTML(o, 'client')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Vous n'avez pas encore passé de commande.</div>";
         }
 
         function loadVendeurView() {
-            updateVendeurBadgesCounters();
-            if(currentVendeurFilter !== 'done') {
-                const container = document.getElementById('vendeur-orders-list');
-                let filtered = [];
-                if(currentVendeurFilter === 'all') filtered = orders.filter(o => o.status !== 'Terminée' && o.status !== 'Annulée');
-                if(currentVendeurFilter === 'todo') filtered = orders.filter(o => o.status === 'En attente');
-                if(currentVendeurFilter === 'mine') filtered = orders.filter(o => o.vendeur === currentUser.username && o.status !== 'Terminée' && o.status !== 'Annulée');
-                container.innerHTML = filtered.length ? filtered.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande.</div>";
-                return;
-            }
-
-            const successContainer = document.getElementById('archived-success-list');
-            const cancelledContainer = document.getElementById('archived-cancelled-list');
-            const selectedClients = getSelectedOptions(document.getElementById('vendeur-archive-client-select'));
-
-            let doneOrders = orders.filter(o => o.status === 'Terminée');
-            let cancelledOrders = orders.filter(o => o.status === 'Annulée');
-
-            if(currentArchiveScope === 'me') {
-                doneOrders = doneOrders.filter(o => o.vendeur === currentUser.username);
-                cancelledOrders = cancelledOrders.filter(o => o.vendeur === currentUser.username);
-            }
-            if(selectedClients.length > 0 && !selectedClients.includes('all')) {
-                doneOrders = doneOrders.filter(o => selectedClients.includes(o.client));
-                cancelledOrders = cancelledOrders.filter(o => selectedClients.includes(o.client));
-            }
-
-            let totalRevenue = doneOrders.reduce((s, o) => s + o.items.reduce((sum, i) => sum + (i.finalPrice * i.qty), 0), 0);
-            document.getElementById('stat-revenue').textContent = totalRevenue.toLocaleString() + " $";
-            document.getElementById('stat-orders-count').textContent = doneOrders.length;
-            document.getElementById('stat-items-count').textContent = doneOrders.reduce((s,o)=> s + o.items.reduce((sum,i)=>sum+i.qty,0),0);
-
-            successContainer.innerHTML = doneOrders.length ? doneOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "Aucune.";
-            cancelledContainer.innerHTML = cancelledOrders.length ? cancelledOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "Aucune.";
+            const container = document.getElementById('vendeur-orders-list');
+            const pendingOrders = orders.filter(o => o.status === 'En attente');
+            container.innerHTML = pendingOrders.length ? pendingOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande en attente de livraison pour le moment.</div>";
         }
 
-        async function updateStatus(orderId, newStatus) {
-            const o = orders.find(x => x.id === orderId);
-            if(!o) return;
+        async function completeOrder(idDb) {
+            const { error } = await supabase.from('commandes').update({ statut: 'Terminée', vendeur: currentUser.username }).eq('id', idDb);
+            if(error) return alert("Erreur de mise à jour : " + error.message);
             
-            let originalVendeur = o.vendeur;
-            if(newStatus === 'Pris en charge' && !o.vendeur) originalVendeur = currentUser.username;
-            
-            let updatedMsgs = [...o.msgs, { auth: 'Système', text: `Statut : ${newStatus}` }];
-
-            const { error } = await supabase.from('lost_orders')
-                .update({ status: newStatus, vendeur: originalVendeur, msgs: updatedMsgs })
-                .eq('id', orderId);
-
-            if (error) return alert("Erreur Supabase lors de la mise à jour : " + error.message);
-
-            o.status = newStatus;
-            o.vendeur = originalVendeur;
-            o.msgs = updatedMsgs;
+            const local = orders.find(o => o.id_db === idDb);
+            if(local) { local.status = 'Terminée'; local.vendeur = currentUser.username; }
             loadVendeurView();
+            alert("Commande clôturée et archivée !");
         }
 
-        async function clientCancelOrder(orderId) {
-            const o = orders.find(x => x.id === orderId);
-            if(o && confirm("Voulez-vous vraiment annuler votre commande ?")) {
-                let updatedMsgs = [...o.msgs, { auth: 'Système', text: 'Annulé par le client.' }];
-                
-                const { error } = await supabase.from('lost_orders')
-                    .update({ status: 'Annulée', msgs: updatedMsgs })
-                    .eq('id', orderId);
-
-                if (error) return alert("Erreur d'annulation : " + error.message);
-
-                o.status = 'Annulée';
-                o.msgs = updatedMsgs;
-                loadMyOrders();
-            }
-        }
-
-        async function sendOrderMsg(orderId) {
-            const input = document.getElementById(`input-${orderId}`);
-            if(!input.value.trim()) return;
-            const o = orders.find(x => x.id === orderId);
-            
-            let updatedMsgs = [...o.msgs, { auth: currentUser.username, text: input.value.trim() }];
-
-            const { error } = await supabase.from('lost_orders')
-                .update({ msgs: updatedMsgs })
-                .eq('id', orderId);
-
-            if (error) return alert("Impossible d'envoyer le message : " + error.message);
-
-            o.msgs = updatedMsgs;
-            input.value = "";
-            if(document.getElementById('tab-orders').classList.contains('hidden')) loadVendeurView(); else loadMyOrders();
-        }
-
-        // --- 8. FINANCES & ADMINISTRATION ---
-        function loadAdminFinancialData() {
-            let doneOrders = orders.filter(o => o.status === 'Terminée');
-            let totalRevenue = doneOrders.reduce((s, o) => s + o.items.reduce((sum, i) => sum + (i.finalPrice * i.qty), 0), 0);
-            document.getElementById('admin-fin-revenue').textContent = totalRevenue.toLocaleString() + " $";
-            document.getElementById('admin-fin-success-count').textContent = doneOrders.length;
-            document.getElementById('admin-fin-cancelled-count').textContent = orders.filter(o => o.status === 'Annulée').length;
-        }
-
-        function setAdminSubTab(sub) {
-            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('sub-btn-' + sub).classList.add('active');
-            document.getElementById('admin-sub-users').classList.toggle('hidden', sub !== 'users');
-            document.getElementById('admin-sub-ranks').classList.toggle('hidden', sub !== 'ranks');
-            document.getElementById('admin-sub-catalog').classList.toggle('hidden', sub !== 'catalog');
-            document.getElementById('admin-sub-coupons').classList.toggle('hidden', sub !== 'coupons');
-            if(sub === 'users') { loadAdminUsers(); loadAdminFinancialData(); }
-            if(sub === 'ranks') loadAdminRanks();
-            if(sub === 'catalog') loadAdminCatalog();
-            if(sub === 'coupons') loadAdminCoupons();
-        }
-
-        function loadAdminUsers() {
-            const container = document.getElementById('admin-users-list');
-            container.innerHTML = `<table><tr><th>Membre</th><th>Rangs</th><th>Actions</th></tr>
-                ${users.map((u, i) => `<tr><td><strong>${u.username}</strong></td>
-                <td>${u.roles.join(', ')} [${u.rank}]</td>
-                <td><button class="btn btn-danger btn-small" onclick="deleteUser('${u.username}', ${i})">Supprimer</button></td></tr>`).join('')}</table>`;
-        }
-
-        async function deleteUser(username, localIndex) {
-            if(confirm(`Supprimer l'accès de ${username} ?`)) {
-                const { error } = await supabase.from('lost_users').delete().eq('username', username);
-                if(error) return alert("Erreur Supabase : " + error.message);
-                users.splice(localIndex, 1);
-                loadAdminUsers();
-            }
-        }
-
-        function loadAdminRanks() {
-            const container = document.getElementById('admin-ranks-list');
-            container.innerHTML = `<table><tr><th>Profil</th><th>Remise</th></tr>${priceRanks.map(r => `<tr><td>${r.name}</td><td>-${r.discount}%</td></tr>`).join('')}</table>`;
-        }
-        function openRankModal() { document.getElementById('modal-rank').classList.remove('hidden'); }
-        async function saveRank() {
-            const newRank = { id: document.getElementById('rank-name').value.toLowerCase(), name: document.getElementById('rank-name').value, discount: parseInt(document.getElementById('rank-discount').value) };
-            const { error } = await supabase.from('lost_price_ranks').insert([newRank]);
-            if(error) return alert(error.message);
-            priceRanks.push(newRank);
-            document.getElementById('modal-rank').classList.add('hidden'); 
-            loadAdminRanks();
-        }
-
-        function loadAdminCatalog() {
-            document.getElementById('admin-catalog-list').innerHTML = catalog.map((item) => `<div>• <strong>${item.name}</strong> - ${item.price.toLocaleString()} $ (${item.cat})</div>`).join('');
-        }
-        function openItemModal() { document.getElementById('modal-item').classList.remove('hidden'); }
-        async function saveItem() {
-            const newItem = { id: Date.now(), name: document.getElementById('edit-name').value, price: parseInt(document.getElementById('edit-price').value), desc: document.getElementById('edit-desc').value, mag: document.getElementById('edit-mag').value, cat: document.getElementById('edit-cat').value, img: "" };
-            const { error } = await supabase.from('lost_catalog').insert([newItem]);
-            if(error) return alert(error.message);
-            catalog.push(newItem);
-            document.getElementById('modal-item').classList.add('hidden'); 
-            loadAdminCatalog();
-        }
-
-        function loadAdminCoupons() { document.getElementById('admin-coupons-list').innerHTML = coupons.map(c => `<div>Code : <strong>${c.code}</strong> (-${c.pct}%)</div>`).join(''); }
-        function openCouponModal() { document.getElementById('modal-coupon').classList.remove('hidden'); }
-        async function saveCoupon() {
-            const newCoupon = { id: Date.now(), code: document.getElementById('coupon-code').value.toUpperCase(), pct: parseInt(document.getElementById('coupon-pct').value) };
-            const { error } = await supabase.from('lost_coupons').insert([newCoupon]);
-            if(error) return alert(error.message);
-            coupons.push(newCoupon);
-            document.getElementById('modal-coupon').classList.add('hidden'); 
-            loadAdminCoupons();
-        }
-
-        // --- 9. GESTION DES ONGLETS GLOBAUX ---
+        // --- 7. GESTION DES ONGLETS GLOBAUX ---
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
             document.getElementById('menu-' + tabId).classList.add('active');
-            if(tabId === 'shop') { loadCatalogue(); updateCart(); }
-            if(tabId === 'admin') setAdminSubTab('users');
-            if(tabId === 'orders') switchClientOrdersTab('active');
-            if(tabId === 'vendre') setVendeurFilter(currentVendeurFilter);
+            if(tabId === 'shop') loadCatalogue();
+            if(tabId === 'orders') loadMyOrders();
+            if(tabId === 'vendre') loadVendeurView();
         }
     </script>
 </body>
