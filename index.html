@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lost MC Shop</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-main: #0c0d12;
@@ -394,7 +395,7 @@
 
     <div id="auth-screen">
         <div class="auth-container" id="login-form-div">
-            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+            <img src="The lost mc logo.png" alt="The Lost MC Logo" class="auth-logo-img">
             <div class="auth-logo">The Lost MC Shop</div>
             <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
             <form id="auth-form">
@@ -416,7 +417,7 @@
         </div>
 
         <div class="auth-container hidden" id="register-form-div">
-            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+            <img src="The lost mc logo.png" alt="The Lost MC Logo" class="auth-logo-img">
             <div class="auth-logo">Enregistrement</div>
             <div class="auth-subtitle">Créer son compte sécurisé</div>
             <form id="reg-form">
@@ -624,26 +625,17 @@
     </div>
 
     <script>
-        let catalog = JSON.parse(localStorage.getItem('lost_catalog')) || [
-            { id: 1, name: "Fusil à pompe", price: 125000, desc: "Arme compacte.", mag: "8 cartouches", cat: "weapons", img: "" },
-            { id: 2, name: "Fusil à canon scié", price: 130000, desc: "Dispersion large.", mag: "2 cartouches", cat: "weapons", img: "" }
-        ];
+        // 1. CONFIGURATION DE LA CONNEXION SUPABASE
+        const SUPABASE_URL = "METS_TON_URL_SUPABASE_ICI";
+        const SUPABASE_ANON_KEY = "METS_TA_CLE_ANON_ICI";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let priceRanks = JSON.parse(localStorage.getItem('lost_price_ranks')) || [
-            { id: "normal", name: "NORMAL", discount: 0 },
-            { id: "vip", name: "VIP", discount: 10 },
-            { id: "lost", name: "LOST", discount: 20 }
-        ];
-
-        let users = JSON.parse(localStorage.getItem('lost_users')) || [];
-        users = users.filter(u => !['admin|99', 'admin', 'client1', 'vendeur1'].includes(u.username.toLowerCase()));
-        users.push({ username: "Admin|99", password: "123", roles: ["client", "vendeur", "admin"], rank: "lost" });
-        users.push({ username: "client1", password: "123", roles: ["client"], rank: "normal" });
-        users.push({ username: "vendeur1", password: "123", roles: ["client", "vendeur"], rank: "normal" });
-        localStorage.setItem('lost_users', JSON.stringify(users));
-
-        let coupons = JSON.parse(localStorage.getItem('lost_coupons')) || [{ id: 1, code: "WELCOME", pct: 5 }];
-        let orders = JSON.parse(localStorage.getItem('lost_orders')) || [];
+        // Variables globales de l'état de l'application
+        let catalog = [];
+        let priceRanks = [];
+        let users = [];
+        let coupons = [];
+        let orders = [];
         
         let currentUser = null;
         let cart = [];
@@ -652,11 +644,39 @@
         let currentVendeurFilter = 'all';
         let currentClientOrdersTab = 'active'; 
 
+        // 2. FONCTION D'INITIALISATION : CHARGEMENT DES TABLES DEPUIS SUPABASE
+        async function initApp() {
+            try {
+                // On récupère en parallèle les lignes de toutes les tables distantes
+                const [resCatalog, resRanks, resUsers, resCoupons, resOrders] = await Promise.all([
+                    supabaseClient.from('lost_catalog').select('*'),
+                    supabaseClient.from('lost_price_ranks').select('*'),
+                    supabaseClient.from('lost_users').select('*'),
+                    supabaseClient.from('lost_coupons').select('*'),
+                    supabaseClient.from('lost_orders').select('*')
+                ]);
+
+                catalog = resCatalog.data || [];
+                priceRanks = resRanks.data || [];
+                users = resUsers.data || [];
+                coupons = resCoupons.data || [];
+                orders = resOrders.data || [];
+
+                console.log("Données synchronisées avec succès depuis Supabase !");
+            } catch (error) {
+                console.error("Erreur d'initialisation Supabase :", error);
+            }
+        }
+
+        // Lancement immédiat de la récupération
+        initApp();
+
         function toggleAuth(isReg) {
             document.getElementById('login-form-div').classList.toggle('hidden', isReg);
             document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
         }
 
+        // MANAGEMENT DU FORMULAIRE DE LOG-IN
         document.getElementById('auth-form').onsubmit = (e) => {
             e.preventDefault();
             const pureLogin = document.getElementById('login-pure-username').value.trim();
@@ -666,10 +686,11 @@
             const singleFormat = pureLogin.toLowerCase();
             
             const found = users.find(x => (x.username.toLowerCase() === combinedFormat || x.username.toLowerCase() === singleFormat) && x.password === p);
-            if(found) { currentUser = found; loginSuccess(); } else { alert("Accès refusé."); }
+            if(found) { currentUser = found; loginSuccess(); } else { alert("Accès refusé. Vérifiez vos identifiants."); }
         };
 
-        document.getElementById('reg-form').onsubmit = (e) => {
+        // ENREGISTREMENT ET INSCRIPTION DIRECTEMENT SUR SUPABASE
+        document.getElementById('reg-form').onsubmit = async (e) => {
             e.preventDefault();
             const pureUser = document.getElementById('reg-pure-username').value.trim();
             const cityNum = document.getElementById('reg-city-number').value.trim();
@@ -678,8 +699,18 @@
             const finalCombinedUsername = `${pureUser}|${cityNum}`;
 
             if(users.find(x => x.username.toLowerCase() === finalCombinedUsername.toLowerCase())) return alert("Identifiant déjà utilisé.");
-            users.push({ username: finalCombinedUsername, password: p, roles: ["client"], rank: "normal" });
-            saveUsers(); alert(`Compte enregistré !`); toggleAuth(false);
+            
+            const newUser = { username: finalCombinedUsername, password: p, roles: ["client"], rank: "normal" };
+
+            // Insertion dans la table des membres sur Supabase
+            const { error } = await supabaseClient.from('lost_users').insert([newUser]);
+            if(error) {
+                alert("Erreur de sauvegarde Supabase : " + error.message);
+            } else {
+                users.push(newUser);
+                alert(`Compte enregistré !`); 
+                toggleAuth(false);
+            }
         };
 
         function loginSuccess() {
@@ -777,20 +808,26 @@
             document.getElementById('cart-total').textContent = total.toLocaleString() + " $";
         }
 
-        function checkout() {
+        // ENREGISTREMENT DE LA COMMANDE SUR SUPABASE (CHECKOUT)
+        async function checkout() {
             if(!cart.length) return;
-            orders.push({
+            const newOrder = {
                 id: 'LOST-' + Math.floor(10000 + Math.random() * 90000),
                 client: currentUser.username,
                 vendeur: null,
                 status: 'En attente',
                 items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price, finalPrice: i.buyPrice })),
                 msgs: [{ auth: 'Système', text: 'Demande transmise.' }]
-            });
-            saveOrders(); cart = []; activeCoupon = null; updateCart(); alert("Commande envoyée."); showTab('orders');
-        }
+            };
 
-        function saveOrders() { localStorage.setItem('lost_orders', JSON.stringify(orders)); }
+            const { error } = await supabaseClient.from('lost_orders').insert([newOrder]);
+            if(error) {
+                alert("Erreur lors de la validation du panier : " + error.message);
+            } else {
+                orders.push(newOrder);
+                cart = []; activeCoupon = null; updateCart(); alert("Commande envoyée."); showTab('orders');
+            }
+        }
 
         function renderOrderHTML(o, contextView) {
             const total = o.items.reduce((s, i) => s + (i.finalPrice * i.qty), 0);
@@ -916,7 +953,6 @@
         function loadVendeurView() {
             updateVendeurBadgesCounters();
             
-            // Partie 1 : Gestion des commandes en cours (onglets non archives)
             if(currentVendeurFilter !== 'done') {
                 const container = document.getElementById('vendeur-orders-list');
                 let filtered = [];
@@ -927,7 +963,6 @@
                 return;
             }
 
-            // Partie 2 : Gestion de l'historique et du calcul du Bilan (Uniquement onglet "done")
             const successContainer = document.getElementById('archived-success-list');
             const cancelledContainer = document.getElementById('archived-cancelled-list');
             
@@ -937,7 +972,6 @@
             let doneOrders = orders.filter(o => o.status === 'Terminée');
             let cancelledOrders = orders.filter(o => o.status === 'Annulée');
 
-            // Application des filtres croisés Vendeurs / Clients
             if(selectedVendeurs.length > 0 && !selectedVendeurs.includes('all')) {
                 doneOrders = doneOrders.filter(o => selectedVendeurs.includes(o.vendeur));
                 cancelledOrders = cancelledOrders.filter(o => selectedVendeurs.includes(o.vendeur));
@@ -947,7 +981,6 @@
                 cancelledOrders = cancelledOrders.filter(o => selectedClients.includes(o.client));
             }
 
-            // CALCUL DU BILAN : Strictement basé sur les commandes Validées/Terminées (Exclut les annulées)
             let totalRevenue = 0;
             let totalItemsCount = 0;
             let itemsBreakdown = {};
@@ -961,12 +994,10 @@
                 });
             });
 
-            // Injection des KPI calculés
             document.getElementById('stat-revenue').textContent = totalRevenue.toLocaleString() + " $";
             document.getElementById('stat-orders-count').textContent = doneOrders.length;
             document.getElementById('stat-items-count').textContent = totalItemsCount;
 
-            // Rendu de l'inventaire précis
             const breakdownContainer = document.getElementById('vendeur-items-breakdown-list');
             const itemKeys = Object.keys(itemsBreakdown);
             if(itemKeys.length === 0) {
@@ -980,41 +1011,68 @@
                 `).join('');
             }
 
-            // Rendu des listes séparées
             successContainer.innerHTML = doneOrders.length ? doneOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:10px;'>Aucune archive.</div>";
             cancelledContainer.innerHTML = cancelledOrders.length ? cancelledOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:10px;'>Aucune commande annulée.</div>";
         }
 
-        function updateStatus(orderId, newStatus) {
+        // METTRE À JOUR LE STATUT D'UNE COMMANDE DANS SUPABASE
+        async function updateStatus(orderId, newStatus) {
             const o = orders.find(x => x.id === orderId);
             if(!o) return;
+
+            let prevStatus = o.status;
+            let prevVendeur = o.vendeur;
+
             o.status = newStatus;
             if(newStatus === 'En cours' && !o.vendeur) {
                 o.vendeur = currentUser.username;
             }
             o.msgs.push({ auth: 'Système', text: `Statut modifié : ${newStatus} (Vendeur: ${o.vendeur || 'Aucun'})` });
-            saveOrders(); 
-            setupMultipleFiltersDropdowns();
-            loadVendeurView();
-        }
 
-        function clientCancelOrder(orderId) {
-            const o = orders.find(x => x.id === orderId);
-            if(o && confirm("Voulez-vous vraiment annuler votre demande ?")) { 
-                o.status = 'Annulée'; 
-                o.msgs.push({ auth: 'Système', text: 'Annulé par le client.' }); 
-                saveOrders(); 
-                loadMyOrders(); 
+            // On update la base de données distante
+            const { error } = await supabaseClient.from('lost_orders').update({ status: o.status, vendeur: o.vendeur, msgs: o.msgs }).eq('id', orderId);
+            if(error) {
+                alert("Erreur Supabase lors du changement de statut : " + error.message);
+                o.status = prevStatus; o.vendeur = prevVendeur; o.msgs.pop(); // Rollback en cas d'erreur
+            } else {
+                setupMultipleFiltersDropdowns();
+                loadVendeurView();
             }
         }
 
-        function sendOrderMsg(orderId) {
+        // ANNULATION CLIENT DANS SUPABASE
+        async function clientCancelOrder(orderId) {
+            const o = orders.find(x => x.id === orderId);
+            if(o && confirm("Voulez-vous vraiment annuler votre demande ?")) { 
+                let prevStatus = o.status;
+                o.status = 'Annulée'; 
+                o.msgs.push({ auth: 'Système', text: 'Annulé par le client.' }); 
+
+                const { error } = await supabaseClient.from('lost_orders').update({ status: o.status, msgs: o.msgs }).eq('id', orderId);
+                if(error) {
+                    alert("Erreur d'annulation : " + error.message);
+                    o.status = prevStatus; o.msgs.pop();
+                } else {
+                    loadMyOrders(); 
+                }
+            }
+        }
+
+        // ENVOI DE MESSAGE DANS LE TCHAT DE LA COMMANDE (SUPABASE UPDATE)
+        async function sendOrderMsg(orderId) {
             const input = document.getElementById(`input-${orderId}`);
             if(!input.value.trim()) return;
             const o = orders.find(x => x.id === orderId);
             o.msgs.push({ auth: currentUser.username, text: input.value.trim() });
-            saveOrders(); input.value = "";
-            if(document.getElementById('tab-orders').classList.contains('hidden')) loadVendeurView(); else loadMyOrders();
+
+            const { error } = await supabaseClient.from('lost_orders').update({ msgs: o.msgs }).eq('id', orderId);
+            if(error) {
+                alert("Message non envoyé : " + error.message);
+                o.msgs.pop();
+            } else {
+                input.value = "";
+                if(document.getElementById('tab-orders').classList.contains('hidden')) loadVendeurView(); else loadMyOrders();
+            }
         }
 
         function setAdminSubTab(sub) {
@@ -1035,7 +1093,14 @@
             container.innerHTML = `<table><tr><th>Membre</th><th>Rangs & Accès</th><th>Actions</th></tr>
                 ${users.map((u, i) => `<tr><td><strong>${u.username}</strong></td>
                 <td>${u.roles.join(', ')} [${u.rank}]</td>
-                <td><button class="btn btn-danger btn-small" onclick="users.splice(${i},1);saveUsers();loadAdminUsers()">Supprimer</button></td></tr>`).join('')}</table>`;
+                <td><button class="btn btn-danger btn-small" onclick="deleteUser('${u.username}', ${i})">Supprimer</button></td></tr>`).join('')}</table>`;
+        }
+
+        async function deleteUser(username, index) {
+            if(confirm("Supprimer ce membre ?")) {
+                const { error } = await supabaseClient.from('lost_users').delete().eq('username', username);
+                if(!error) { users.splice(index,1); loadAdminUsers(); }
+            }
         }
 
         function loadAdminRanks() {
@@ -1043,23 +1108,28 @@
             container.innerHTML = `<table><tr><th>Profil</th><th>Remise</th></tr>${priceRanks.map(r => `<tr><td>${r.name}</td><td>-${r.discount}%</td></tr>`).join('')}</table>`;
         }
         function openRankModal() { document.getElementById('modal-rank').classList.remove('hidden'); }
-        function saveRank() {
-            priceRanks.push({ id: document.getElementById('rank-name').value.toLowerCase(), name: document.getElementById('rank-name').value, discount: parseInt(document.getElementById('rank-discount').value) });
-            localStorage.setItem('lost_price_ranks', JSON.stringify(priceRanks)); document.getElementById('modal-rank').classList.add('hidden'); loadAdminRanks();
+        async function saveRank() {
+            const newRank = { id: document.getElementById('rank-name').value.toLowerCase(), name: document.getElementById('rank-name').value, discount: parseInt(document.getElementById('rank-discount').value) };
+            const { error } = await supabaseClient.from('lost_price_ranks').insert([newRank]);
+            if(!error) { priceRanks.push(newRank); document.getElementById('modal-rank').classList.add('hidden'); loadAdminRanks(); }
         }
+
         function loadAdminCatalog() {
             document.getElementById('admin-catalog-list').innerHTML = catalog.map((item, i) => `<div>${item.name} - ${item.price}$</div>`).join('');
         }
         function openItemModal() { document.getElementById('modal-item').classList.remove('hidden'); }
-        function saveItem() {
-            catalog.push({ id: Date.now(), name: document.getElementById('edit-name').value, price: parseInt(document.getElementById('edit-price').value), desc: document.getElementById('edit-desc').value, mag: document.getElementById('edit-mag').value, cat: document.getElementById('edit-cat').value });
-            localStorage.setItem('lost_catalog', JSON.stringify(catalog)); document.getElementById('modal-item').classList.add('hidden'); loadAdminCatalog();
+        async function saveItem() {
+            const newItem = { id: Date.now(), name: document.getElementById('edit-name').value, price: parseInt(document.getElementById('edit-price').value), desc: document.getElementById('edit-desc').value, mag: document.getElementById('edit-mag').value, cat: document.getElementById('edit-cat').value };
+            const { error } = await supabaseClient.from('lost_catalog').insert([newItem]);
+            if(!error) { catalog.push(newItem); document.getElementById('modal-item').classList.add('hidden'); loadAdminCatalog(); }
         }
+
         function loadAdminCoupons() { document.getElementById('admin-coupons-list').innerHTML = coupons.map(c => `<div>${c.code} (-${c.pct}%)</div>`).join(''); }
         function openCouponModal() { document.getElementById('modal-coupon').classList.remove('hidden'); }
-        function saveCoupon() {
-            coupons.push({ id: Date.now(), code: document.getElementById('coupon-code').value, pct: parseInt(document.getElementById('coupon-pct').value) });
-            localStorage.setItem('lost_coupons', JSON.stringify(coupons)); document.getElementById('modal-coupon').classList.add('hidden'); loadAdminCoupons();
+        async function saveCoupon() {
+            const newCoupon = { id: Date.now(), code: document.getElementById('coupon-code').value, pct: parseInt(document.getElementById('coupon-pct').value) };
+            const { error } = await supabaseClient.from('lost_coupons').insert([newCoupon]);
+            if(!error) { coupons.push(newCoupon); document.getElementById('modal-coupon').classList.add('hidden'); loadAdminCoupons(); }
         }
 
         function showTab(tabId) {
@@ -1072,8 +1142,6 @@
             if(tabId === 'orders') switchClientOrdersTab('active');
             if(tabId === 'vendre') { setupMultipleFiltersDropdowns(); setVendeurFilter(currentVendeurFilter); }
         }
-
-        function saveUsers() { localStorage.setItem('lost_users', JSON.stringify(users)); }
     </script>
 </body>
 </html>
