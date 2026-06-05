@@ -232,7 +232,6 @@
         }
 
         .price-tag { font-size: 18px; font-weight: 700; color: var(--status-done); }
-        .old-price { font-size: 13px; color: var(--text-muted); text-decoration: line-through; margin-right: 8px; }
 
         .cart-panel {
             background: var(--bg-card);
@@ -261,49 +260,18 @@
         .order-content { padding: 20px; display: none; border-top: 1px solid var(--lost-border); }
         .order-item.expanded .order-content { display: block; }
 
-        /* STRUCTURE TCHAT INTERNE */
-        .chat-box {
-            background: var(--bg-input);
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .order-table th, .order-table td {
             border: 1px solid var(--lost-border);
-            border-radius: 4px;
-            height: 180px;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
         }
-        .chat-msg { padding: 8px 12px; border-radius: 6px; max-width: 80%; font-size: 13px; }
-        .chat-msg.system { background: transparent; color: var(--status-pending); max-width: 100%; text-align: center; font-style: italic; }
-        .chat-msg.me { background: var(--accent-red); color: white; align-self: flex-end; }
-        .chat-msg.other { background: #334155; color: white; align-self: flex-start; }
-
-        /* PANNEAU STATISTIQUES */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--lost-border);
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--status-done);
-            margin-top: 5px;
-        }
-        .stat-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
+        .order-table th { background: var(--bg-input); color: var(--text-muted); }
 
         .discord-footer {
             text-align: center;
@@ -419,7 +387,7 @@
             <div id="tab-vendre" class="tab-content hidden">
                 <h2 class="view-title">Suivi Logistique des Commandes</h2>
                 <div class="cat-nav" style="margin-bottom: 20px;">
-                    <button class="cat-btn active" id="v-filter-all" onclick="loadVendeurView()">Toutes les commandes en attente</button>
+                    <button class="cat-btn active">Toutes les commandes en attente</button>
                 </div>
                 <div id="vendeur-orders-list"></div>
             </div>
@@ -427,77 +395,27 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURATION SUPABASE CORRIGÉE AVEC VOS VRAIS IDENTIFIANTS ---
+        // --- 1. CONFIGURATION SUPABASE ---
         const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
-        let catalog = [];
-        let users = [];
-        let orders = [];
+        let catalog = [
+            { id: 1, name: "Pistolet de combat", price: 50000, desc: "Arme de poing légère", mag: "12 balles", cat: "weapons", img: "" },
+            { id: 2, name: "Micro Uzi", price: 120000, desc: "Cadence de tir élevée", mag: "30 balles", cat: "weapons", img: "" },
+            { id: 3, name: "Gilet par-balles", price: 5000, desc: "Protection moyenne", mag: "100%", cat: "others", img: "" }
+        ];
+        
+        // Plus de tableaux globaux chargeant l'entièreté de la base de données
         let currentUser = null;
         let cart = [];
         let activeShopCat = 'weapons';
 
-        // --- 3. INITIALISATION & ADAPTATION STRICTE À VOS TABLES SUPABASE ---
+        // --- 3. INITIALISATION ---
         async function initApp() {
-            try {
-                // 1. Chargement depuis votre table 'utilisateurs'
-                const { data: uData, error: uErr } = await supabase.from('utilisateurs').select('*');
-                if (!uErr && uData) {
-                    users = uData.map(u => ({
-                        username: `${u.login}|${u.id_serveur}`.toLowerCase(),
-                        login_pure: u.login,
-                        id_serveur: u.id_serveur,
-                        password: u.mot_de_passe,
-                        // Simulé car vos colonnes n'existent pas encore
-                        roles: u.login.toLowerCase() === "admin" ? ["client", "vendeur"] : ["client"],
-                        rank: "normal"
-                    }));
-                }
-
-                // 2. Chargement depuis votre table 'articles'
-                const { data: cData, error: cErr } = await supabase.from('articles').select('*');
-                if (!cErr && cData) {
-                    catalog = cData.map(c => ({
-                        id: c.id,
-                        name: c.nom || "Article",
-                        price: c.prix || 0,
-                        desc: c.description || "",
-                        mag: c.capacite || "N/A",
-                        cat: c.categorie || "weapons",
-                        img: c.image || ""
-                    }));
-                } else {
-                    // Si votre table articles est vide, on injecte des données de démo visibles par tout le monde
-                    catalog = [
-                        { id: 1, name: "Pistolet de combat", price: 50000, desc: "Arme de poing légère", mag: "12 balles", cat: "weapons", img: "" },
-                        { id: 2, name: "Micro Uzi", price: 120000, desc: "Cadence de tir élevée", mag: "30 balles", cat: "weapons", img: "" },
-                        { id: 3, name: "Gilet par-balles", price: 5000, desc: "Protection moyenne", mag: "100%", cat: "others", img: "" }
-                    ];
-                }
-
-                // 3. Chargement depuis votre table 'commandes'
-                const { data: oData, error: oErr } = await supabase.from('commandes').select('*');
-                if (!oErr && oData) {
-                    orders = oData.map(o => ({
-                        id: 'LOST-' + o.id,
-                        id_db: o.id,
-                        client: o.client || "Inconnu",
-                        status: o.statut || "En attente",
-                        total: o.total || 0,
-                        vendeur: o.vendeur || null,
-                        items: [],
-                        msgs: []
-                    }));
-                }
-
-                console.log("Application connectée avec succès à Supabase !");
-            } catch (err) {
-                console.error("Erreur d'initialisation :", err);
-            }
+            console.log("Application connectée avec succès à Supabase !");
         }
         initApp();
 
@@ -507,41 +425,58 @@
             document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
         }
 
-        document.getElementById('auth-form').onsubmit = (e) => {
+        document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
             const pureLogin = document.getElementById('login-pure-username').value.trim();
-            const cityNum = document.getElementById('login-city-number').value.trim();
+            const cityNum = parseInt(document.getElementById('login-city-number').value.trim());
             const p = document.getElementById('password').value;
             
-            const combinedFormat = `${pureLogin}|${cityNum}`.toLowerCase();
-            const found = users.find(x => x.username === combinedFormat && x.password === p);
+            // Requête ciblée sécurisée sur Supabase
+            const { data: userData, error } = await supabase
+                .from('utilisateurs')
+                .select('*')
+                .eq('login', pureLogin)
+                .eq('id_serveur', cityNum)
+                .maybeSingle();
 
-            if(found) { 
-                currentUser = found; 
+            if (!error && userData && userData.mot_de_pass === p) { 
+                currentUser = {
+                    login_pure: userData.login,
+                    id_serveur: userData.id_serveur,
+                    role_admin: userData.role_admin,
+                    role_vendeur: userData.role_vendeur
+                }; 
                 loginSuccess(); 
             } else { 
-                alert("Accès refusé. Vérifiez vos identifiants ou créez un compte."); 
+                alert("Accès refusé. Vérifiez vos identifiants."); 
             }
         };
 
         document.getElementById('reg-form').onsubmit = async (e) => {
             e.preventDefault();
             const pureUser = document.getElementById('reg-pure-username').value.trim();
-            const cityNum = document.getElementById('reg-city-number').value.trim();
+            const cityNum = parseInt(document.getElementById('reg-city-number').value.trim());
             const p = document.getElementById('reg-password').value;
             
-            if(pureUser.includes('|')) return alert("Le pseudo ne doit pas contenir de symbole '|'.");
-            const finalCombinedUsername = `${pureUser}|${cityNum}`.toLowerCase();
+            // Vérification si l'utilisateur existe déjà
+            const { data: existing } = await supabase
+                .from('utilisateurs')
+                .select('login')
+                .eq('login', pureUser)
+                .eq('id_serveur', cityNum)
+                .maybeSingle();
 
-            if(users.find(x => x.username === finalCombinedUsername)) {
+            if (existing) {
                 return alert("Ce compte (Pseudo + Numéro de ville) existe déjà.");
             }
             
-            // CORRECTION STRICTE : On envoie uniquement les colonnes réelles qui existent sur votre Supabase !
+            // Insertion stricte selon vos colonnes SQL
             const registerPayload = { 
-                id_serveur: parseInt(cityNum), 
+                id_serveur: cityNum, 
                 login: pureUser, 
-                mot_de_passe: p
+                mot_de_pass: p,
+                role_admin: pureUser.toLowerCase() === "admin",
+                role_vendeur: pureUser.toLowerCase() === "admin"
             };
             
             const { error } = await supabase.from('utilisateurs').insert([registerPayload]);
@@ -550,16 +485,6 @@
                 alert("Erreur d'enregistrement Supabase : " + error.message);
                 return;
             }
-
-            // On ajoute localement pour permettre la connexion immédiate sans recharger
-            users.push({
-                username: finalCombinedUsername,
-                login_pure: pureUser,
-                id_serveur: parseInt(cityNum),
-                password: p,
-                roles: pureUser.toLowerCase() === "admin" ? ["client", "vendeur"] : ["client"],
-                rank: "normal"
-            });
 
             alert(`Compte créé avec succès pour ${pureUser} ! Vous pouvez vous connecter.`); 
             toggleAuth(false);
@@ -570,13 +495,14 @@
             document.getElementById('app-structure').classList.remove('hidden');
             document.getElementById('user-display').innerHTML = `Membre : <strong>${currentUser.login_pure} (#${currentUser.id_serveur})</strong>`;
             
-            // Droits d'affichage des onglets
-            document.getElementById('menu-vendre').classList.toggle('hidden', !currentUser.roles.includes('vendeur'));
+            // Gestion des onglets selon les rôles du schéma SQL
+            const isStaff = currentUser.role_admin || currentUser.role_vendeur;
+            document.getElementById('menu-vendre').classList.toggle('hidden', !isStaff);
             
             showTab('shop');
         }
 
-        // --- 5. LOGIQUE BOUTIQUE & CALCULS ---
+        // --- 5. LOGIQUE BOUTIQUE & PANIER ---
         function switchShopCat(cat) {
             activeShopCat = cat;
             document.getElementById('cat-btn-weapons').classList.toggle('active', cat === 'weapons');
@@ -587,14 +513,14 @@
         function loadCatalogue() {
             const container = document.getElementById('weapon-catalogue');
             const rankStatus = document.getElementById('client-rank-status');
-            rankStatus.innerHTML = `<span class="badge" style="background:#475569">RANG : NORMAL</span>`;
+            
+            let rankText = "NORMAL";
+            if (currentUser.role_admin) rankText = "ADMIN";
+            else if (currentUser.role_vendeur) rankText = "VENDEUR";
+            
+            rankStatus.innerHTML = `<span class="badge" style="background:#475569">RANG : ${rankText}</span>`;
 
             const filtered = catalog.filter(item => item.cat === activeShopCat);
-            if(!filtered.length) { 
-                container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Aucun article dans cette catégorie.</div>`; 
-                return; 
-            }
-
             container.innerHTML = filtered.map(w => {
                 const placeholder = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
                 return `<div class="weapon-card">
@@ -634,30 +560,29 @@
 
         async function checkout() {
             if(!cart.length) return;
-            let totalOrder = cart.reduce((s, c) => s + (c.price * c.qty), 0);
             
-            // Adaptation à votre table 'commandes' (colonnes : client, statut, total)
+            // 1. Insertion de la commande parente
             const newOrderPayload = {
-                client: currentUser.username,
-                statut: 'En attente',
-                total: totalOrder
+                client_id: currentUser.id_serveur,
+                client_pseudo: currentUser.login_pure,
+                statut: 'En attente'
             };
 
-            const { data, error } = await supabase.from('commandes').insert([newOrderPayload]).select();
-            if (error) return alert("Erreur lors de la commande : " + error.message);
+            const { data: orderData, error: orderErr } = await supabase.from('commandes').insert([newOrderPayload]).select();
+            if (orderErr) return alert("Erreur lors de la commande : " + orderErr.message);
 
-            const insertedId = data && data[0] ? data[0].id : Math.floor(Math.random() * 1000);
+            const insertedOrderId = orderData[0].id;
 
-            orders.push({
-                id: 'LOST-' + insertedId,
-                id_db: insertedId,
-                client: currentUser.username,
-                status: 'En attente',
-                total: totalOrder,
-                vendeur: null,
-                items: [...cart],
-                msgs: []
-            });
+            // 2. Construction et insertion des lignes associées dans details_commande
+            const linesPayload = cart.map(item => ({
+                id_commande: insertedOrderId,
+                nom_article: item.name,
+                quantite: item.qty,
+                prix_achat: item.price
+            }));
+
+            const { error: linesErr } = await supabase.from('details_commande').insert(linesPayload);
+            if (linesErr) return alert("Erreur lors de l'enregistrement des détails : " + linesErr.message);
 
             cart = []; 
             updateCart(); 
@@ -667,52 +592,109 @@
 
         // --- 6. SUIVI ET VISUALISATION DES COMMANDES ---
         function renderOrderHTML(o, contextView) {
-            let statusColor = o.status === "Terminée" ? "var(--status-done)" : "var(--status-pending)";
+            let statusColor = o.statut === "Terminée" ? "var(--status-done)" : "var(--status-pending)";
             let actionBtn = "";
 
-            if(contextView === 'vendeur' && o.status === 'En attente') {
-                actionBtn = `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id_db})">✔️ Marquer comme Livrée / Terminée</button>`;
+            if(contextView === 'vendeur' && o.statut === 'En attente') {
+                actionBtn = `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id})">✔️ Marquer comme Livrée</button>`;
+            }
+
+            // Calcul du total de la commande depuis les détails
+            let totalCommande = 0;
+            let rowsHtml = "";
+            if (o.details_commande && o.details_commande.length > 0) {
+                totalCommande = o.details_commande.reduce((sum, item) => sum + (item.prix_achat * item.quantite), 0);
+                rowsHtml = o.details_commande.map(item => `
+                    <tr>
+                        <td>${item.nom_article}</td>
+                        <td>x${item.quantite}</td>
+                        <td>${(item.prix_achat * item.quantite).toLocaleString()} $</td>
+                    </tr>
+                `).join('');
+            } else {
+                rowsHtml = `<tr><td colspan="3" style="color:var(--text-muted); text-align:center;">Aucun article</td></tr>`;
             }
 
             return `<div class="order-item">
                 <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
                     <div>
-                        <strong style="color:var(--accent-red); margin-right:10px;">${o.id}</strong>
-                        <span style="color:var(--text-muted); font-size:13px;">${contextView === 'vendeur' ? 'Acheteur: ' + o.client : 'Suivi logistique'}</span>
+                        <strong style="color:var(--accent-red); margin-right:10px;">LOST-${o.id}</strong>
+                        <span style="color:var(--text-muted); font-size:13px;">
+                            ${contextView === 'vendeur' ? 'Acheteur : ' + o.client_pseudo + ' (#' + o.client_id + ')' : 'Suivi Logistique'}
+                        </span>
                     </div>
                     <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="font-weight:bold; color:var(--status-done)">${o.total.toLocaleString()} $</span>
-                        <span class="badge" style="background:${statusColor}">${o.status}</span>
+                        <span style="font-weight:bold; color:var(--status-done)">${totalCommande.toLocaleString()} $</span>
+                        <span class="badge" style="background:${statusColor}">${o.statut}</span>
                         <span style="font-size:11px; color:var(--text-muted)">▼ Détails</span>
                     </div>
                 </div>
                 <div class="order-content">
-                    <p style="margin-top:0; font-size:14px; color:var(--text-muted)">Commande enregistrée dans le système sécurisé.</p>
+                    <p style="margin-top:0; font-size:12px; color:var(--text-muted)">
+                        Prise en charge : ${o.vendeur_affecte ? 'Par ' + o.vendeur_affecte : 'Aucun vendeur affecté'}
+                    </p>
+                    <table class="order-table">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Quantité</th>
+                                <th>Sous-total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
                     <div style="margin-top:15px;">${actionBtn}</div>
                 </div>
             </div>`;
         }
 
-        function loadMyOrders() {
+        async function loadMyOrders() {
             const container = document.getElementById('my-orders-list');
-            const myFiltered = orders.filter(o => o.client === currentUser.username);
-            container.innerHTML = myFiltered.length ? myFiltered.map(o => renderOrderHTML(o, 'client')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Vous n'avez pas encore passé de commande.</div>";
+            
+            // On récupère uniquement mes commandes + jointure sur leurs détails
+            const { data, error } = await supabase
+                .from('commandes')
+                .select('*, details_commande(*)')
+                .eq('client_pseudo', currentUser.login_pure)
+                .eq('client_id', currentUser.id_serveur)
+                .order('id', { ascending: false });
+
+            if (!error && data && data.length > 0) {
+                container.innerHTML = data.map(o => renderOrderHTML(o, 'client')).join('');
+            } else {
+                container.innerHTML = "<div style='color:var(--text-muted); padding:20px;'>Vous n'avez pas encore passé de commande.</div>";
+            }
         }
 
-        function loadVendeurView() {
+        async function loadVendeurView() {
             const container = document.getElementById('vendeur-orders-list');
-            const pendingOrders = orders.filter(o => o.status === 'En attente');
-            container.innerHTML = pendingOrders.length ? pendingOrders.map(o => renderOrderHTML(o, 'vendeur')).join('') : "<div style='color:var(--text-muted); padding:20px;'>Aucune commande en attente de livraison pour le moment.</div>";
+            
+            // Les vendeurs ont accès à toutes les commandes en attente + leurs détails
+            const { data, error } = await supabase
+                .from('commandes')
+                .select('*, details_commande(*)')
+                .eq('statut', 'En attente')
+                .order('id', { ascending: true });
+
+            if (!error && data && data.length > 0) {
+                container.innerHTML = data.map(o => renderOrderHTML(o, 'vendeur')).join('');
+            } else {
+                container.innerHTML = "<div style='color:var(--text-muted); padding:20px;'>Aucune commande en attente de livraison.</div>";
+            }
         }
 
         async function completeOrder(idDb) {
-            const { error } = await supabase.from('commandes').update({ statut: 'Terminée', vendeur: currentUser.username }).eq('id', idDb);
+            const { error } = await supabase
+                .from('commandes')
+                .update({ statut: 'Terminée', vendeur_affecte: currentUser.login_pure })
+                .eq('id', idDb);
+                
             if(error) return alert("Erreur de mise à jour : " + error.message);
             
-            const local = orders.find(o => o.id_db === idDb);
-            if(local) { local.status = 'Terminée'; local.vendeur = currentUser.username; }
-            loadVendeurView();
             alert("Commande clôturée et archivée !");
+            await loadVendeurView();
         }
 
         // --- 7. GESTION DES ONGLETS GLOBAUX ---
