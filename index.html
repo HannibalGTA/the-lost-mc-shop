@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lost MC Shop - Connexion</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="login-container">
+        <img src="images/logo.png" alt="The Lost MC Logo" class="logo">
+        <h1>The Lost MC Shop</h1>
+
+        <div id="login-box">
+            <h2>Connexion</h2>
+            <form id="form-login">
+                <input type="text" id="login-username" placeholder="Nom d'utilisateur (Login)" required>
+                <input type="number" id="login-id" placeholder="N° ID Serveur" required>
+                <input type="password" id="login-password" placeholder="Mot de passe" required>
+                <button type="submit">Entrer dans le shop</button>
+            </form>
+            <p>Pas encore de compte ? <a href="#" id="show-register">Créer un compte</a></p>
+        </div>
+
+        <div id="register-box" style="display: none;">
+            <h2>Créer un compte</h2>
+            <form id="form-register">
+                <input type="text" id="reg-username" placeholder="Nom d'utilisateur (Login)" required>
+                <input type="number" id="reg-id" placeholder="N° ID Serveur" required>
+                <input type="password" id="reg-password" placeholder="Mot de passe" required>
+                <button type="submit">S'enregistrer</button>
+            </form>
+            <p>Déjà membre ? <a href="#" id="show-login">Se connecter</a></p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>
