@@ -11,6 +11,7 @@
             --bg-card: #14161d;
             --bg-input: #1a1d26;
             --accent-red: #da292a;
+            --accent-gold: #f59e0b;
             --lost-border: #262a36;
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
@@ -18,690 +19,840 @@
             --status-process: #3b82f6;
             --status-done: #10b981;
         }
-
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         .hidden { display: none !important; }
 
-        /* ÉCRAN D'AUTHENTIFICATION */
-        #auth-screen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: radial-gradient(circle at center, #1e1212 0%, var(--bg-main) 70%);
-        }
+        /* AUTH */
+        #auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: radial-gradient(circle at center, #1e1212 0%, var(--bg-main) 70%); }
+        .auth-container { background: var(--bg-card); border: 1px solid var(--lost-border); border-top: 3px solid var(--accent-red); padding: 40px; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .auth-logo-img { display: block; max-width: 200px; height: auto; margin: 0 auto 15px auto; }
+        .auth-logo { text-align: center; font-size: 24px; font-weight: 800; letter-spacing: 2px; color: var(--accent-red); margin-bottom: 5px; text-transform: uppercase; }
+        .auth-subtitle { text-align: center; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; }
 
-        .auth-container {
-            background: var(--bg-card);
-            border: 1px solid var(--lost-border);
-            border-top: 3px solid var(--accent-red);
-            padding: 40px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
+        label { display: block; font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--lost-border); border-radius: 4px; color: var(--text-main); margin-bottom: 20px; font-size: 14px; transition: border-color 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-red); }
+        select option { background: var(--bg-card); }
 
-        .auth-logo-img {
-            display: block;
-            max-width: 200px;
-            height: auto;
-            margin: 0 auto 15px auto;
-        }
-
-        .auth-logo {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: var(--accent-red);
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .auth-subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 30px;
-        }
-
-        /* CONFIGURATION GLOBAL INPUTS & BOUTONS */
-        label {
-            display: block;
-            font-size: 12px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
-        input[type="text"], input[type="password"], input[type="number"], select, textarea {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-input);
-            border: 1px solid var(--lost-border);
-            border-radius: 4px;
-            color: var(--text-main);
-            box-sizing: border-box;
-            margin-bottom: 20px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-red);
-        }
-
-        .btn {
-            background: var(--accent-red);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-weight: 600;
-            border-radius: 4px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover { opacity: 0.9; }
+        .btn { background: var(--accent-red); color: white; border: none; padding: 12px 24px; font-weight: 600; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
         .btn-secondary { background: #334155; }
         .btn-danger { background: #b91c1c; }
         .btn-success { background: #059669; }
+        .btn-warning { background: #d97706; }
         .btn-small { padding: 6px 12px; font-size: 11px; }
 
-        /* STRUCTURE DE L'APPLICATION */
-        #app-structure {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        #sidebar {
-            width: 260px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--lost-border);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .sidebar-brand-container {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--lost-border);
-            text-align: center;
-        }
-
-        .sidebar-logo-img {
-            max-width: 120px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
-        .sidebar-brand {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--accent-red);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
+        /* APP LAYOUT */
+        #app-structure { display: flex; min-height: 100vh; }
+        #sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--lost-border); display: flex; flex-direction: column; justify-content: space-between; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-brand-container { padding: 20px 25px; border-bottom: 1px solid var(--lost-border); text-align: center; }
+        .sidebar-logo-img { max-width: 120px; height: auto; margin-bottom: 10px; }
+        .sidebar-brand { font-size: 16px; font-weight: 800; color: var(--accent-red); letter-spacing: 1px; text-transform: uppercase; }
         .menu-list { list-style: none; padding: 15px 0; margin: 0; }
-        .menu-item {
-            padding: 14px 25px;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        .menu-item:hover, .menu-item.active {
-            color: var(--text-main);
-            background: rgba(255,255,255,0.03);
-            border-left: 3px solid var(--accent-red);
-        }
+        .menu-item { padding: 14px 25px; color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; transition: all 0.2s; gap: 10px; border-left: 3px solid transparent; }
+        .menu-item:hover, .menu-item.active { color: var(--text-main); background: rgba(255,255,255,0.03); border-left-color: var(--accent-red); }
+        .menu-item.admin-item:hover, .menu-item.admin-item.active { border-left-color: var(--accent-gold); color: var(--accent-gold); }
+        #main-content { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg-main); }
+        .view-title { font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-top: 0; margin-bottom: 25px; color: var(--text-main); border-bottom: 2px solid var(--lost-border); padding-bottom: 15px; }
 
-        #main-content {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            background: var(--bg-main);
-        }
-
-        /* INTERFACE COMMERCE / SHOP */
-        .shop-layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 30px;
-        }
-
-        .cat-nav { display: flex; gap: 10px; margin-bottom: 25px; }
-        .cat-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--lost-border);
-            color: var(--text-muted);
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-        }
-        .cat-btn.active {
-            background: var(--accent-red);
-            color: white;
-            border-color: var(--accent-red);
-        }
-
-        .catalogue-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .weapon-card {
-            background: var(--bg-card);
-            border: 1px solid var(--lost-border);
-            border-radius: 6px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .weapon-card img {
-            width: 100%;
-            height: 130px;
-            object-fit: cover;
-            border-radius: 4px;
-            background: var(--bg-input);
-            margin-bottom: 12px;
-        }
-
+        /* SHOP */
+        .shop-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
+        .cat-nav { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .cat-btn { background: var(--bg-card); border: 1px solid var(--lost-border); color: var(--text-muted); padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+        .cat-btn.active { background: var(--accent-red); color: white; border-color: var(--accent-red); }
+        .catalogue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .weapon-card { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color 0.2s; }
+        .weapon-card:hover { border-color: #3d4256; }
+        .weapon-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 4px; background: var(--bg-input); margin-bottom: 12px; }
         .price-tag { font-size: 18px; font-weight: 700; color: var(--status-done); }
+        .price-original { text-decoration: line-through; color: var(--text-muted); font-size: 13px; margin-left: 6px; }
+        .discount-badge { display: inline-block; background: var(--accent-gold); color: #000; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+        .cart-panel { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 20px; height: fit-content; position: sticky; top: 20px; }
 
-        .cart-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--lost-border);
-            border-radius: 6px;
-            padding: 20px;
-            height: fit-content;
-        }
-
-        /* SECTION SUIVI ET COMMANDES */
-        .order-item {
-            background: var(--bg-card);
-            border: 1px solid var(--lost-border);
-            border-radius: 6px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-        .order-header {
-            padding: 15px 20px;
-            background: rgba(255,255,255,0.01);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
+        /* ORDERS */
+        .order-item { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; margin-bottom: 15px; overflow: hidden; }
+        .order-header { padding: 15px 20px; background: rgba(255,255,255,0.01); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .order-content { padding: 20px; display: none; border-top: 1px solid var(--lost-border); }
         .order-item.expanded .order-content { display: block; }
-
-        .order-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .order-table th, .order-table td {
-            border: 1px solid var(--lost-border);
-            padding: 8px;
-            text-align: left;
-            font-size: 13px;
-        }
+        .order-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .order-table th, .order-table td { border: 1px solid var(--lost-border); padding: 8px; text-align: left; font-size: 13px; }
         .order-table th { background: var(--bg-input); color: var(--text-muted); }
 
-        .discord-footer {
-            text-align: center;
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--lost-border);
-            font-weight: 700;
-        }
+        /* BADGES */
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-admin { background: #7c3aed; }
+        .badge-vendeur { background: var(--status-process); }
+        .badge-client { background: #334155; }
+        .badge-vip { background: var(--accent-gold); color: #000; }
+        .badge-lost { background: var(--accent-red); }
+
+        /* ADMIN */
+        .admin-section { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 25px; margin-bottom: 25px; }
+        .admin-section-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-gold); margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 20px; text-align: center; }
+        .stat-number { font-size: 32px; font-weight: 800; color: var(--accent-red); }
+        .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+        .users-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .users-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .users-table td { padding: 10px 12px; border-bottom: 1px solid var(--lost-border); vertical-align: middle; }
+        .users-table tr:last-child td { border-bottom: none; }
+        .users-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .search-bar { padding: 9px 14px; background: var(--bg-input); border: 1px solid var(--lost-border); border-radius: 4px; color: var(--text-main); font-size: 13px; margin-bottom: 15px; width: 300px; }
+        .search-bar:focus { outline: none; border-color: var(--accent-red); }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--lost-border); border-top: 3px solid var(--accent-red); border-radius: 8px; padding: 30px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
+        .modal-title { font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; color: var(--accent-red); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 15px; }
+        .form-grid .full { grid-column: 1 / -1; }
+        .img-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; display: block; border: 1px solid var(--lost-border); }
+        .file-label { display: block; padding: 10px; background: var(--bg-input); border: 1px dashed var(--lost-border); border-radius: 4px; text-align: center; cursor: pointer; font-size: 12px; color: var(--text-muted); margin-bottom: 20px; transition: border-color 0.2s; }
+        .file-label:hover { border-color: var(--accent-red); color: var(--text-main); }
+
+        .discord-footer { text-align: center; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--lost-border); font-weight: 700; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="auth-container" id="login-form-div">
-            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
-            <div class="auth-logo">The Lost MC Shop</div>
-            <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
-            <form id="auth-form">
-                <label>Pseudo / Login</label>
-                <input type="text" id="login-pure-username" placeholder="Monpseudo" required autocomplete="off">
-                
-                <label>Numéro de ville</label>
-                <input type="number" id="login-city-number" placeholder="51871" required autocomplete="off">
-                
-                <label>Mot de passe</label>
-                <input type="password" id="password" required>
-                <button type="submit" class="btn" style="width: 100%;">S'authentifier</button>
-            </form>
-            <div style="text-align: center; margin-top: 20px; font-size: 13px;">
-                <span style="color: var(--text-muted);">Nouvel arrivant ?</span> 
-                <a href="#" onclick="toggleAuth(true)" style="color: var(--accent-red); text-decoration: none; font-weight: 600;">Créer un compte sécurisé</a>
-            </div>
-            <div class="discord-footer">IMPORTANT : Merci de vous inscrire sur le site discord du MC Lost</div>
+<!-- ===== AUTH ===== -->
+<div id="auth-screen">
+    <div class="auth-container" id="login-form-div">
+        <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+        <div class="auth-logo">The Lost MC Shop</div>
+        <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
+        <form id="auth-form">
+            <label>Pseudo / Login</label>
+            <input type="text" id="login-pure-username" placeholder="Monpseudo" required autocomplete="off">
+            <label>Numéro de ville</label>
+            <input type="number" id="login-city-number" placeholder="51871" required autocomplete="off">
+            <label>Mot de passe</label>
+            <input type="password" id="password" required>
+            <button type="submit" class="btn" style="width:100%">S'authentifier</button>
+        </form>
+        <div style="text-align:center; margin-top:20px; font-size:13px;">
+            <span style="color:var(--text-muted);">Nouvel arrivant ?</span>
+            <a href="#" onclick="toggleAuth(true)" style="color:var(--accent-red); text-decoration:none; font-weight:600;"> Créer un compte</a>
         </div>
+        <div class="discord-footer">IMPORTANT : Merci de vous inscrire sur le discord Lost MC</div>
+    </div>
 
-        <div class="auth-container hidden" id="register-form-div">
-            <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
-            <div class="auth-logo">Enregistrement</div>
-            <div class="auth-subtitle">Créer son compte sécurisé</div>
-            <form id="reg-form">
-                <label>Pseudo / Login</label>
-                <input type="text" id="reg-pure-username" placeholder="Monpseudo" required autocomplete="off">
-                
-                <label>Numéro de ville</label>
-                <input type="number" id="reg-city-number" placeholder="51871" min="0" required autocomplete="off">
-                
-                <label>Choisir un Mot de passe sécurisé</label>
-                <input type="password" id="reg-password" required>
-                <button type="submit" class="btn" style="width: 100%;">Soumettre la demande</button>
-            </form>
-            <div style="text-align: center; margin-top: 20px; font-size: 13px;">
-                <a href="#" onclick="toggleAuth(false)" style="color: var(--text-muted); text-decoration: none;">Retour au terminal</a>
+    <div class="auth-container hidden" id="register-form-div">
+        <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+        <div class="auth-logo">Enregistrement</div>
+        <div class="auth-subtitle">Créer son compte sécurisé</div>
+        <form id="reg-form">
+            <label>Pseudo / Login</label>
+            <input type="text" id="reg-pure-username" placeholder="Monpseudo" required autocomplete="off">
+            <label>Numéro de ville</label>
+            <input type="number" id="reg-city-number" placeholder="51871" min="0" required autocomplete="off">
+            <label>Choisir un mot de passe</label>
+            <input type="password" id="reg-password" required>
+            <button type="submit" class="btn" style="width:100%">Soumettre la demande</button>
+        </form>
+        <div style="text-align:center; margin-top:20px; font-size:13px;">
+            <a href="#" onclick="toggleAuth(false)" style="color:var(--text-muted); text-decoration:none;">← Retour au terminal</a>
+        </div>
+        <div class="discord-footer">IMPORTANT : Merci de vous inscrire sur le discord Lost MC</div>
+    </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app-structure" class="hidden">
+    <div id="sidebar">
+        <div>
+            <div class="sidebar-brand-container">
+                <img src="logo.png" alt="Logo" class="sidebar-logo-img">
+                <div class="sidebar-brand">The Lost MC Shop</div>
             </div>
-            <div class="discord-footer">IMPORTANT : Merci de vous inscrire sur le site discord du MC Lost</div>
+            <ul class="menu-list">
+                <li class="menu-item" id="menu-shop" onclick="showTab('shop')">📂 Catalogue</li>
+                <li class="menu-item" id="menu-orders" onclick="showTab('orders')">📦 Mes Commandes</li>
+                <li class="menu-item hidden" id="menu-vendre" onclick="showTab('vendre')">🎯 Gestion Ventes</li>
+                <li class="menu-item admin-item hidden" id="menu-admin" onclick="showTab('admin')">⚙️ Administration</li>
+            </ul>
+        </div>
+        <div style="padding:20px; border-top:1px solid var(--lost-border); font-size:13px;">
+            <div id="user-display" style="margin-bottom:8px;"></div>
+            <div id="user-badge-display" style="margin-bottom:12px;"></div>
+            <button class="btn btn-secondary btn-small" style="width:100%" onclick="location.reload()">Déconnexion</button>
         </div>
     </div>
 
-    <div id="app-structure" class="hidden">
-        <div id="sidebar">
-            <div>
-                <div class="sidebar-brand-container">
-                    <img src="logo.png" alt="The Lost MC Logo" class="sidebar-logo-img">
-                    <div class="sidebar-brand">The Lost MC Shop</div>
-                </div>
-                <ul class="menu-list">
-                    <li class="menu-item" id="menu-shop" onclick="showTab('shop')">📂 Catalogue</li>
-                    <li class="menu-item" id="menu-orders" onclick="showTab('orders')">📦 Mes Commandes</li>
-                    <li class="menu-item" id="menu-vendre" onclick="showTab('vendre')">🎯 Gestion Ventes</li>
-                </ul>
+    <div id="main-content">
+
+        <!-- SHOP -->
+        <div id="tab-shop" class="tab-content hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0; font-size:22px; font-weight:800; text-transform:uppercase;">CATALOGUE LOST MC</h2>
+                <div id="client-rank-status"></div>
             </div>
-            <div style="padding: 20px; border-top: 1px solid var(--lost-border); font-size: 13px;">
-                <div id="user-display" style="margin-bottom: 12px; color: var(--text-main);"></div>
-                <button class="btn btn-secondary btn-small" style="width:100%" onclick="location.reload()">Déconnexion</button>
+            <div class="shop-layout">
+                <div>
+                    <div class="cat-nav">
+                        <button class="cat-btn active" id="cat-btn-weapons" onclick="switchShopCat('weapons')">Armes à feu</button>
+                        <button class="cat-btn" id="cat-btn-others" onclick="switchShopCat('others')">Équipement & autres</button>
+                    </div>
+                    <div class="catalogue-grid" id="weapon-catalogue"></div>
+                </div>
+                <div class="cart-panel">
+                    <h3 style="margin-top:0; font-size:16px; text-transform:uppercase; border-bottom:1px solid var(--lost-border); padding-bottom:10px;">Bon de Commande</h3>
+                    <div id="cart-items" style="min-height:80px; font-size:14px; color:var(--text-muted); padding-bottom:15px;">Panier vide.</div>
+                    <div style="display:flex; font-weight:bold; font-size:16px; margin-bottom:15px; border-top:1px solid var(--lost-border); padding-top:15px;">
+                        <span>NET À PAYER :</span>
+                        <span id="cart-total" style="color:var(--status-done); margin-left:auto;">0 $</span>
+                    </div>
+                    <button class="btn" style="width:100%" onclick="checkout()">Valider et transmettre</button>
+                </div>
             </div>
         </div>
 
-        <div id="main-content">
-            <div id="tab-shop" class="tab-content hidden">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 class="view-title" style="margin-bottom:0;">CATALOGUE LOST MC</h2>
-                    <div id="client-rank-status"></div>
-                </div>
-                <div class="shop-layout">
-                    <div>
-                        <div class="cat-nav">
-                            <button class="cat-btn" id="cat-btn-weapons" onclick="switchShopCat('weapons')">Armes à feu</button>
-                            <button class="cat-btn" id="cat-btn-others" onclick="switchShopCat('others')">Equipement et autres</button>
-                        </div>
-                        <div class="catalogue-grid" id="weapon-catalogue"></div>
-                    </div>
-                    <div class="cart-panel">
-                        <h3 style="margin-top:0; font-size:16px; text-transform:uppercase; border-bottom:1px solid var(--lost-border); padding-bottom:10px;">Bon de Commande</h3>
-                        <div id="cart-items" style="min-height:100px; font-size:14px; color:var(--text-muted); padding-bottom:15px;">Vide.</div>
-                        
-                        <div style="display:flex; justify-content:between; font-weight:bold; font-size:16px; margin-bottom:15px; border-top:1px solid var(--lost-border); padding-top:15px;">
-                            <span>NET À PAYER :</span>
-                            <span id="cart-total" style="color:var(--status-done); margin-left:auto;">0 $</span>
-                        </div>
-                        <button class="btn" style="width:100%" onclick="checkout()">Valider et transmettre</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-orders" class="tab-content hidden">
-                <h2 class="view-title">Liste de mes commandes</h2>
-                <div id="my-orders-list"></div>
-            </div>
-
-            <div id="tab-vendre" class="tab-content hidden">
-                <h2 class="view-title">Suivi Logistique des Commandes</h2>
-                <div class="cat-nav" style="margin-bottom: 20px;">
-                    <button class="cat-btn active">Toutes les commandes en attente</button>
-                </div>
-                <div id="vendeur-orders-list"></div>
-            </div>
+        <!-- ORDERS -->
+        <div id="tab-orders" class="tab-content hidden">
+            <h2 class="view-title">Mes Commandes</h2>
+            <div id="my-orders-list"></div>
         </div>
-    </div>
 
-    <script>
-        // --- 1. CONFIGURATION SUPABASE ---
-        const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
-        
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        <!-- VENDRE -->
+        <div id="tab-vendre" class="tab-content hidden">
+            <h2 class="view-title">Suivi Logistique</h2>
+            <div id="vendeur-orders-list"></div>
+        </div>
 
-        // --- 2. VARIABLES CENTRALES DE L'APPLICATION ---
-        // Le catalogue est géré localement (évite le bug de la table 'articles' inexistante)
-        let catalog = [
-            { id: 1, name: "Pistolet de combat", price: 50000, desc: "Arme de poing légère", mag: "12 balles", cat: "weapons", img: "" },
-            { id: 2, name: "Micro Uzi", price: 120000, desc: "Cadence de tir élevée", mag: "30 balles", cat: "weapons", img: "" },
-            { id: 3, name: "Gilet par-balles", price: 5000, desc: "Protection moyenne", mag: "100%", cat: "others", img: "" }
-        ];
-        
-        // Plus de tableaux globaux obsolètes ou non sécurisés !
-        let currentUser = null;
-        let cart = [];
-        let activeShopCat = 'weapons';
+        <!-- ADMIN -->
+        <div id="tab-admin" class="tab-content hidden">
+            <h2 class="view-title">⚙️ Panneau d'Administration</h2>
+            <div class="stat-grid" id="admin-stats"></div>
 
-        // --- 3. INITIALISATION ---
-        function toggleAuth(isReg) {
-            document.getElementById('login-form-div').classList.toggle('hidden', isReg);
-            document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
-        }
-
-        // --- 4. FLUX D'AUTHENTIFICATION ---
-        document.getElementById('auth-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const pureLogin = document.getElementById('login-pure-username').value.trim();
-            const cityNum = parseInt(document.getElementById('login-city-number').value.trim());
-            const p = document.getElementById('password').value;
-            
-            // Requête ciblée sécurisée sur la table 'utilisateurs'
-            const { data: userData, error } = await supabaseClient
-                .from('utilisateurs')
-                .select('*')
-                .eq('login', pureLogin)
-                .eq('id_serveur', cityNum)
-                .maybeSingle();
-
-            if (!error && userData && userData.mot_de_pass === p) { 
-                currentUser = {
-                    login_pure: userData.login,
-                    id_serveur: userData.id_serveur,
-                    role_admin: userData.role_admin,
-                    role_vendeur: userData.role_vendeur
-                }; 
-                loginSuccess(); 
-            } else { 
-                alert("Accès refusé. Vérifiez vos identifiants ou créez un compte."); 
-            }
-        };
-
-        document.getElementById('reg-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const pureUser = document.getElementById('reg-pure-username').value.trim();
-            const cityNum = parseInt(document.getElementById('reg-city-number').value.trim());
-            const p = document.getElementById('reg-password').value;
-            
-            // Vérification si le compte existe déjà
-            const { data: existing } = await supabaseClient
-                .from('utilisateurs')
-                .select('login')
-                .eq('login', pureUser)
-                .eq('id_serveur', cityNum)
-                .maybeSingle();
-
-            if (existing) {
-                return alert("Ce compte (Pseudo + Numéro de ville) existe déjà.");
-            }
-            
-            // Payload aligné sur vos colonnes SQL réelles
-            const registerPayload = { 
-                id_serveur: cityNum, 
-                login: pureUser, 
-                mot_de_pass: p,
-                role_admin: pureUser.toLowerCase() === "admin",
-                role_vendeur: pureUser.toLowerCase() === "admin"
-            };
-            
-            const { error } = await supabaseClient.from('utilisateurs').insert([registerPayload]);
-            
-            if (error) {
-                alert("Erreur d'enregistrement Supabase : " + error.message);
-                return;
-            }
-
-            alert(`Compte créé avec succès pour ${pureUser} ! Vous pouvez vous connecter.`); 
-            toggleAuth(false);
-        };
-
-        function loginSuccess() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-structure').classList.remove('hidden');
-            document.getElementById('user-display').innerHTML = `Membre : <strong>${currentUser.login_pure} (#${currentUser.id_serveur})</strong>`;
-            
-            // Affichage de l'onglet gestion de ventes selon les rôles du SQL
-            const isStaff = currentUser.role_admin || currentUser.role_vendeur;
-            document.getElementById('menu-vendre').classList.toggle('hidden', !isStaff);
-            
-            showTab('shop');
-        }
-
-        // --- 5. LOGIQUE BOUTIQUE & PANIER ---
-        function switchShopCat(cat) {
-            activeShopCat = cat;
-            document.getElementById('cat-btn-weapons').classList.toggle('active', cat === 'weapons');
-            document.getElementById('cat-btn-others').classList.toggle('active', cat === 'others');
-            loadCatalogue();
-        }
-
-        function loadCatalogue() {
-            const container = document.getElementById('weapon-catalogue');
-            const rankStatus = document.getElementById('client-rank-status');
-            
-            let rankText = "NORMAL";
-            if (currentUser.role_admin) rankText = "ADMIN";
-            else if (currentUser.role_vendeur) rankText = "VENDEUR";
-            
-            rankStatus.innerHTML = `<span class="badge" style="background:#475569">RANG : ${rankText}</span>`;
-
-            const filtered = catalog.filter(item => item.cat === activeShopCat);
-            container.innerHTML = filtered.map(w => {
-                const placeholder = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
-                return `<div class="weapon-card">
-                    <div>
-                        <img src="${w.img ? w.img : placeholder}">
-                        <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">${w.name}</div>
-                        <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:10px;">${w.desc}</div>
-                        <div style="font-size:11px; color:var(--accent-red); font-weight:600; margin-bottom:15px;">📊 Chargeur : ${w.mag}</div>
-                    </div>
-                    <div>
-                        <div style="margin-top:5px; display:flex; align-items:baseline;">
-                            <span class="price-tag">${w.price.toLocaleString()} $</span>
-                        </div>
-                        <button class="btn btn-small" style="width:100%; margin-top:12px;" onclick="addToCart(${w.id})">Ajouter au panier</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function addToCart(id) {
-            const w = catalog.find(x => x.id === id);
-            const item = cart.find(x => x.id === id);
-            if(item) item.qty++; else cart.push({ ...w, qty: 1 });
-            updateCart();
-        }
-
-        function updateCart() {
-            const container = document.getElementById('cart-items');
-            if(!cart.length) { container.innerHTML = "Panier vide."; document.getElementById('cart-total').textContent = "0 $"; return; }
-            let total = cart.reduce((s, c) => s + (c.price * c.qty), 0);
-            container.innerHTML = cart.map((c, i) => `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <div><div style="font-weight:600;">${c.name} <span style="color:var(--accent-red)">x${c.qty}</span></div></div>
-                <span><strong>${(c.price * c.qty).toLocaleString()} $</strong> <button onclick="cart.splice(${i},1);updateCart()" style="background:none; border:none; color:var(--accent-red); cursor:pointer;">✕</button></span>
-            </div>`).join('');
-            document.getElementById('cart-total').textContent = total.toLocaleString() + " $";
-        }
-
-        async function checkout() {
-            if(!cart.length) return;
-            
-            // 1. Insertion dans la table parent 'commandes'
-            const newOrderPayload = {
-                client_id: currentUser.id_serveur,
-                client_pseudo: currentUser.login_pure,
-                statut: 'En attente'
-            };
-
-            const { data: orderData, error: orderErr } = await supabaseClient.from('commandes').insert([newOrderPayload]).select();
-            if (orderErr) return alert("Erreur lors de la commande : " + orderErr.message);
-
-            const insertedOrderId = orderData[0].id;
-
-            // 2. Insertion des lignes enfants reliées dans 'details_commande'
-            const linesPayload = cart.map(item => ({
-                id_commande: insertedOrderId,
-                nom_article: item.name,
-                quantite: item.qty,
-                prix_achat: item.price
-            }));
-
-            const { error: linesErr } = await supabaseClient.from('details_commande').insert(linesPayload);
-            if (linesErr) return alert("Erreur lors de l'enregistrement des détails : " + linesErr.message);
-
-            cart = []; 
-            updateCart(); 
-            alert("Votre commande a été transmise aux vendeurs Lost MC !"); 
-            showTab('orders');
-        }
-
-        // --- 6. RENDU ET SYNC DES TABLES COMMANDES & DETAILS ---
-        function renderOrderHTML(o, contextView) {
-            let statusColor = o.statut === "Terminée" ? "var(--status-done)" : "var(--status-pending)";
-            let actionBtn = "";
-
-            if(contextView === 'vendeur' && o.statut === 'En attente') {
-                actionBtn = `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id})">✔️ Marquer comme Livrée</button>`;
-            }
-
-            // Calcul dynamique du total grâce à la jointure SQL details_commande
-            let totalCommande = 0;
-            let rowsHtml = "";
-            if (o.details_commande && o.details_commande.length > 0) {
-                totalCommande = o.details_commande.reduce((sum, item) => sum + (item.prix_achat * item.quantite), 0);
-                rowsHtml = o.details_commande.map(item => `
-                    <tr>
-                        <td>${item.nom_article}</td>
-                        <td>x${item.quantite}</td>
-                        <td>${(item.prix_achat * item.quantite).toLocaleString()} $</td>
-                    </tr>
-                `).join('');
-            } else {
-                rowsHtml = `<tr><td colspan="3" style="color:var(--text-muted); text-align:center;">Aucun article</td></tr>`;
-            }
-
-            return `<div class="order-item">
-                <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
-                    <div>
-                        <strong style="color:var(--accent-red); margin-right:10px;">LOST-${o.id}</strong>
-                        <span style="color:var(--text-muted); font-size:13px;">
-                            ${contextView === 'vendeur' ? 'Acheteur : ' + o.client_pseudo + ' (#' + o.client_id + ')' : 'Suivi Logistique'}
-                        </span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="font-weight:bold; color:var(--status-done)">${totalCommande.toLocaleString()} $</span>
-                        <span class="badge" style="background:${statusColor}">${o.statut}</span>
-                        <span style="font-size:11px; color:var(--text-muted)">▼ Détails</span>
-                    </div>
-                </div>
-                <div class="order-content">
-                    <p style="margin-top:0; font-size:12px; color:var(--text-muted)">
-                        Prise en charge : ${o.vendeur_affecte ? 'Par ' + o.vendeur_affecte : 'Aucun vendeur affecté'}
-                    </p>
-                    <table class="order-table">
-                        <thead>
-                            <tr>
-                                <th>Article</th>
-                                <th>Quantité</th>
-                                <th>Sous-total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
+            <div class="admin-section">
+                <div class="admin-section-title">👥 Gestion des Utilisateurs</div>
+                <input class="search-bar" id="user-search" placeholder="🔍 Rechercher..." oninput="filterUsers()">
+                <div style="overflow-x:auto;">
+                    <table class="users-table">
+                        <thead><tr><th>Login</th><th>#Ville</th><th>Rôle</th><th>Code VIP</th><th>Actions</th></tr></thead>
+                        <tbody id="users-tbody"></tbody>
                     </table>
-                    <div style="margin-top:15px;">${actionBtn}</div>
                 </div>
-            </div>`;
+            </div>
+
+            <div class="admin-section">
+                <div class="admin-section-title">📦 Toutes les Commandes</div>
+                <div id="admin-orders-list"></div>
+            </div>
+
+            <div class="admin-section">
+                <div class="admin-section-title">🗂️ Catalogue — Articles</div>
+                <button class="btn btn-small" style="margin-bottom:20px;" onclick="openItemModal(null)">+ Ajouter un article</button>
+                <div class="catalogue-grid" id="admin-catalogue-grid"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL : Éditer utilisateur -->
+<div class="modal-overlay hidden" id="modal-user">
+    <div class="modal-box">
+        <div class="modal-title">✏️ Modifier l'utilisateur</div>
+        <input type="hidden" id="edit-user-login">
+        <input type="hidden" id="edit-user-id">
+        <label>Rôle</label>
+        <select id="edit-user-role">
+            <option value="client">Client</option>
+            <option value="vendeur">Vendeur</option>
+            <option value="admin">Admin</option>
+        </select>
+        <label>Code VIP / Remise</label>
+        <select id="edit-user-vip">
+            <option value="">Aucun</option>
+            <option value="VIP">VIP — réduction -10%</option>
+            <option value="LOST">LOST — réduction -20%</option>
+        </select>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-small" onclick="closeModal('modal-user')">Annuler</button>
+            <button class="btn btn-small" onclick="saveUserEdit()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL : Article -->
+<div class="modal-overlay hidden" id="modal-item">
+    <div class="modal-box">
+        <div class="modal-title" id="modal-item-title">Nouvel Article</div>
+        <input type="hidden" id="item-edit-id">
+        <img id="item-img-preview" class="img-preview hidden" alt="Aperçu">
+        <label class="file-label" for="item-img-file">📷 Cliquer pour choisir une image</label>
+        <input type="file" id="item-img-file" accept="image/*" style="display:none" onchange="previewItemImage(event)">
+        <div class="form-grid">
+            <div><label>Nom de l'article</label><input type="text" id="item-name" placeholder="Pistolet de combat"></div>
+            <div><label>Prix ($)</label><input type="number" id="item-price" placeholder="50000" min="0"></div>
+            <div class="full"><label>Description</label><textarea id="item-desc" rows="2" placeholder="Description courte..."></textarea></div>
+            <div><label>Chargeur / Infos</label><input type="text" id="item-mag" placeholder="30 balles"></div>
+            <div><label>Catégorie</label>
+                <select id="item-cat">
+                    <option value="weapons">Armes à feu</option>
+                    <option value="others">Équipement & autres</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-small" onclick="closeModal('modal-item')">Annuler</button>
+            <button class="btn btn-small" onclick="saveItem()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL : Réaffecter commande -->
+<div class="modal-overlay hidden" id="modal-reassign">
+    <div class="modal-box">
+        <div class="modal-title">🔄 Réaffecter la commande</div>
+        <input type="hidden" id="reassign-order-id">
+        <label>Assigner à</label>
+        <select id="reassign-vendeur-select"></select>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-small" onclick="closeModal('modal-reassign')">Annuler</button>
+            <button class="btn btn-small" onclick="confirmReassign()">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===========================================
+// 1. SUPABASE
+// ===========================================
+const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ===========================================
+// 2. STATE
+// ===========================================
+let currentUser = null;
+let cart = [];
+let activeShopCat = 'weapons';
+let catalog = [];
+let allUsers = [];
+let itemImgBase64 = null;
+
+// ===========================================
+// 3. AUTH
+// ===========================================
+function toggleAuth(isReg) {
+    document.getElementById('login-form-div').classList.toggle('hidden', isReg);
+    document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
+}
+
+document.getElementById('auth-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const login = document.getElementById('login-pure-username').value.trim();
+    const cityNum = parseInt(document.getElementById('login-city-number').value.trim());
+    const pwd = document.getElementById('password').value;
+
+    const { data: userData, error } = await supabaseClient
+        .from('utilisateurs').select('*')
+        .eq('login', login).eq('id_serveur', cityNum).maybeSingle();
+
+    if (!error && userData && userData.mot_de_pass === pwd) {
+        currentUser = {
+            login_pure: userData.login,
+            id_serveur: userData.id_serveur,
+            role_admin: userData.role_admin || false,
+            role_vendeur: userData.role_vendeur || false,
+            code_vip: userData.code_vip || null
+        };
+        loginSuccess();
+    } else {
+        alert("Accès refusé. Vérifiez vos identifiants ou créez un compte.");
+    }
+};
+
+document.getElementById('reg-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const login = document.getElementById('reg-pure-username').value.trim();
+    const cityNum = parseInt(document.getElementById('reg-city-number').value.trim());
+    const pwd = document.getElementById('reg-password').value;
+
+    const { data: existing } = await supabaseClient
+        .from('utilisateurs').select('login')
+        .eq('login', login).eq('id_serveur', cityNum).maybeSingle();
+
+    if (existing) { alert("Ce compte existe déjà."); return; }
+
+    const { error } = await supabaseClient.from('utilisateurs').insert([{
+        id_serveur: cityNum, login: login, mot_de_pass: pwd,
+        role_admin: false, role_vendeur: false, code_vip: null
+    }]);
+
+    if (error) { alert("Erreur : " + error.message); return; }
+    alert(`Compte créé pour ${login} ! Connectez-vous.`);
+    toggleAuth(false);
+};
+
+function loginSuccess() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app-structure').classList.remove('hidden');
+
+    document.getElementById('user-display').innerHTML =
+        `<strong>${currentUser.login_pure}</strong><br><span style="color:var(--text-muted);font-size:12px;">#${currentUser.id_serveur}</span>`;
+
+    let badges = '';
+    if (currentUser.role_admin) badges += '<span class="badge badge-admin">Admin</span> ';
+    else if (currentUser.role_vendeur) badges += '<span class="badge badge-vendeur">Vendeur</span> ';
+    else badges += '<span class="badge badge-client">Client</span> ';
+    if (currentUser.code_vip === 'VIP') badges += '<span class="badge badge-vip">VIP</span>';
+    if (currentUser.code_vip === 'LOST') badges += '<span class="badge badge-lost">LOST</span>';
+    document.getElementById('user-badge-display').innerHTML = badges;
+
+    document.getElementById('menu-vendre').classList.toggle('hidden', !(currentUser.role_admin || currentUser.role_vendeur));
+    document.getElementById('menu-admin').classList.toggle('hidden', !currentUser.role_admin);
+
+    showTab('shop');
+}
+
+// ===========================================
+// 4. CATALOGUE
+// ===========================================
+async function loadCatalogue() {
+    const container = document.getElementById('weapon-catalogue');
+    container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Chargement...</div>';
+
+    const { data, error } = await supabaseClient.from('articles').select('*').order('id');
+    if (!error && data) catalog = data;
+    else catalog = [];
+
+    renderCatalogueGrid();
+}
+
+function getDiscountRate() {
+    if (!currentUser) return 0;
+    if (currentUser.code_vip === 'LOST') return 20;
+    if (currentUser.code_vip === 'VIP') return 10;
+    return 0;
+}
+
+function getDiscountedPrice(price) {
+    const rate = getDiscountRate();
+    return rate > 0 ? Math.round(price * (1 - rate / 100)) : price;
+}
+
+function renderCatalogueGrid() {
+    const container = document.getElementById('weapon-catalogue');
+    const discount = getDiscountRate();
+
+    let rankText = 'CLIENT', rankColor = '#475569';
+    if (currentUser.role_admin) { rankText = 'ADMIN'; rankColor = '#7c3aed'; }
+    else if (currentUser.role_vendeur) { rankText = 'VENDEUR'; rankColor = '#3b82f6'; }
+    else if (currentUser.code_vip === 'LOST') { rankText = 'LOST — -20%'; rankColor = '#da292a'; }
+    else if (currentUser.code_vip === 'VIP') { rankText = 'VIP — -10%'; rankColor = '#f59e0b'; }
+    document.getElementById('client-rank-status').innerHTML = `<span class="badge" style="background:${rankColor}">${rankText}</span>`;
+
+    const filtered = catalog.filter(item => item.cat === activeShopCat);
+    if (!filtered.length) { container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Aucun article dans cette catégorie.</div>'; return; }
+
+    container.innerHTML = filtered.map(w => {
+        const finalPrice = getDiscountedPrice(w.price);
+        const placeholder = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
+        const imgSrc = w.img_url || placeholder;
+        const discountHtml = discount > 0
+            ? `<span class="price-original">${w.price.toLocaleString()} $</span><span class="discount-badge">-${discount}%</span>` : '';
+        return `<div class="weapon-card">
+            <div>
+                <img src="${imgSrc}" onerror="this.src='${placeholder}'">
+                <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">${w.name}</div>
+                <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:8px;">${w.desc || ''}</div>
+                <div style="font-size:11px; color:var(--accent-red); font-weight:600; margin-bottom:12px;">📊 ${w.mag || ''}</div>
+            </div>
+            <div>
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom:12px;">
+                    <span class="price-tag">${finalPrice.toLocaleString()} $</span>${discountHtml}
+                </div>
+                <button class="btn btn-small" style="width:100%" onclick="addToCart(${w.id})">Ajouter au panier</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function switchShopCat(cat) {
+    activeShopCat = cat;
+    document.getElementById('cat-btn-weapons').classList.toggle('active', cat === 'weapons');
+    document.getElementById('cat-btn-others').classList.toggle('active', cat === 'others');
+    renderCatalogueGrid();
+}
+
+// ===========================================
+// 5. PANIER
+// ===========================================
+function addToCart(id) {
+    const w = catalog.find(x => x.id === id);
+    if (!w) return;
+    const finalPrice = getDiscountedPrice(w.price);
+    const item = cart.find(x => x.id === id);
+    if (item) item.qty++;
+    else cart.push({ ...w, price: finalPrice, qty: 1 });
+    updateCart();
+}
+
+function updateCart() {
+    const container = document.getElementById('cart-items');
+    if (!cart.length) { container.innerHTML = 'Panier vide.'; document.getElementById('cart-total').textContent = '0 $'; return; }
+    let total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+    container.innerHTML = cart.map((c, i) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;">
+            <div>${c.name} <span style="color:var(--accent-red)">x${c.qty}</span></div>
+            <span><strong>${(c.price * c.qty).toLocaleString()} $</strong>
+            <button onclick="cart.splice(${i},1);updateCart()" style="background:none;border:none;color:var(--accent-red);cursor:pointer;margin-left:6px;">✕</button></span>
+        </div>`).join('');
+    document.getElementById('cart-total').textContent = total.toLocaleString() + ' $';
+}
+
+async function checkout() {
+    if (!cart.length) return;
+    const { data: orderData, error: orderErr } = await supabaseClient
+        .from('commandes')
+        .insert([{ client_id: currentUser.id_serveur, client_pseudo: currentUser.login_pure, statut: 'En attente' }])
+        .select();
+    if (orderErr) { alert("Erreur : " + orderErr.message); return; }
+
+    const orderId = orderData[0].id;
+    const lines = cart.map(item => ({ id_commande: orderId, nom_article: item.name, quantite: item.qty, prix_achat: item.price }));
+    const { error: linesErr } = await supabaseClient.from('details_commande').insert(lines);
+    if (linesErr) { alert("Erreur lignes : " + linesErr.message); return; }
+
+    cart = []; updateCart();
+    alert("Commande transmise aux vendeurs Lost MC !");
+    showTab('orders');
+}
+
+// ===========================================
+// 6. COMMANDES
+// ===========================================
+function renderOrderHTML(o, ctx) {
+    const statusColor = o.statut === 'Terminée' ? 'var(--status-done)' : 'var(--status-pending)';
+    let actions = '';
+    if (ctx === 'vendeur' && o.statut === 'En attente')
+        actions += `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id})" style="margin-right:8px;">✔️ Marquer Livrée</button>`;
+    if (ctx === 'admin') {
+        actions += `<button class="btn btn-small btn-warning" onclick="openReassign(${o.id})" style="margin-right:8px;">🔄 Réaffecter</button>`;
+        actions += `<button class="btn btn-small btn-danger" onclick="deleteOrder(${o.id})">🗑️ Supprimer</button>`;
+    }
+
+    let total = 0, rows = '';
+    if (o.details_commande && o.details_commande.length) {
+        total = o.details_commande.reduce((s, i) => s + i.prix_achat * i.quantite, 0);
+        rows = o.details_commande.map(i => `<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat * i.quantite).toLocaleString()} $</td></tr>`).join('');
+    } else { rows = `<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`; }
+
+    const buyerLine = (ctx === 'vendeur' || ctx === 'admin')
+        ? `Acheteur : <strong>${o.client_pseudo}</strong> (#${o.client_id})` : 'Suivi Logistique';
+
+    return `<div class="order-item">
+        <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <div><strong style="color:var(--accent-red);margin-right:10px;">LOST-${o.id}</strong>
+                <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-weight:bold;color:var(--status-done)">${total.toLocaleString()} $</span>
+                <span class="badge" style="background:${statusColor}">${o.statut}</span>
+                <span style="font-size:11px;color:var(--text-muted)">▼</span>
+            </div>
+        </div>
+        <div class="order-content">
+            <p style="margin-top:0;font-size:12px;color:var(--text-muted)">Vendeur : ${o.vendeur_affecte || 'Non affecté'}</p>
+            <table class="order-table">
+                <thead><tr><th>Article</th><th>Qté</th><th>Sous-total</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+            ${actions ? `<div style="margin-top:15px;display:flex;flex-wrap:wrap;gap:8px;">${actions}</div>` : ''}
+        </div>
+    </div>`;
+}
+
+async function loadMyOrders() {
+    const c = document.getElementById('my-orders-list');
+    c.innerHTML = '<div style="color:var(--text-muted);">Chargement...</div>';
+    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*)')
+        .eq('client_pseudo', currentUser.login_pure).eq('client_id', currentUser.id_serveur)
+        .order('id', { ascending: false });
+    c.innerHTML = (!error && data && data.length) ? data.map(o => renderOrderHTML(o, 'client')).join('')
+        : "<div style='color:var(--text-muted);padding:20px;'>Aucune commande pour l'instant.</div>";
+}
+
+async function loadVendeurView() {
+    const c = document.getElementById('vendeur-orders-list');
+    c.innerHTML = '<div style="color:var(--text-muted);">Chargement...</div>';
+    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*)')
+        .eq('statut', 'En attente').order('id', { ascending: true });
+    c.innerHTML = (!error && data && data.length) ? data.map(o => renderOrderHTML(o, 'vendeur')).join('')
+        : "<div style='color:var(--text-muted);padding:20px;'>Aucune commande en attente.</div>";
+}
+
+async function completeOrder(id) {
+    if (!confirm("Marquer cette commande comme livrée ?")) return;
+    const { error } = await supabaseClient.from('commandes')
+        .update({ statut: 'Terminée', vendeur_affecte: currentUser.login_pure }).eq('id', id);
+    if (error) { alert("Erreur : " + error.message); return; }
+    await loadVendeurView();
+}
+
+// ===========================================
+// 7. ADMIN — PANEL
+// ===========================================
+async function loadAdminPanel() {
+    await Promise.all([loadAdminStats(), loadAdminUsers(), loadAdminOrders(), loadAdminCatalogue()]);
+}
+
+async function loadAdminStats() {
+    const [{ count: cU }, { count: cO }, { count: cA }] = await Promise.all([
+        supabaseClient.from('utilisateurs').select('*', { count: 'exact', head: true }),
+        supabaseClient.from('commandes').select('*', { count: 'exact', head: true }),
+        supabaseClient.from('articles').select('*', { count: 'exact', head: true })
+    ]);
+    document.getElementById('admin-stats').innerHTML = `
+        <div class="stat-card"><div class="stat-number">${cU||0}</div><div class="stat-label">Utilisateurs</div></div>
+        <div class="stat-card"><div class="stat-number">${cO||0}</div><div class="stat-label">Commandes</div></div>
+        <div class="stat-card"><div class="stat-number">${cA||0}</div><div class="stat-label">Articles</div></div>`;
+}
+
+// ===========================================
+// 8. ADMIN — USERS
+// ===========================================
+async function loadAdminUsers() {
+    const { data, error } = await supabaseClient.from('utilisateurs').select('*').order('login');
+    if (error) return;
+    allUsers = data || [];
+    renderUsersTable(allUsers);
+}
+
+function filterUsers() {
+    const q = document.getElementById('user-search').value.toLowerCase();
+    renderUsersTable(allUsers.filter(u => u.login.toLowerCase().includes(q) || String(u.id_serveur).includes(q)));
+}
+
+function renderUsersTable(users) {
+    document.getElementById('users-tbody').innerHTML = users.map(u => {
+        let roleBadge = '<span class="badge badge-client">Client</span>';
+        if (u.role_admin) roleBadge = '<span class="badge badge-admin">Admin</span>';
+        else if (u.role_vendeur) roleBadge = '<span class="badge badge-vendeur">Vendeur</span>';
+        let vipBadge = u.code_vip === 'VIP' ? '<span class="badge badge-vip">VIP</span>'
+            : u.code_vip === 'LOST' ? '<span class="badge badge-lost">LOST</span>' : '<span style="color:var(--text-muted);font-size:12px;">—</span>';
+        const isSelf = u.login === currentUser.login_pure && u.id_serveur === currentUser.id_serveur;
+        return `<tr>
+            <td><strong>${u.login}</strong></td>
+            <td>#${u.id_serveur}</td>
+            <td>${roleBadge}</td>
+            <td>${vipBadge}</td>
+            <td>
+                <button class="btn btn-small btn-secondary" style="margin-right:6px;" onclick="openUserModal('${u.login}',${u.id_serveur})">✏️ Modifier</button>
+                ${!isSelf ? `<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>` : ''}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function openUserModal(login, idServeur) {
+    const u = allUsers.find(x => x.login === login && x.id_serveur === idServeur);
+    if (!u) return;
+    document.getElementById('edit-user-login').value = u.login;
+    document.getElementById('edit-user-id').value = u.id_serveur;
+    let role = 'client';
+    if (u.role_admin) role = 'admin';
+    else if (u.role_vendeur) role = 'vendeur';
+    document.getElementById('edit-user-role').value = role;
+    document.getElementById('edit-user-vip').value = u.code_vip || '';
+    document.getElementById('modal-user').classList.remove('hidden');
+}
+
+async function saveUserEdit() {
+    const login = document.getElementById('edit-user-login').value;
+    const idServeur = parseInt(document.getElementById('edit-user-id').value);
+    const role = document.getElementById('edit-user-role').value;
+    const vip = document.getElementById('edit-user-vip').value;
+
+    const { error } = await supabaseClient.from('utilisateurs').update({
+        role_admin: role === 'admin',
+        role_vendeur: role === 'vendeur',
+        code_vip: vip || null
+    }).eq('login', login).eq('id_serveur', idServeur);
+
+    if (error) { alert("Erreur : " + error.message); return; }
+    closeModal('modal-user');
+    await loadAdminUsers();
+    await loadAdminStats();
+}
+
+async function deleteUser(login, idServeur) {
+    if (!confirm(`Supprimer ${login} (#${idServeur}) ? Action irréversible.`)) return;
+    const { error } = await supabaseClient.from('utilisateurs').delete().eq('login', login).eq('id_serveur', idServeur);
+    if (error) { alert("Erreur : " + error.message); return; }
+    await loadAdminUsers();
+    await loadAdminStats();
+}
+
+// ===========================================
+// 9. ADMIN — COMMANDES
+// ===========================================
+async function loadAdminOrders() {
+    const c = document.getElementById('admin-orders-list');
+    c.innerHTML = '<div style="color:var(--text-muted);">Chargement...</div>';
+    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*)').order('id', { ascending: false });
+    c.innerHTML = (!error && data && data.length) ? data.map(o => renderOrderHTML(o, 'admin')).join('')
+        : "<div style='color:var(--text-muted);padding:20px;'>Aucune commande.</div>";
+}
+
+async function deleteOrder(id) {
+    if (!confirm(`Supprimer la commande LOST-${id} ? Irréversible.`)) return;
+    await supabaseClient.from('details_commande').delete().eq('id_commande', id);
+    const { error } = await supabaseClient.from('commandes').delete().eq('id', id);
+    if (error) { alert("Erreur : " + error.message); return; }
+    await loadAdminOrders();
+    await loadAdminStats();
+}
+
+async function openReassign(orderId) {
+    document.getElementById('reassign-order-id').value = orderId;
+    const vendeurs = allUsers.filter(u => u.role_vendeur || u.role_admin);
+    document.getElementById('reassign-vendeur-select').innerHTML =
+        vendeurs.map(v => `<option value="${v.login}">${v.login} (#${v.id_serveur})</option>`).join('');
+    document.getElementById('modal-reassign').classList.remove('hidden');
+}
+
+async function confirmReassign() {
+    const orderId = parseInt(document.getElementById('reassign-order-id').value);
+    const vendeur = document.getElementById('reassign-vendeur-select').value;
+    const { error } = await supabaseClient.from('commandes').update({ vendeur_affecte: vendeur }).eq('id', orderId);
+    if (error) { alert("Erreur : " + error.message); return; }
+    closeModal('modal-reassign');
+    await loadAdminOrders();
+}
+
+// ===========================================
+// 10. ADMIN — CATALOGUE
+// ===========================================
+async function loadAdminCatalogue() {
+    const { data, error } = await supabaseClient.from('articles').select('*').order('id');
+    if (!error && data) catalog = data;
+    renderAdminCatalogueGrid();
+}
+
+function renderAdminCatalogueGrid() {
+    const grid = document.getElementById('admin-catalogue-grid');
+    if (!catalog.length) { grid.innerHTML = '<div style="color:var(--text-muted);">Aucun article.</div>'; return; }
+    grid.innerHTML = catalog.map(w => {
+        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
+        return `<div class="weapon-card">
+            <div>
+                <img src="${w.img_url || ph}" onerror="this.src='${ph}'" style="cursor:pointer" onclick="openItemModal(${w.id})">
+                <div style="font-weight:bold;font-size:15px;margin-bottom:4px;">${w.name}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${w.cat === 'weapons' ? 'Arme à feu' : 'Équipement'}</div>
+                <div style="font-size:12px;color:var(--accent-red);">📊 ${w.mag || ''}</div>
+            </div>
+            <div>
+                <div class="price-tag" style="font-size:16px;margin-bottom:10px;">${w.price.toLocaleString()} $</div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-small btn-secondary" style="flex:1" onclick="openItemModal(${w.id})">✏️ Modifier</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteItem(${w.id})">🗑️</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openItemModal(id) {
+    itemImgBase64 = null;
+    document.getElementById('item-img-file').value = '';
+    document.getElementById('item-img-preview').classList.add('hidden');
+
+    if (id === null) {
+        document.getElementById('modal-item-title').textContent = '+ Nouvel Article';
+        document.getElementById('item-edit-id').value = '';
+        ['item-name','item-price','item-desc','item-mag'].forEach(x => document.getElementById(x).value = '');
+        document.getElementById('item-cat').value = 'weapons';
+    } else {
+        const w = catalog.find(x => x.id === id);
+        if (!w) return;
+        document.getElementById('modal-item-title').textContent = '✏️ Modifier Article';
+        document.getElementById('item-edit-id').value = w.id;
+        document.getElementById('item-name').value = w.name;
+        document.getElementById('item-price').value = w.price;
+        document.getElementById('item-desc').value = w.desc || '';
+        document.getElementById('item-mag').value = w.mag || '';
+        document.getElementById('item-cat').value = w.cat;
+        if (w.img_url) {
+            const prev = document.getElementById('item-img-preview');
+            prev.src = w.img_url; prev.classList.remove('hidden');
         }
+    }
+    document.getElementById('modal-item').classList.remove('hidden');
+}
 
-        async function loadMyOrders() {
-            const container = document.getElementById('my-orders-list');
-            
-            // Jointure directe via Supabase (* = colonnes de commande, details_commande(*) = les sous-lignes)
-            const { data, error } = await supabaseClient
-                .from('commandes')
-                .select('*, details_commande(*)')
-                .eq('client_pseudo', currentUser.login_pure)
-                .eq('client_id', currentUser.id_serveur)
-                .order('id', { ascending: false });
+function previewItemImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        itemImgBase64 = e.target.result;
+        const prev = document.getElementById('item-img-preview');
+        prev.src = itemImgBase64; prev.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+}
 
-            if (!error && data && data.length > 0) {
-                container.innerHTML = data.map(o => renderOrderHTML(o, 'client')).join('');
-            } else {
-                container.innerHTML = "<div style='color:var(--text-muted); padding:20px;'>Vous n'avez pas encore passé de commande.</div>";
-            }
-        }
+async function saveItem() {
+    const id = document.getElementById('item-edit-id').value;
+    const name = document.getElementById('item-name').value.trim();
+    const price = parseInt(document.getElementById('item-price').value);
+    const desc = document.getElementById('item-desc').value.trim();
+    const mag = document.getElementById('item-mag').value.trim();
+    const cat = document.getElementById('item-cat').value;
+    if (!name || isNaN(price)) { alert("Nom et prix requis."); return; }
 
-        async function loadVendeurView() {
-            const container = document.getElementById('vendeur-orders-list');
-            
-            const { data, error } = await supabaseClient
-                .from('commandes')
-                .select('*, details_commande(*)')
-                .eq('statut', 'En attente')
-                .order('id', { ascending: true });
+    let img_url = itemImgBase64 || null;
+    if (!img_url && id) {
+        const ex = catalog.find(x => x.id === parseInt(id));
+        img_url = ex ? ex.img_url : null;
+    }
 
-            if (!error && data && data.length > 0) {
-                container.innerHTML = data.map(o => renderOrderHTML(o, 'vendeur')).join('');
-            } else {
-                container.innerHTML = "<div style='color:var(--text-muted); padding:20px;'>Aucune commande en attente de livraison.</div>";
-            }
-        }
+    const payload = { name, price, desc, mag, cat, img_url };
+    let error;
+    if (id) { ({ error } = await supabaseClient.from('articles').update(payload).eq('id', parseInt(id))); }
+    else { ({ error } = await supabaseClient.from('articles').insert([payload])); }
 
-        async function completeOrder(idDb) {
-            const { error } = await supabaseClient
-                .from('commandes')
-                .update({ statut: 'Terminée', vendeur_affecte: currentUser.login_pure })
-                .eq('id', idDb);
-                
-            if(error) return alert("Erreur de mise à jour : " + error.message);
-            
-            alert("Commande clôturée et archivée !");
-            await loadVendeurView();
-        }
+    if (error) { alert("Erreur : " + error.message); return; }
+    closeModal('modal-item');
+    await loadAdminCatalogue();
+    await loadAdminStats();
+}
 
-        // --- 7. GESTION DES ONGLETS GLOBAUX ---
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            document.getElementById('menu-' + tabId).classList.add('active');
-            if(tabId === 'shop') loadCatalogue();
-            if(tabId === 'orders') loadMyOrders();
-            if(tabId === 'vendre') loadVendeurView();
-        }
-    </script>
+async function deleteItem(id) {
+    if (!confirm("Supprimer cet article du catalogue ?")) return;
+    const { error } = await supabaseClient.from('articles').delete().eq('id', id);
+    if (error) { alert("Erreur : " + error.message); return; }
+    await loadAdminCatalogue();
+    await loadAdminStats();
+}
+
+// ===========================================
+// 11. MODALS & NAVIGATION
+// ===========================================
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', (e) => { if (e.target === el) el.classList.add('hidden'); });
+});
+
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.remove('hidden');
+    const m = document.getElementById('menu-' + tabId);
+    if (m) m.classList.add('active');
+    if (tabId === 'shop') loadCatalogue();
+    if (tabId === 'orders') loadMyOrders();
+    if (tabId === 'vendre') loadVendeurView();
+    if (tabId === 'admin') loadAdminPanel();
+}
+</script>
 </body>
 </html>
