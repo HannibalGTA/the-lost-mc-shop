@@ -462,7 +462,7 @@ function renderCatalogueGrid() {
             <div>
                 <img src="${imgSrc}" onerror="this.src='${placeholder}'">
                 <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">${w.name}</div>
-                <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:8px;">${w.desc || ''}</div>
+                <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:8px;">${w.description || ''}</div>
                 <div style="font-size:11px; color:var(--accent-red); font-weight:600; margin-bottom:12px;">📊 ${w.mag || ''}</div>
             </div>
             <div>
@@ -776,7 +776,7 @@ function openItemModal(id) {
         document.getElementById('item-edit-id').value = w.id;
         document.getElementById('item-name').value = w.name;
         document.getElementById('item-price').value = w.price;
-        document.getElementById('item-desc').value = w.desc || '';
+        document.getElementById('item-desc').value = w.description || '';
         document.getElementById('item-mag').value = w.mag || '';
         document.getElementById('item-cat').value = w.cat;
         if (w.img_url) {
@@ -803,7 +803,7 @@ async function saveItem() {
     const id = document.getElementById('item-edit-id').value;
     const name = document.getElementById('item-name').value.trim();
     const price = parseInt(document.getElementById('item-price').value);
-    const desc = document.getElementById('item-desc').value.trim();
+    const description = document.getElementById('item-desc').value.trim();
     const mag = document.getElementById('item-mag').value.trim();
     const cat = document.getElementById('item-cat').value;
     if (!name || isNaN(price)) { alert("Nom et prix requis."); return; }
@@ -814,7 +814,7 @@ async function saveItem() {
         img_url = ex ? ex.img_url : null;
     }
 
-    const payload = { name, price, desc, mag, cat, img_url };
+    const payload = { name, price, description, mag, cat, img_url };
     let error;
     if (id) { ({ error } = await supabaseClient.from('articles').update(payload).eq('id', parseInt(id))); }
     else { ({ error } = await supabaseClient.from('articles').insert([payload])); }
