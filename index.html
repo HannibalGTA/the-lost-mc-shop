@@ -7,121 +7,133 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-main: #0c0d12;
-            --bg-card: #14161d;
-            --bg-input: #1a1d26;
-            --accent-red: #da292a;
-            --accent-gold: #f59e0b;
-            --lost-border: #262a36;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --status-pending: #f59e0b;
-            --status-process: #3b82f6;
-            --status-done: #10b981;
+            --bg-main: #0c0d12; --bg-card: #14161d; --bg-input: #1a1d26;
+            --accent-red: #da292a; --accent-gold: #f59e0b;
+            --lost-border: #262a36; --text-main: #f1f5f9; --text-muted: #94a3b8;
+            --status-pending: #f59e0b; --status-process: #3b82f6; --status-done: #10b981; --status-cancel: #64748b;
         }
         * { box-sizing: border-box; }
-        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
         .hidden { display: none !important; }
 
         /* AUTH */
-        #auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: radial-gradient(circle at center, #1e1212 0%, var(--bg-main) 70%); }
-        .auth-container { background: var(--bg-card); border: 1px solid var(--lost-border); border-top: 3px solid var(--accent-red); padding: 40px; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .auth-logo-img { display: block; max-width: 200px; height: auto; margin: 0 auto 15px auto; }
-        .auth-logo { text-align: center; font-size: 24px; font-weight: 800; letter-spacing: 2px; color: var(--accent-red); margin-bottom: 5px; text-transform: uppercase; }
-        .auth-subtitle { text-align: center; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; }
+        #auth-screen { display:flex; justify-content:center; align-items:center; min-height:100vh; background:radial-gradient(circle at center,#1e1212 0%,var(--bg-main) 70%); }
+        .auth-container { background:var(--bg-card); border:1px solid var(--lost-border); border-top:3px solid var(--accent-red); padding:40px; border-radius:8px; width:100%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,.5); }
+        .auth-logo-img { display:block; max-width:200px; height:auto; margin:0 auto 15px; }
+        .auth-logo { text-align:center; font-size:24px; font-weight:800; letter-spacing:2px; color:var(--accent-red); margin-bottom:5px; text-transform:uppercase; }
+        .auth-subtitle { text-align:center; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:30px; }
 
-        label { display: block; font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--lost-border); border-radius: 4px; color: var(--text-main); margin-bottom: 20px; font-size: 14px; transition: border-color 0.2s; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-red); }
-        select option { background: var(--bg-card); }
+        label { display:block; font-size:12px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; font-weight:600; }
+        input[type="text"],input[type="password"],input[type="number"],select,textarea { width:100%; padding:12px; background:var(--bg-input); border:1px solid var(--lost-border); border-radius:4px; color:var(--text-main); margin-bottom:20px; font-size:14px; transition:border-color .2s; }
+        input:focus,select:focus,textarea:focus { outline:none; border-color:var(--accent-red); }
+        select option { background:var(--bg-card); }
 
-        .btn { background: var(--accent-red); color: white; border: none; padding: 12px 24px; font-weight: 600; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; transition: opacity 0.2s; }
-        .btn:hover { opacity: 0.85; }
-        .btn-secondary { background: #334155; }
-        .btn-danger { background: #b91c1c; }
-        .btn-success { background: #059669; }
-        .btn-warning { background: #d97706; }
-        .btn-small { padding: 6px 12px; font-size: 11px; }
+        .btn { background:var(--accent-red); color:#fff; border:none; padding:12px 24px; font-weight:600; border-radius:4px; cursor:pointer; text-transform:uppercase; font-size:13px; letter-spacing:.5px; transition:opacity .2s; }
+        .btn:hover { opacity:.85; }
+        .btn-secondary { background:#334155; }
+        .btn-danger { background:#b91c1c; }
+        .btn-success { background:#059669; }
+        .btn-warning { background:#d97706; }
+        .btn-info { background:#0369a1; }
+        .btn-small { padding:6px 12px; font-size:11px; }
 
-        /* APP LAYOUT */
-        #app-structure { display: flex; min-height: 100vh; }
-        #sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--lost-border); display: flex; flex-direction: column; justify-content: space-between; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-        .sidebar-brand-container { padding: 20px 25px; border-bottom: 1px solid var(--lost-border); text-align: center; }
-        .sidebar-logo-img { max-width: 120px; height: auto; margin-bottom: 10px; }
-        .sidebar-brand { font-size: 16px; font-weight: 800; color: var(--accent-red); letter-spacing: 1px; text-transform: uppercase; }
-        .menu-list { list-style: none; padding: 15px 0; margin: 0; }
-        .menu-item { padding: 14px 25px; color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; transition: all 0.2s; gap: 10px; border-left: 3px solid transparent; }
-        .menu-item:hover, .menu-item.active { color: var(--text-main); background: rgba(255,255,255,0.03); border-left-color: var(--accent-red); }
-        .menu-item.admin-item:hover, .menu-item.admin-item.active { border-left-color: var(--accent-gold); color: var(--accent-gold); }
-        #main-content { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg-main); }
-        .view-title { font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-top: 0; margin-bottom: 25px; color: var(--text-main); border-bottom: 2px solid var(--lost-border); padding-bottom: 15px; }
+        /* APP */
+        #app-structure { display:flex; min-height:100vh; }
+        #sidebar { width:260px; background:var(--bg-card); border-right:1px solid var(--lost-border); display:flex; flex-direction:column; justify-content:space-between; position:sticky; top:0; height:100vh; overflow-y:auto; }
+        .sidebar-brand-container { padding:20px 25px; border-bottom:1px solid var(--lost-border); text-align:center; }
+        .sidebar-logo-img { max-width:120px; height:auto; margin-bottom:10px; }
+        .sidebar-brand { font-size:16px; font-weight:800; color:var(--accent-red); letter-spacing:1px; text-transform:uppercase; }
+        .menu-list { list-style:none; padding:15px 0; margin:0; }
+        .menu-item { padding:14px 25px; color:var(--text-muted); cursor:pointer; font-weight:600; font-size:14px; display:flex; align-items:center; transition:all .2s; gap:10px; border-left:3px solid transparent; }
+        .menu-item:hover,.menu-item.active { color:var(--text-main); background:rgba(255,255,255,.03); border-left-color:var(--accent-red); }
+        .menu-item.admin-item:hover,.menu-item.admin-item.active { border-left-color:var(--accent-gold); color:var(--accent-gold); }
+        #main-content { flex:1; padding:40px; overflow-y:auto; background:var(--bg-main); }
+        .view-title { font-size:22px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-top:0; margin-bottom:25px; color:var(--text-main); border-bottom:2px solid var(--lost-border); padding-bottom:15px; }
+
+        /* TABS inside a section */
+        .sub-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+        .sub-tab { padding:8px 18px; border-radius:20px; border:1px solid var(--lost-border); background:var(--bg-card); color:var(--text-muted); cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
+        .sub-tab.active { background:var(--accent-red); color:#fff; border-color:var(--accent-red); }
+        .sub-tab-vendeur.active { background:var(--status-process); border-color:var(--status-process); color:#fff; }
 
         /* SHOP */
-        .shop-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
-        .cat-nav { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .cat-btn { background: var(--bg-card); border: 1px solid var(--lost-border); color: var(--text-muted); padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-        .cat-btn.active { background: var(--accent-red); color: white; border-color: var(--accent-red); }
-        .catalogue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .weapon-card { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color 0.2s; }
-        .weapon-card:hover { border-color: #3d4256; }
-        .weapon-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 4px; background: var(--bg-input); margin-bottom: 12px; }
-        .price-tag { font-size: 18px; font-weight: 700; color: var(--status-done); }
-        .price-original { text-decoration: line-through; color: var(--text-muted); font-size: 13px; margin-left: 6px; }
-        .discount-badge { display: inline-block; background: var(--accent-gold); color: #000; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
-        .cart-panel { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 20px; height: fit-content; position: sticky; top: 20px; }
+        .shop-layout { display:grid; grid-template-columns:1fr 320px; gap:30px; }
+        .cat-nav { display:flex; gap:10px; margin-bottom:25px; flex-wrap:wrap; }
+        .cat-btn { background:var(--bg-card); border:1px solid var(--lost-border); color:var(--text-muted); padding:10px 20px; border-radius:20px; cursor:pointer; font-weight:600; font-size:13px; transition:all .2s; }
+        .cat-btn.active { background:var(--accent-red); color:#fff; border-color:var(--accent-red); }
+        .catalogue-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; }
+        .weapon-card { background:var(--bg-card); border:1px solid var(--lost-border); border-radius:6px; padding:15px; display:flex; flex-direction:column; justify-content:space-between; transition:border-color .2s; }
+        .weapon-card:hover { border-color:#3d4256; }
+        .weapon-card img { width:100%; height:130px; object-fit:cover; border-radius:4px; background:var(--bg-input); margin-bottom:12px; }
+        .price-tag { font-size:18px; font-weight:700; color:var(--status-done); }
+        .price-original { text-decoration:line-through; color:var(--text-muted); font-size:13px; margin-left:6px; }
+        .discount-badge { display:inline-block; background:var(--accent-gold); color:#000; font-size:10px; font-weight:800; padding:2px 6px; border-radius:3px; margin-left:5px; vertical-align:middle; }
+        .cart-panel { background:var(--bg-card); border:1px solid var(--lost-border); border-radius:6px; padding:20px; height:fit-content; position:sticky; top:20px; }
 
         /* ORDERS */
-        .order-item { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; margin-bottom: 15px; overflow: hidden; }
-        .order-header { padding: 15px 20px; background: rgba(255,255,255,0.01); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .order-content { padding: 20px; display: none; border-top: 1px solid var(--lost-border); }
-        .order-item.expanded .order-content { display: block; }
-        .order-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .order-table th, .order-table td { border: 1px solid var(--lost-border); padding: 8px; text-align: left; font-size: 13px; }
-        .order-table th { background: var(--bg-input); color: var(--text-muted); }
+        .order-item { background:var(--bg-card); border:1px solid var(--lost-border); border-radius:6px; margin-bottom:15px; overflow:hidden; }
+        .order-header { padding:15px 20px; background:rgba(255,255,255,.01); display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+        .order-content { padding:20px; display:none; border-top:1px solid var(--lost-border); }
+        .order-item.expanded .order-content { display:block; }
+        .order-table { width:100%; border-collapse:collapse; margin-top:10px; }
+        .order-table th,.order-table td { border:1px solid var(--lost-border); padding:8px; text-align:left; font-size:13px; }
+        .order-table th { background:var(--bg-input); color:var(--text-muted); }
+
+        /* CHAT */
+        .chat-box { background:var(--bg-input); border:1px solid var(--lost-border); border-radius:6px; margin-top:15px; }
+        .chat-messages { max-height:200px; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+        .chat-msg { padding:8px 12px; border-radius:6px; font-size:13px; max-width:80%; }
+        .chat-msg.mine { background:rgba(218,41,42,.15); border:1px solid rgba(218,41,42,.2); align-self:flex-end; }
+        .chat-msg.theirs { background:var(--bg-card); border:1px solid var(--lost-border); align-self:flex-start; }
+        .chat-msg-author { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; color:var(--text-muted); }
+        .chat-input-row { display:flex; gap:8px; padding:10px; border-top:1px solid var(--lost-border); }
+        .chat-input-row input { margin-bottom:0; flex:1; padding:8px 12px; font-size:13px; }
+        .chat-input-row button { padding:8px 16px; font-size:12px; }
 
         /* BADGES */
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-admin { background: #7c3aed; }
-        .badge-vendeur { background: var(--status-process); }
-        .badge-client { background: #334155; }
-        .badge-vip { background: var(--accent-gold); color: #000; }
-        .badge-lost { background: var(--accent-red); }
+        .badge { display:inline-block; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+        .badge-admin { background:#7c3aed; }
+        .badge-vendeur { background:var(--status-process); }
+        .badge-client { background:#334155; }
+        .badge-vip { background:var(--accent-gold); color:#000; }
+        .badge-lost { background:var(--accent-red); }
 
         /* ADMIN */
-        .admin-section { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 25px; margin-bottom: 25px; }
-        .admin-section-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-gold); margin-bottom: 20px; }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--lost-border); border-radius: 6px; padding: 20px; text-align: center; }
-        .stat-number { font-size: 32px; font-weight: 800; color: var(--accent-red); }
-        .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-        .users-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .users-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .users-table td { padding: 10px 12px; border-bottom: 1px solid var(--lost-border); vertical-align: middle; }
-        .users-table tr:last-child td { border-bottom: none; }
-        .users-table tr:hover td { background: rgba(255,255,255,0.02); }
-        .search-bar { padding: 9px 14px; background: var(--bg-input); border: 1px solid var(--lost-border); border-radius: 4px; color: var(--text-main); font-size: 13px; margin-bottom: 15px; width: 300px; }
-        .search-bar:focus { outline: none; border-color: var(--accent-red); }
+        .admin-section { background:var(--bg-card); border:1px solid var(--lost-border); border-radius:6px; padding:25px; margin-bottom:25px; }
+        .admin-section-title { font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--accent-gold); margin-bottom:20px; }
+        .stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:15px; margin-bottom:25px; }
+        .stat-card { background:var(--bg-card); border:1px solid var(--lost-border); border-radius:6px; padding:20px; text-align:center; }
+        .stat-number { font-size:32px; font-weight:800; color:var(--accent-red); }
+        .stat-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-top:5px; }
+        .users-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .users-table th { background:var(--bg-input); color:var(--text-muted); padding:10px 12px; text-align:left; font-size:11px; text-transform:uppercase; }
+        .users-table td { padding:10px 12px; border-bottom:1px solid var(--lost-border); vertical-align:middle; }
+        .users-table tr:last-child td { border-bottom:none; }
+        .users-table tr:hover td { background:rgba(255,255,255,.02); }
+        .search-bar { padding:9px 14px; background:var(--bg-input); border:1px solid var(--lost-border); border-radius:4px; color:var(--text-main); font-size:13px; margin-bottom:15px; width:300px; }
+        .search-bar:focus { outline:none; border-color:var(--accent-red); }
 
         /* MODALS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: var(--bg-card); border: 1px solid var(--lost-border); border-top: 3px solid var(--accent-red); border-radius: 8px; padding: 30px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
-        .modal-title { font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; color: var(--accent-red); }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 15px; }
-        .form-grid .full { grid-column: 1 / -1; }
-        .img-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; display: block; border: 1px solid var(--lost-border); }
-        .file-label { display: block; padding: 10px; background: var(--bg-input); border: 1px dashed var(--lost-border); border-radius: 4px; text-align: center; cursor: pointer; font-size: 12px; color: var(--text-muted); margin-bottom: 20px; transition: border-color 0.2s; }
-        .file-label:hover { border-color: var(--accent-red); color: var(--text-main); }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); display:flex; justify-content:center; align-items:center; z-index:1000; }
+        .modal-box { background:var(--bg-card); border:1px solid var(--lost-border); border-top:3px solid var(--accent-red); border-radius:8px; padding:30px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; }
+        .modal-title { font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:20px; color:var(--accent-red); }
+        .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 15px; }
+        .form-grid .full { grid-column:1/-1; }
+        .img-preview { width:100%; height:150px; object-fit:cover; border-radius:4px; margin-bottom:10px; display:block; border:1px solid var(--lost-border); }
+        .file-label { display:block; padding:10px; background:var(--bg-input); border:1px dashed var(--lost-border); border-radius:4px; text-align:center; cursor:pointer; font-size:12px; color:var(--text-muted); margin-bottom:20px; transition:border-color .2s; }
+        .file-label:hover { border-color:var(--accent-red); color:var(--text-main); }
+        .discord-footer { text-align:center; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-top:25px; padding-top:15px; border-top:1px dashed var(--lost-border); font-weight:700; }
 
-        .discord-footer { text-align: center; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--lost-border); font-weight: 700; }
+        .section-empty { color:var(--text-muted); padding:20px; font-size:14px; }
     </style>
 </head>
 <body>
 
-<!-- ===== AUTH ===== -->
+<!-- AUTH -->
 <div id="auth-screen">
     <div class="auth-container" id="login-form-div">
-        <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+        <img src="logo.png" alt="Logo" class="auth-logo-img">
         <div class="auth-logo">The Lost MC Shop</div>
         <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
         <form id="auth-form">
@@ -133,15 +145,14 @@
             <input type="password" id="password" required>
             <button type="submit" class="btn" style="width:100%">S'authentifier</button>
         </form>
-        <div style="text-align:center; margin-top:20px; font-size:13px;">
-            <span style="color:var(--text-muted);">Nouvel arrivant ?</span>
-            <a href="#" onclick="toggleAuth(true)" style="color:var(--accent-red); text-decoration:none; font-weight:600;"> Créer un compte</a>
+        <div style="text-align:center;margin-top:20px;font-size:13px;">
+            <span style="color:var(--text-muted)">Nouvel arrivant ?</span>
+            <a href="#" onclick="toggleAuth(true)" style="color:var(--accent-red);text-decoration:none;font-weight:600;"> Créer un compte</a>
         </div>
         <div class="discord-footer">IMPORTANT : Merci de vous inscrire sur le discord Lost MC</div>
     </div>
-
     <div class="auth-container hidden" id="register-form-div">
-        <img src="logo.png" alt="The Lost MC Logo" class="auth-logo-img">
+        <img src="logo.png" alt="Logo" class="auth-logo-img">
         <div class="auth-logo">Enregistrement</div>
         <div class="auth-subtitle">Créer son compte sécurisé</div>
         <form id="reg-form">
@@ -149,18 +160,18 @@
             <input type="text" id="reg-pure-username" placeholder="Monpseudo" required autocomplete="off">
             <label>Numéro de ville</label>
             <input type="number" id="reg-city-number" placeholder="51871" min="0" required autocomplete="off">
-            <label>Choisir un mot de passe</label>
+            <label>Mot de passe</label>
             <input type="password" id="reg-password" required>
             <button type="submit" class="btn" style="width:100%">Soumettre la demande</button>
         </form>
-        <div style="text-align:center; margin-top:20px; font-size:13px;">
-            <a href="#" onclick="toggleAuth(false)" style="color:var(--text-muted); text-decoration:none;">← Retour au terminal</a>
+        <div style="text-align:center;margin-top:20px;font-size:13px;">
+            <a href="#" onclick="toggleAuth(false)" style="color:var(--text-muted);text-decoration:none;">← Retour au terminal</a>
         </div>
         <div class="discord-footer">IMPORTANT : Merci de vous inscrire sur le discord Lost MC</div>
     </div>
 </div>
 
-<!-- ===== APP ===== -->
+<!-- APP -->
 <div id="app-structure" class="hidden">
     <div id="sidebar">
         <div>
@@ -175,7 +186,7 @@
                 <li class="menu-item admin-item hidden" id="menu-admin" onclick="showTab('admin')">⚙️ Administration</li>
             </ul>
         </div>
-        <div style="padding:20px; border-top:1px solid var(--lost-border); font-size:13px;">
+        <div style="padding:20px;border-top:1px solid var(--lost-border);font-size:13px;">
             <div id="user-display" style="margin-bottom:8px;"></div>
             <div id="user-badge-display" style="margin-bottom:12px;"></div>
             <button class="btn btn-secondary btn-small" style="width:100%" onclick="location.reload()">Déconnexion</button>
@@ -186,8 +197,8 @@
 
         <!-- SHOP -->
         <div id="tab-shop" class="tab-content hidden">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h2 style="margin:0; font-size:22px; font-weight:800; text-transform:uppercase;">CATALOGUE LOST MC</h2>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <h2 style="margin:0;font-size:22px;font-weight:800;text-transform:uppercase;">CATALOGUE LOST MC</h2>
                 <div id="client-rank-status"></div>
             </div>
             <div class="shop-layout">
@@ -199,34 +210,47 @@
                     <div class="catalogue-grid" id="weapon-catalogue"></div>
                 </div>
                 <div class="cart-panel">
-                    <h3 style="margin-top:0; font-size:16px; text-transform:uppercase; border-bottom:1px solid var(--lost-border); padding-bottom:10px;">Bon de Commande</h3>
-                    <div id="cart-items" style="min-height:80px; font-size:14px; color:var(--text-muted); padding-bottom:15px;">Panier vide.</div>
-                    <div style="display:flex; font-weight:bold; font-size:16px; margin-bottom:15px; border-top:1px solid var(--lost-border); padding-top:15px;">
+                    <h3 style="margin-top:0;font-size:16px;text-transform:uppercase;border-bottom:1px solid var(--lost-border);padding-bottom:10px;">Bon de Commande</h3>
+                    <div id="cart-items" style="min-height:80px;font-size:14px;color:var(--text-muted);padding-bottom:15px;">Panier vide.</div>
+                    <div style="display:flex;font-weight:bold;font-size:16px;margin-bottom:15px;border-top:1px solid var(--lost-border);padding-top:15px;">
                         <span>NET À PAYER :</span>
-                        <span id="cart-total" style="color:var(--status-done); margin-left:auto;">0 $</span>
+                        <span id="cart-total" style="color:var(--status-done);margin-left:auto;">0 $</span>
                     </div>
                     <button class="btn" style="width:100%" onclick="checkout()">Valider et transmettre</button>
                 </div>
             </div>
         </div>
 
-        <!-- ORDERS -->
+        <!-- MES COMMANDES (CLIENT) -->
         <div id="tab-orders" class="tab-content hidden">
             <h2 class="view-title">Mes Commandes</h2>
-            <div id="my-orders-list"></div>
+            <div class="sub-tabs">
+                <button class="sub-tab active" id="stab-orders-active" onclick="switchOrdersTab('active')">⏳ En cours</button>
+                <button class="sub-tab" id="stab-orders-done" onclick="switchOrdersTab('done')">✅ Terminées / Annulées</button>
+            </div>
+            <div id="orders-active-list"></div>
+            <div id="orders-done-list" class="hidden"></div>
         </div>
 
-        <!-- VENDRE -->
+        <!-- GESTION VENTES (VENDEUR) -->
         <div id="tab-vendre" class="tab-content hidden">
-            <h2 class="view-title">Suivi Logistique</h2>
-            <div id="vendeur-orders-list"></div>
+            <h2 class="view-title">Gestion des Ventes</h2>
+            <div class="sub-tabs">
+                <button class="sub-tab sub-tab-vendeur active" id="stab-v-dispo" onclick="switchVendeurTab('dispo')">📋 Disponibles</button>
+                <button class="sub-tab sub-tab-vendeur" id="stab-v-miennes" onclick="switchVendeurTab('miennes')">🎯 Mes commandes</button>
+                <button class="sub-tab sub-tab-vendeur" id="stab-v-toutes" onclick="switchVendeurTab('toutes')">📦 Toutes</button>
+                <button class="sub-tab sub-tab-vendeur" id="stab-v-done" onclick="switchVendeurTab('done')">✅ Terminées / Annulées</button>
+            </div>
+            <div id="vendeur-dispo-list"></div>
+            <div id="vendeur-miennes-list" class="hidden"></div>
+            <div id="vendeur-toutes-list" class="hidden"></div>
+            <div id="vendeur-done-list" class="hidden"></div>
         </div>
 
         <!-- ADMIN -->
         <div id="tab-admin" class="tab-content hidden">
             <h2 class="view-title">⚙️ Panneau d'Administration</h2>
             <div class="stat-grid" id="admin-stats"></div>
-
             <div class="admin-section">
                 <div class="admin-section-title">👥 Gestion des Utilisateurs</div>
                 <input class="search-bar" id="user-search" placeholder="🔍 Rechercher..." oninput="filterUsers()">
@@ -237,12 +261,10 @@
                     </table>
                 </div>
             </div>
-
             <div class="admin-section">
                 <div class="admin-section-title">📦 Toutes les Commandes</div>
                 <div id="admin-orders-list"></div>
             </div>
-
             <div class="admin-section">
                 <div class="admin-section-title">🗂️ Catalogue — Articles</div>
                 <button class="btn btn-small" style="margin-bottom:20px;" onclick="openItemModal(null)">+ Ajouter un article</button>
@@ -268,8 +290,8 @@
         <label>Code VIP / Remise</label>
         <select id="edit-user-vip">
             <option value="">Aucun</option>
-            <option value="VIP">VIP — réduction -10%</option>
-            <option value="LOST">LOST — réduction -20%</option>
+            <option value="VIP">VIP — -10%</option>
+            <option value="LOST">LOST — -20%</option>
         </select>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-user')">Annuler</button>
@@ -287,7 +309,7 @@
         <label class="file-label" for="item-img-file">📷 Cliquer pour choisir une image</label>
         <input type="file" id="item-img-file" accept="image/*" style="display:none" onchange="previewItemImage(event)">
         <div class="form-grid">
-            <div><label>Nom de l'article</label><input type="text" id="item-name" placeholder="Pistolet de combat"></div>
+            <div><label>Nom</label><input type="text" id="item-name" placeholder="Pistolet de combat"></div>
             <div><label>Prix ($)</label><input type="number" id="item-price" placeholder="50000" min="0"></div>
             <div class="full"><label>Description</label><textarea id="item-desc" rows="2" placeholder="Description courte..."></textarea></div>
             <div><label>Chargeur / Infos</label><input type="text" id="item-mag" placeholder="30 balles"></div>
@@ -305,7 +327,7 @@
     </div>
 </div>
 
-<!-- MODAL : Réaffecter commande -->
+<!-- MODAL : Réaffecter commande (admin only) -->
 <div class="modal-overlay hidden" id="modal-reassign">
     <div class="modal-box">
         <div class="modal-title">🔄 Réaffecter la commande</div>
@@ -336,6 +358,8 @@ let activeShopCat = 'weapons';
 let catalog = [];
 let allUsers = [];
 let itemImgBase64 = null;
+let activeOrdersTab = 'active';
+let activeVendeurTab = 'dispo';
 
 // ===========================================
 // 3. AUTH
@@ -350,23 +374,11 @@ document.getElementById('auth-form').onsubmit = async (e) => {
     const login = document.getElementById('login-pure-username').value.trim();
     const cityNum = parseInt(document.getElementById('login-city-number').value.trim());
     const pwd = document.getElementById('password').value;
-
-    const { data: userData, error } = await supabaseClient
-        .from('utilisateurs').select('*')
-        .eq('login', login).eq('id_serveur', cityNum).maybeSingle();
-
-    if (!error && userData && userData.mot_de_pass === pwd) {
-        currentUser = {
-            login_pure: userData.login,
-            id_serveur: userData.id_serveur,
-            role_admin: userData.role_admin || false,
-            role_vendeur: userData.role_vendeur || false,
-            code_vip: userData.code_vip || null
-        };
+    const { data: u, error } = await supabaseClient.from('utilisateurs').select('*').eq('login', login).eq('id_serveur', cityNum).maybeSingle();
+    if (!error && u && u.mot_de_pass === pwd) {
+        currentUser = { login_pure: u.login, id_serveur: u.id_serveur, role_admin: u.role_admin||false, role_vendeur: u.role_vendeur||false, code_vip: u.code_vip||null };
         loginSuccess();
-    } else {
-        alert("Accès refusé. Vérifiez vos identifiants ou créez un compte.");
-    }
+    } else { alert("Accès refusé. Vérifiez vos identifiants."); }
 };
 
 document.getElementById('reg-form').onsubmit = async (e) => {
@@ -374,18 +386,9 @@ document.getElementById('reg-form').onsubmit = async (e) => {
     const login = document.getElementById('reg-pure-username').value.trim();
     const cityNum = parseInt(document.getElementById('reg-city-number').value.trim());
     const pwd = document.getElementById('reg-password').value;
-
-    const { data: existing } = await supabaseClient
-        .from('utilisateurs').select('login')
-        .eq('login', login).eq('id_serveur', cityNum).maybeSingle();
-
+    const { data: existing } = await supabaseClient.from('utilisateurs').select('login').eq('login', login).eq('id_serveur', cityNum).maybeSingle();
     if (existing) { alert("Ce compte existe déjà."); return; }
-
-    const { error } = await supabaseClient.from('utilisateurs').insert([{
-        id_serveur: cityNum, login: login, mot_de_pass: pwd,
-        role_admin: false, role_vendeur: false, code_vip: null
-    }]);
-
+    const { error } = await supabaseClient.from('utilisateurs').insert([{ id_serveur: cityNum, login, mot_de_pass: pwd, role_admin: false, role_vendeur: false, code_vip: null }]);
     if (error) { alert("Erreur : " + error.message); return; }
     alert(`Compte créé pour ${login} ! Connectez-vous.`);
     toggleAuth(false);
@@ -394,10 +397,7 @@ document.getElementById('reg-form').onsubmit = async (e) => {
 function loginSuccess() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-structure').classList.remove('hidden');
-
-    document.getElementById('user-display').innerHTML =
-        `<strong>${currentUser.login_pure}</strong><br><span style="color:var(--text-muted);font-size:12px;">#${currentUser.id_serveur}</span>`;
-
+    document.getElementById('user-display').innerHTML = `<strong>${currentUser.login_pure}</strong><br><span style="color:var(--text-muted);font-size:12px;">#${currentUser.id_serveur}</span>`;
     let badges = '';
     if (currentUser.role_admin) badges += '<span class="badge badge-admin">Admin</span> ';
     else if (currentUser.role_vendeur) badges += '<span class="badge badge-vendeur">Vendeur</span> ';
@@ -405,10 +405,8 @@ function loginSuccess() {
     if (currentUser.code_vip === 'VIP') badges += '<span class="badge badge-vip">VIP</span>';
     if (currentUser.code_vip === 'LOST') badges += '<span class="badge badge-lost">LOST</span>';
     document.getElementById('user-badge-display').innerHTML = badges;
-
     document.getElementById('menu-vendre').classList.toggle('hidden', !(currentUser.role_admin || currentUser.role_vendeur));
     document.getElementById('menu-admin').classList.toggle('hidden', !currentUser.role_admin);
-
     showTab('shop');
 }
 
@@ -416,13 +414,9 @@ function loginSuccess() {
 // 4. CATALOGUE
 // ===========================================
 async function loadCatalogue() {
-    const container = document.getElementById('weapon-catalogue');
-    container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Chargement...</div>';
-
+    document.getElementById('weapon-catalogue').innerHTML = '<div class="section-empty">Chargement...</div>';
     const { data, error } = await supabaseClient.from('articles').select('*').order('id');
-    if (!error && data) catalog = data;
-    else catalog = [];
-
+    catalog = (!error && data) ? data : [];
     renderCatalogueGrid();
 }
 
@@ -432,43 +426,32 @@ function getDiscountRate() {
     if (currentUser.code_vip === 'VIP') return 10;
     return 0;
 }
-
-function getDiscountedPrice(price) {
-    const rate = getDiscountRate();
-    return rate > 0 ? Math.round(price * (1 - rate / 100)) : price;
-}
+function getDiscountedPrice(price) { const r = getDiscountRate(); return r > 0 ? Math.round(price * (1 - r/100)) : price; }
 
 function renderCatalogueGrid() {
     const container = document.getElementById('weapon-catalogue');
     const discount = getDiscountRate();
-
     let rankText = 'CLIENT', rankColor = '#475569';
-    if (currentUser.role_admin) { rankText = 'ADMIN'; rankColor = '#7c3aed'; }
-    else if (currentUser.role_vendeur) { rankText = 'VENDEUR'; rankColor = '#3b82f6'; }
-    else if (currentUser.code_vip === 'LOST') { rankText = 'LOST — -20%'; rankColor = '#da292a'; }
-    else if (currentUser.code_vip === 'VIP') { rankText = 'VIP — -10%'; rankColor = '#f59e0b'; }
+    if (currentUser.role_admin) { rankText='ADMIN'; rankColor='#7c3aed'; }
+    else if (currentUser.role_vendeur) { rankText='VENDEUR'; rankColor='#3b82f6'; }
+    else if (currentUser.code_vip==='LOST') { rankText='LOST — -20%'; rankColor='#da292a'; }
+    else if (currentUser.code_vip==='VIP') { rankText='VIP — -10%'; rankColor='#f59e0b'; }
     document.getElementById('client-rank-status').innerHTML = `<span class="badge" style="background:${rankColor}">${rankText}</span>`;
-
-    const filtered = catalog.filter(item => item.cat === activeShopCat);
-    if (!filtered.length) { container.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Aucun article dans cette catégorie.</div>'; return; }
-
+    const filtered = catalog.filter(i => i.cat === activeShopCat);
+    if (!filtered.length) { container.innerHTML = '<div class="section-empty">Aucun article dans cette catégorie.</div>'; return; }
     container.innerHTML = filtered.map(w => {
-        const finalPrice = getDiscountedPrice(w.price);
-        const placeholder = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
-        const imgSrc = w.img_url || placeholder;
-        const discountHtml = discount > 0
-            ? `<span class="price-original">${w.price.toLocaleString()} $</span><span class="discount-badge">-${discount}%</span>` : '';
+        const fp = getDiscountedPrice(w.price);
+        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
+        const dHtml = discount > 0 ? `<span class="price-original">${w.price.toLocaleString()} $</span><span class="discount-badge">-${discount}%</span>` : '';
         return `<div class="weapon-card">
             <div>
-                <img src="${imgSrc}" onerror="this.src='${placeholder}'">
-                <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">${w.name}</div>
-                <div style="color:var(--text-muted); font-size:12px; line-height:1.4; margin-bottom:8px;">${w.description || ''}</div>
-                <div style="font-size:11px; color:var(--accent-red); font-weight:600; margin-bottom:12px;">📊 ${w.mag || ''}</div>
+                <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
+                <div style="font-weight:bold;font-size:16px;margin-bottom:5px;">${w.name}</div>
+                <div style="color:var(--text-muted);font-size:12px;line-height:1.4;margin-bottom:8px;">${w.description||''}</div>
+                <div style="font-size:11px;color:var(--accent-red);font-weight:600;margin-bottom:12px;">📊 ${w.mag||''}</div>
             </div>
             <div>
-                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom:12px;">
-                    <span class="price-tag">${finalPrice.toLocaleString()} $</span>${discountHtml}
-                </div>
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:12px;"><span class="price-tag">${fp.toLocaleString()} $</span>${dHtml}</div>
                 <button class="btn btn-small" style="width:100%" onclick="addToCart(${w.id})">Ajouter au panier</button>
             </div>
         </div>`;
@@ -477,8 +460,8 @@ function renderCatalogueGrid() {
 
 function switchShopCat(cat) {
     activeShopCat = cat;
-    document.getElementById('cat-btn-weapons').classList.toggle('active', cat === 'weapons');
-    document.getElementById('cat-btn-others').classList.toggle('active', cat === 'others');
+    document.getElementById('cat-btn-weapons').classList.toggle('active', cat==='weapons');
+    document.getElementById('cat-btn-others').classList.toggle('active', cat==='others');
     renderCatalogueGrid();
 }
 
@@ -486,128 +469,233 @@ function switchShopCat(cat) {
 // 5. PANIER
 // ===========================================
 function addToCart(id) {
-    const w = catalog.find(x => x.id === id);
-    if (!w) return;
-    const finalPrice = getDiscountedPrice(w.price);
-    const item = cart.find(x => x.id === id);
-    if (item) item.qty++;
-    else cart.push({ ...w, price: finalPrice, qty: 1 });
+    const w = catalog.find(x => x.id===id); if (!w) return;
+    const fp = getDiscountedPrice(w.price);
+    const item = cart.find(x => x.id===id);
+    if (item) item.qty++; else cart.push({...w, price:fp, qty:1});
     updateCart();
 }
-
 function updateCart() {
-    const container = document.getElementById('cart-items');
-    if (!cart.length) { container.innerHTML = 'Panier vide.'; document.getElementById('cart-total').textContent = '0 $'; return; }
-    let total = cart.reduce((s, c) => s + c.price * c.qty, 0);
-    container.innerHTML = cart.map((c, i) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;">
-            <div>${c.name} <span style="color:var(--accent-red)">x${c.qty}</span></div>
-            <span><strong>${(c.price * c.qty).toLocaleString()} $</strong>
-            <button onclick="cart.splice(${i},1);updateCart()" style="background:none;border:none;color:var(--accent-red);cursor:pointer;margin-left:6px;">✕</button></span>
-        </div>`).join('');
-    document.getElementById('cart-total').textContent = total.toLocaleString() + ' $';
+    const c = document.getElementById('cart-items');
+    if (!cart.length) { c.innerHTML='Panier vide.'; document.getElementById('cart-total').textContent='0 $'; return; }
+    let total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+    c.innerHTML = cart.map((c,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;">
+        <div>${c.name} <span style="color:var(--accent-red)">x${c.qty}</span></div>
+        <span><strong>${(c.price*c.qty).toLocaleString()} $</strong>
+        <button onclick="cart.splice(${i},1);updateCart()" style="background:none;border:none;color:var(--accent-red);cursor:pointer;margin-left:6px;">✕</button></span>
+    </div>`).join('');
+    document.getElementById('cart-total').textContent = total.toLocaleString()+' $';
 }
-
 async function checkout() {
     if (!cart.length) return;
-    const { data: orderData, error: orderErr } = await supabaseClient
-        .from('commandes')
-        .insert([{ client_id: currentUser.id_serveur, client_pseudo: currentUser.login_pure, statut: 'En attente' }])
-        .select();
-    if (orderErr) { alert("Erreur : " + orderErr.message); return; }
-
-    const orderId = orderData[0].id;
-    const lines = cart.map(item => ({ id_commande: orderId, nom_article: item.name, quantite: item.qty, prix_achat: item.price }));
-    const { error: linesErr } = await supabaseClient.from('details_commande').insert(lines);
-    if (linesErr) { alert("Erreur lignes : " + linesErr.message); return; }
-
-    cart = []; updateCart();
+    const { data: od, error: oe } = await supabaseClient.from('commandes').insert([{ client_id:currentUser.id_serveur, client_pseudo:currentUser.login_pure, statut:'En attente' }]).select();
+    if (oe) { alert("Erreur : "+oe.message); return; }
+    const lines = cart.map(i=>({ id_commande:od[0].id, nom_article:i.name, quantite:i.qty, prix_achat:i.price }));
+    const { error: le } = await supabaseClient.from('details_commande').insert(lines);
+    if (le) { alert("Erreur lignes : "+le.message); return; }
+    cart=[]; updateCart();
     alert("Commande transmise aux vendeurs Lost MC !");
     showTab('orders');
 }
 
 // ===========================================
-// 6. COMMANDES
+// 6. COMMANDES — HELPERS
 // ===========================================
+function statusColor(s) {
+    if (s==='Terminée') return 'var(--status-done)';
+    if (s==='En cours') return 'var(--status-process)';
+    if (s==='Annulée') return 'var(--status-cancel)';
+    return 'var(--status-pending)';
+}
+
 function renderOrderHTML(o, ctx) {
-    const statusColor = o.statut === 'Terminée' ? 'var(--status-done)' : 'var(--status-pending)';
+    const sc = statusColor(o.statut);
     let actions = '';
-    if (ctx === 'vendeur' && o.statut === 'En attente')
+
+    // CLIENT : annuler si "En attente" uniquement
+    if (ctx==='client' && o.statut==='En attente') {
+        actions += `<button class="btn btn-small btn-danger" onclick="cancelOrder(${o.id})" style="margin-right:8px;">✕ Annuler</button>`;
+    }
+    // VENDEUR : s'affecter si "En attente" et pas encore affectée
+    if ((ctx==='vendeur'||ctx==='vendeur-all') && o.statut==='En attente' && !o.vendeur_affecte) {
+        actions += `<button class="btn btn-small btn-success" onclick="claimOrder(${o.id})" style="margin-right:8px;">🎯 Prendre en charge</button>`;
+    }
+    // VENDEUR : marquer livrée si "En cours" et c'est sa commande
+    if ((ctx==='vendeur'||ctx==='vendeur-all') && o.statut==='En cours' && o.vendeur_affecte===currentUser.login_pure) {
         actions += `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id})" style="margin-right:8px;">✔️ Marquer Livrée</button>`;
-    if (ctx === 'admin') {
+    }
+    // ADMIN : réaffecter + supprimer
+    if (ctx==='admin') {
         actions += `<button class="btn btn-small btn-warning" onclick="openReassign(${o.id})" style="margin-right:8px;">🔄 Réaffecter</button>`;
         actions += `<button class="btn btn-small btn-danger" onclick="deleteOrder(${o.id})">🗑️ Supprimer</button>`;
     }
 
-    let total = 0, rows = '';
+    let total=0, rows='';
     if (o.details_commande && o.details_commande.length) {
-        total = o.details_commande.reduce((s, i) => s + i.prix_achat * i.quantite, 0);
-        rows = o.details_commande.map(i => `<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat * i.quantite).toLocaleString()} $</td></tr>`).join('');
-    } else { rows = `<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`; }
+        total = o.details_commande.reduce((s,i)=>s+i.prix_achat*i.quantite,0);
+        rows = o.details_commande.map(i=>`<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat*i.quantite).toLocaleString()} $</td></tr>`).join('');
+    } else { rows=`<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`; }
 
-    const buyerLine = (ctx === 'vendeur' || ctx === 'admin')
-        ? `Acheteur : <strong>${o.client_pseudo}</strong> (#${o.client_id})` : 'Suivi Logistique';
+    const buyerLine = (ctx!=='client') ? `Acheteur : <strong>${o.client_pseudo}</strong> (#${o.client_id})` : 'Suivi Logistique';
+    const vendeurLine = o.vendeur_affecte ? `<strong>${o.vendeur_affecte}</strong>` : '<span style="color:var(--text-muted)">Non affecté</span>';
 
-    return `<div class="order-item">
+    return `<div class="order-item" id="order-card-${o.id}">
         <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
             <div><strong style="color:var(--accent-red);margin-right:10px;">LOST-${o.id}</strong>
                 <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span></div>
             <div style="display:flex;align-items:center;gap:12px;">
                 <span style="font-weight:bold;color:var(--status-done)">${total.toLocaleString()} $</span>
-                <span class="badge" style="background:${statusColor}">${o.statut}</span>
+                <span class="badge" style="background:${sc}">${o.statut}</span>
                 <span style="font-size:11px;color:var(--text-muted)">▼</span>
             </div>
         </div>
         <div class="order-content">
-            <p style="margin-top:0;font-size:12px;color:var(--text-muted)">Vendeur : ${o.vendeur_affecte || 'Non affecté'}</p>
+            <p style="margin-top:0;font-size:12px;color:var(--text-muted)">Vendeur : ${vendeurLine}</p>
             <table class="order-table">
                 <thead><tr><th>Article</th><th>Qté</th><th>Sous-total</th></tr></thead>
                 <tbody>${rows}</tbody>
             </table>
             ${actions ? `<div style="margin-top:15px;display:flex;flex-wrap:wrap;gap:8px;">${actions}</div>` : ''}
+            ${renderChat(o.id, o.messages_chat||[])}
         </div>
     </div>`;
 }
 
+// ===========================================
+// 7. CHAT
+// ===========================================
+function renderChat(orderId, messages) {
+    const msgs = messages.map(m => {
+        const mine = m.auteur === currentUser.login_pure;
+        return `<div class="chat-msg ${mine?'mine':'theirs'}">
+            <div class="chat-msg-author">${m.auteur}</div>
+            <div>${m.message}</div>
+        </div>`;
+    }).join('');
+    return `<div class="chat-box">
+        <div class="chat-messages" id="chat-msgs-${orderId}">${msgs||'<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Aucun message.</div>'}</div>
+        <div class="chat-input-row">
+            <input type="text" id="chat-input-${orderId}" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendChat(${orderId})">
+            <button class="btn btn-small btn-info" onclick="sendChat(${orderId})">Envoyer</button>
+        </div>
+    </div>`;
+}
+
+async function sendChat(orderId) {
+    const input = document.getElementById('chat-input-'+orderId);
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    const { error } = await supabaseClient.from('messages_chat').insert([{ id_commande:orderId, auteur:currentUser.login_pure, message:msg }]);
+    if (error) { alert("Erreur chat : "+error.message); return; }
+    // Reload messages for this order
+    const { data } = await supabaseClient.from('messages_chat').select('*').eq('id_commande', orderId).order('created_at');
+    const container = document.getElementById('chat-msgs-'+orderId);
+    if (container && data) {
+        container.innerHTML = data.map(m => {
+            const mine = m.auteur === currentUser.login_pure;
+            return `<div class="chat-msg ${mine?'mine':'theirs'}">
+                <div class="chat-msg-author">${m.auteur}</div>
+                <div>${m.message}</div>
+            </div>`;
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+// ===========================================
+// 8. COMMANDES CLIENT
+// ===========================================
+function switchOrdersTab(tab) {
+    activeOrdersTab = tab;
+    ['active','done'].forEach(t => {
+        document.getElementById('orders-'+t+'-list').classList.toggle('hidden', t!==tab);
+        document.getElementById('stab-orders-'+t).classList.toggle('active', t===tab);
+    });
+}
+
 async function loadMyOrders() {
-    const c = document.getElementById('my-orders-list');
-    c.innerHTML = '<div style="color:var(--text-muted);">Chargement...</div>';
-    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*)')
+    document.getElementById('orders-active-list').innerHTML = '<div class="section-empty">Chargement...</div>';
+    document.getElementById('orders-done-list').innerHTML = '';
+    const { data, error } = await supabaseClient.from('commandes')
+        .select('*, details_commande(*), messages_chat(*)')
         .eq('client_pseudo', currentUser.login_pure).eq('client_id', currentUser.id_serveur)
-        .order('id', { ascending: false });
-    c.innerHTML = (!error && data && data.length) ? data.map(o => renderOrderHTML(o, 'client')).join('')
-        : "<div style='color:var(--text-muted);padding:20px;'>Aucune commande pour l'instant.</div>";
+        .order('id', {ascending:false});
+    if (error || !data) { document.getElementById('orders-active-list').innerHTML='<div class="section-empty">Erreur de chargement.</div>'; return; }
+    const active = data.filter(o=>!['Terminée','Annulée'].includes(o.statut));
+    const done = data.filter(o=>['Terminée','Annulée'].includes(o.statut));
+    document.getElementById('orders-active-list').innerHTML = active.length ? active.map(o=>renderOrderHTML(o,'client')).join('') : '<div class="section-empty">Aucune commande en cours.</div>';
+    document.getElementById('orders-done-list').innerHTML = done.length ? done.map(o=>renderOrderHTML(o,'client')).join('') : '<div class="section-empty">Aucune commande terminée ou annulée.</div>';
+}
+
+async function cancelOrder(id) {
+    if (!confirm("Annuler la commande LOST-"+id+" ?")) return;
+    const { error } = await supabaseClient.from('commandes').update({statut:'Annulée'}).eq('id',id);
+    if (error) { alert("Erreur : "+error.message); return; }
+    await loadMyOrders();
+}
+
+// ===========================================
+// 9. COMMANDES VENDEUR
+// ===========================================
+const VENDEUR_TABS = ['dispo','miennes','toutes','done'];
+
+function switchVendeurTab(tab) {
+    activeVendeurTab = tab;
+    VENDEUR_TABS.forEach(t => {
+        document.getElementById('vendeur-'+t+'-list').classList.toggle('hidden', t!==tab);
+        document.getElementById('stab-v-'+t).classList.toggle('active', t===tab);
+    });
 }
 
 async function loadVendeurView() {
-    const c = document.getElementById('vendeur-orders-list');
-    c.innerHTML = '<div style="color:var(--text-muted);">Chargement...</div>';
-    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*)')
-        .eq('statut', 'En attente').order('id', { ascending: true });
-    c.innerHTML = (!error && data && data.length) ? data.map(o => renderOrderHTML(o, 'vendeur')).join('')
-        : "<div style='color:var(--text-muted);padding:20px;'>Aucune commande en attente.</div>";
+    VENDEUR_TABS.forEach(t => document.getElementById('vendeur-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>');
+    const { data, error } = await supabaseClient.from('commandes')
+        .select('*, details_commande(*), messages_chat(*)')
+        .order('id', {ascending:false});
+    if (error || !data) return;
+
+    // Disponibles : En attente, non affectées
+    const dispo = data.filter(o=>o.statut==='En attente' && !o.vendeur_affecte);
+    // Mes commandes : affectées à moi, en cours
+    const miennes = data.filter(o=>o.vendeur_affecte===currentUser.login_pure && !['Terminée','Annulée'].includes(o.statut));
+    // Toutes en cours (affectées)
+    const toutes = data.filter(o=>!['Terminée','Annulée'].includes(o.statut) && o.vendeur_affecte);
+    // Terminées / annulées
+    const done = data.filter(o=>['Terminée','Annulée'].includes(o.statut));
+
+    document.getElementById('vendeur-dispo-list').innerHTML = dispo.length ? dispo.map(o=>renderOrderHTML(o,'vendeur')).join('') : '<div class="section-empty">Aucune commande disponible.</div>';
+    document.getElementById('vendeur-miennes-list').innerHTML = miennes.length ? miennes.map(o=>renderOrderHTML(o,'vendeur')).join('') : '<div class="section-empty">Aucune commande en cours pour vous.</div>';
+    document.getElementById('vendeur-toutes-list').innerHTML = toutes.length ? toutes.map(o=>renderOrderHTML(o,'vendeur-all')).join('') : '<div class="section-empty">Aucune commande en cours.</div>';
+    document.getElementById('vendeur-done-list').innerHTML = done.length ? done.map(o=>renderOrderHTML(o,'vendeur-all')).join('') : '<div class="section-empty">Aucune commande terminée.</div>';
+}
+
+async function claimOrder(id) {
+    if (!confirm("Prendre en charge la commande LOST-"+id+" ?")) return;
+    const { error } = await supabaseClient.from('commandes').update({statut:'En cours', vendeur_affecte:currentUser.login_pure}).eq('id',id);
+    if (error) { alert("Erreur : "+error.message); return; }
+    await loadVendeurView();
 }
 
 async function completeOrder(id) {
-    if (!confirm("Marquer cette commande comme livrée ?")) return;
-    const { error } = await supabaseClient.from('commandes')
-        .update({ statut: 'Terminée', vendeur_affecte: currentUser.login_pure }).eq('id', id);
-    if (error) { alert("Erreur : " + error.message); return; }
+    if (!confirm("Marquer la commande LOST-"+id+" comme livrée ?")) return;
+    const { error } = await supabaseClient.from('commandes').update({statut:'Terminée'}).eq('id',id);
+    if (error) { alert("Erreur : "+error.message); return; }
     await loadVendeurView();
 }
 
 // ===========================================
-// 7. ADMIN — PANEL
+// 10. ADMIN
 // ===========================================
 async function loadAdminPanel() {
     await Promise.all([loadAdminStats(), loadAdminUsers(), loadAdminOrders(), loadAdminCatalogue()]);
 }
 
 async function loadAdminStats() {
-    const [{ count: cU }, { count: cO }, { count: cA }] = await Promise.all([
-        supabaseClient.from('utilisateurs').select('*', { count: 'exact', head: true }),
-        supabaseClient.from('commandes').select('*', { count: 'exact', head: true }),
-        supabaseClient.from('articles').select('*', { count: 'exact', head: true })
+    const [{ count:cU },{ count:cO },{ count:cA }] = await Promise.all([
+        supabaseClient.from('utilisateurs').select('*',{count:'exact',head:true}),
+        supabaseClient.from('commandes').select('*',{count:'exact',head:true}),
+        supabaseClient.from('articles').select('*',{count:'exact',head:true})
     ]);
     document.getElementById('admin-stats').innerHTML = `
         <div class="stat-card"><div class="stat-number">${cU||0}</div><div class="stat-label">Utilisateurs</div></div>
@@ -615,52 +703,41 @@ async function loadAdminStats() {
         <div class="stat-card"><div class="stat-number">${cA||0}</div><div class="stat-label">Articles</div></div>`;
 }
 
-// ===========================================
-// 8. ADMIN — USERS
-// ===========================================
 async function loadAdminUsers() {
     const { data, error } = await supabaseClient.from('utilisateurs').select('*').order('login');
     if (error) return;
-    allUsers = data || [];
+    allUsers = data||[];
     renderUsersTable(allUsers);
 }
 
 function filterUsers() {
     const q = document.getElementById('user-search').value.toLowerCase();
-    renderUsersTable(allUsers.filter(u => u.login.toLowerCase().includes(q) || String(u.id_serveur).includes(q)));
+    renderUsersTable(allUsers.filter(u=>u.login.toLowerCase().includes(q)||String(u.id_serveur).includes(q)));
 }
 
 function renderUsersTable(users) {
     document.getElementById('users-tbody').innerHTML = users.map(u => {
-        let roleBadge = '<span class="badge badge-client">Client</span>';
-        if (u.role_admin) roleBadge = '<span class="badge badge-admin">Admin</span>';
-        else if (u.role_vendeur) roleBadge = '<span class="badge badge-vendeur">Vendeur</span>';
-        let vipBadge = u.code_vip === 'VIP' ? '<span class="badge badge-vip">VIP</span>'
-            : u.code_vip === 'LOST' ? '<span class="badge badge-lost">LOST</span>' : '<span style="color:var(--text-muted);font-size:12px;">—</span>';
-        const isSelf = u.login === currentUser.login_pure && u.id_serveur === currentUser.id_serveur;
+        let rb = '<span class="badge badge-client">Client</span>';
+        if (u.role_admin) rb='<span class="badge badge-admin">Admin</span>';
+        else if (u.role_vendeur) rb='<span class="badge badge-vendeur">Vendeur</span>';
+        let vb = u.code_vip==='VIP' ? '<span class="badge badge-vip">VIP</span>' : u.code_vip==='LOST' ? '<span class="badge badge-lost">LOST</span>' : '<span style="color:var(--text-muted);font-size:12px;">—</span>';
+        const isSelf = u.login===currentUser.login_pure && u.id_serveur===currentUser.id_serveur;
         return `<tr>
-            <td><strong>${u.login}</strong></td>
-            <td>#${u.id_serveur}</td>
-            <td>${roleBadge}</td>
-            <td>${vipBadge}</td>
+            <td><strong>${u.login}</strong></td><td>#${u.id_serveur}</td><td>${rb}</td><td>${vb}</td>
             <td>
                 <button class="btn btn-small btn-secondary" style="margin-right:6px;" onclick="openUserModal('${u.login}',${u.id_serveur})">✏️ Modifier</button>
-                ${!isSelf ? `<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>` : ''}
+                ${!isSelf?`<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>`:''}
             </td>
         </tr>`;
     }).join('');
 }
 
 function openUserModal(login, idServeur) {
-    const u = allUsers.find(x => x.login === login && x.id_serveur === idServeur);
-    if (!u) return;
+    const u = allUsers.find(x=>x.login===login&&x.id_serveur===idServeur); if (!u) return;
     document.getElementById('edit-user-login').value = u.login;
     document.getElementById('edit-user-id').value = u.id_serveur;
-    let role = 'client';
-    if (u.role_admin) role = 'admin';
-    else if (u.role_vendeur) role = 'vendeur';
-    document.getElementById('edit-user-role').value = role;
-    document.getElementById('edit-user-vip').value = u.code_vip || '';
+    document.getElementById('edit-user-role').value = u.role_admin?'admin':u.role_vendeur?'vendeur':'client';
+    document.getElementById('edit-user-vip').value = u.code_vip||'';
     document.getElementById('modal-user').classList.remove('hidden');
 }
 
@@ -669,66 +746,52 @@ async function saveUserEdit() {
     const idServeur = parseInt(document.getElementById('edit-user-id').value);
     const role = document.getElementById('edit-user-role').value;
     const vip = document.getElementById('edit-user-vip').value;
-
-    const { error } = await supabaseClient.from('utilisateurs').update({
-        role_admin: role === 'admin',
-        role_vendeur: role === 'vendeur',
-        code_vip: vip || null
-    }).eq('login', login).eq('id_serveur', idServeur);
-
-    if (error) { alert("Erreur : " + error.message); return; }
-    closeModal('modal-user');
-    await loadAdminUsers();
-    await loadAdminStats();
+    const { error } = await supabaseClient.from('utilisateurs').update({ role_admin:role==='admin', role_vendeur:role==='vendeur', code_vip:vip||null }).eq('login',login).eq('id_serveur',idServeur);
+    if (error) { alert("Erreur : "+error.message); return; }
+    closeModal('modal-user'); await loadAdminUsers(); await loadAdminStats();
 }
 
 async function deleteUser(login, idServeur) {
-    if (!confirm(`Supprimer ${login} (#${idServeur}) ? Action irréversible.`)) return;
-    const { error } = await supabaseClient.from('utilisateurs').delete().eq('login', login).eq('id_serveur', idServeur);
-    if (error) { alert("Erreur : " + error.message); return; }
-    await loadAdminUsers();
-    await loadAdminStats();
+    if (!confirm(`Supprimer ${login} (#${idServeur}) ?`)) return;
+    const { error } = await supabaseClient.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);
+    if (error) { alert("Erreur : "+error.message); return; }
+    await loadAdminUsers(); await loadAdminStats();
 }
 
-// ===========================================
-// 9. ADMIN — COMMANDES
-// ===========================================
 async function loadAdminOrders() {
     const c = document.getElementById('admin-orders-list');
-    c.innerHTML = '<div style="color:var(--text-muted);">Chargement...</div>';
-    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*)').order('id', { ascending: false });
-    c.innerHTML = (!error && data && data.length) ? data.map(o => renderOrderHTML(o, 'admin')).join('')
-        : "<div style='color:var(--text-muted);padding:20px;'>Aucune commande.</div>";
+    c.innerHTML='<div class="section-empty">Chargement...</div>';
+    const { data, error } = await supabaseClient.from('commandes').select('*, details_commande(*), messages_chat(*)').order('id',{ascending:false});
+    c.innerHTML = (!error&&data&&data.length) ? data.map(o=>renderOrderHTML(o,'admin')).join('') : '<div class="section-empty">Aucune commande.</div>';
 }
 
 async function deleteOrder(id) {
-    if (!confirm(`Supprimer la commande LOST-${id} ? Irréversible.`)) return;
-    await supabaseClient.from('details_commande').delete().eq('id_commande', id);
-    const { error } = await supabaseClient.from('commandes').delete().eq('id', id);
-    if (error) { alert("Erreur : " + error.message); return; }
-    await loadAdminOrders();
-    await loadAdminStats();
+    if (!confirm(`Supprimer la commande LOST-${id} ?`)) return;
+    await supabaseClient.from('messages_chat').delete().eq('id_commande',id);
+    await supabaseClient.from('details_commande').delete().eq('id_commande',id);
+    const { error } = await supabaseClient.from('commandes').delete().eq('id',id);
+    if (error) { alert("Erreur : "+error.message); return; }
+    await loadAdminOrders(); await loadAdminStats();
 }
 
 async function openReassign(orderId) {
     document.getElementById('reassign-order-id').value = orderId;
-    const vendeurs = allUsers.filter(u => u.role_vendeur || u.role_admin);
-    document.getElementById('reassign-vendeur-select').innerHTML =
-        vendeurs.map(v => `<option value="${v.login}">${v.login} (#${v.id_serveur})</option>`).join('');
+    if (!allUsers.length) await loadAdminUsers();
+    const vendeurs = allUsers.filter(u=>u.role_vendeur||u.role_admin);
+    document.getElementById('reassign-vendeur-select').innerHTML = vendeurs.map(v=>`<option value="${v.login}">${v.login} (#${v.id_serveur})</option>`).join('');
     document.getElementById('modal-reassign').classList.remove('hidden');
 }
 
 async function confirmReassign() {
     const orderId = parseInt(document.getElementById('reassign-order-id').value);
     const vendeur = document.getElementById('reassign-vendeur-select').value;
-    const { error } = await supabaseClient.from('commandes').update({ vendeur_affecte: vendeur }).eq('id', orderId);
-    if (error) { alert("Erreur : " + error.message); return; }
-    closeModal('modal-reassign');
-    await loadAdminOrders();
+    const { error } = await supabaseClient.from('commandes').update({vendeur_affecte:vendeur, statut:'En cours'}).eq('id',orderId);
+    if (error) { alert("Erreur : "+error.message); return; }
+    closeModal('modal-reassign'); await loadAdminOrders();
 }
 
 // ===========================================
-// 10. ADMIN — CATALOGUE
+// 11. ADMIN CATALOGUE
 // ===========================================
 async function loadAdminCatalogue() {
     const { data, error } = await supabaseClient.from('articles').select('*').order('id');
@@ -738,15 +801,15 @@ async function loadAdminCatalogue() {
 
 function renderAdminCatalogueGrid() {
     const grid = document.getElementById('admin-catalogue-grid');
-    if (!catalog.length) { grid.innerHTML = '<div style="color:var(--text-muted);">Aucun article.</div>'; return; }
+    if (!catalog.length) { grid.innerHTML='<div class="section-empty">Aucun article.</div>'; return; }
     grid.innerHTML = catalog.map(w => {
-        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
+        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);
         return `<div class="weapon-card">
             <div>
-                <img src="${w.img_url || ph}" onerror="this.src='${ph}'" style="cursor:pointer" onclick="openItemModal(${w.id})">
+                <img src="${w.img_url||ph}" onerror="this.src='${ph}'" style="cursor:pointer" onclick="openItemModal(${w.id})">
                 <div style="font-weight:bold;font-size:15px;margin-bottom:4px;">${w.name}</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${w.cat === 'weapons' ? 'Arme à feu' : 'Équipement'}</div>
-                <div style="font-size:12px;color:var(--accent-red);">📊 ${w.mag || ''}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${w.cat==='weapons'?'Arme à feu':'Équipement'}</div>
+                <div style="font-size:12px;color:var(--accent-red);">📊 ${w.mag||''}</div>
             </div>
             <div>
                 <div class="price-tag" style="font-size:16px;margin-bottom:10px;">${w.price.toLocaleString()} $</div>
@@ -760,98 +823,78 @@ function renderAdminCatalogueGrid() {
 }
 
 function openItemModal(id) {
-    itemImgBase64 = null;
-    document.getElementById('item-img-file').value = '';
+    itemImgBase64=null;
+    document.getElementById('item-img-file').value='';
     document.getElementById('item-img-preview').classList.add('hidden');
-
-    if (id === null) {
-        document.getElementById('modal-item-title').textContent = '+ Nouvel Article';
-        document.getElementById('item-edit-id').value = '';
-        ['item-name','item-price','item-desc','item-mag'].forEach(x => document.getElementById(x).value = '');
-        document.getElementById('item-cat').value = 'weapons';
+    if (id===null) {
+        document.getElementById('modal-item-title').textContent='+ Nouvel Article';
+        document.getElementById('item-edit-id').value='';
+        ['item-name','item-price','item-desc','item-mag'].forEach(x=>document.getElementById(x).value='');
+        document.getElementById('item-cat').value='weapons';
     } else {
-        const w = catalog.find(x => x.id === id);
-        if (!w) return;
-        document.getElementById('modal-item-title').textContent = '✏️ Modifier Article';
-        document.getElementById('item-edit-id').value = w.id;
-        document.getElementById('item-name').value = w.name;
-        document.getElementById('item-price').value = w.price;
-        document.getElementById('item-desc').value = w.description || '';
-        document.getElementById('item-mag').value = w.mag || '';
-        document.getElementById('item-cat').value = w.cat;
-        if (w.img_url) {
-            const prev = document.getElementById('item-img-preview');
-            prev.src = w.img_url; prev.classList.remove('hidden');
-        }
+        const w = catalog.find(x=>x.id===id); if (!w) return;
+        document.getElementById('modal-item-title').textContent='✏️ Modifier Article';
+        document.getElementById('item-edit-id').value=w.id;
+        document.getElementById('item-name').value=w.name;
+        document.getElementById('item-price').value=w.price;
+        document.getElementById('item-desc').value=w.description||'';
+        document.getElementById('item-mag').value=w.mag||'';
+        document.getElementById('item-cat').value=w.cat;
+        if (w.img_url) { const p=document.getElementById('item-img-preview'); p.src=w.img_url; p.classList.remove('hidden'); }
     }
     document.getElementById('modal-item').classList.remove('hidden');
 }
 
 function previewItemImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        itemImgBase64 = e.target.result;
-        const prev = document.getElementById('item-img-preview');
-        prev.src = itemImgBase64; prev.classList.remove('hidden');
-    };
+    const file=event.target.files[0]; if (!file) return;
+    const reader=new FileReader();
+    reader.onload=(e)=>{ itemImgBase64=e.target.result; const p=document.getElementById('item-img-preview'); p.src=itemImgBase64; p.classList.remove('hidden'); };
     reader.readAsDataURL(file);
 }
 
 async function saveItem() {
-    const id = document.getElementById('item-edit-id').value;
-    const name = document.getElementById('item-name').value.trim();
-    const price = parseInt(document.getElementById('item-price').value);
-    const description = document.getElementById('item-desc').value.trim();
-    const mag = document.getElementById('item-mag').value.trim();
-    const cat = document.getElementById('item-cat').value;
-    if (!name || isNaN(price)) { alert("Nom et prix requis."); return; }
-
-    let img_url = itemImgBase64 || null;
-    if (!img_url && id) {
-        const ex = catalog.find(x => x.id === parseInt(id));
-        img_url = ex ? ex.img_url : null;
-    }
-
-    const payload = { name, price, description, mag, cat, img_url };
+    const id=document.getElementById('item-edit-id').value;
+    const name=document.getElementById('item-name').value.trim();
+    const price=parseInt(document.getElementById('item-price').value);
+    const description=document.getElementById('item-desc').value.trim();
+    const mag=document.getElementById('item-mag').value.trim();
+    const cat=document.getElementById('item-cat').value;
+    if (!name||isNaN(price)) { alert("Nom et prix requis."); return; }
+    let img_url=itemImgBase64||null;
+    if (!img_url&&id) { const ex=catalog.find(x=>x.id===parseInt(id)); img_url=ex?ex.img_url:null; }
+    const payload={name,price,description,mag,cat,img_url};
     let error;
-    if (id) { ({ error } = await supabaseClient.from('articles').update(payload).eq('id', parseInt(id))); }
-    else { ({ error } = await supabaseClient.from('articles').insert([payload])); }
-
-    if (error) { alert("Erreur : " + error.message); return; }
-    closeModal('modal-item');
-    await loadAdminCatalogue();
-    await loadAdminStats();
+    if (id) { ({error}=await supabaseClient.from('articles').update(payload).eq('id',parseInt(id))); }
+    else { ({error}=await supabaseClient.from('articles').insert([payload])); }
+    if (error) { alert("Erreur : "+error.message); return; }
+    closeModal('modal-item'); await loadAdminCatalogue(); await loadAdminStats();
 }
 
 async function deleteItem(id) {
-    if (!confirm("Supprimer cet article du catalogue ?")) return;
-    const { error } = await supabaseClient.from('articles').delete().eq('id', id);
-    if (error) { alert("Erreur : " + error.message); return; }
-    await loadAdminCatalogue();
-    await loadAdminStats();
+    if (!confirm("Supprimer cet article ?")) return;
+    const { error }=await supabaseClient.from('articles').delete().eq('id',id);
+    if (error) { alert("Erreur : "+error.message); return; }
+    await loadAdminCatalogue(); await loadAdminStats();
 }
 
 // ===========================================
-// 11. MODALS & NAVIGATION
+// 12. MODALS & NAVIGATION
 // ===========================================
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', (e) => { if (e.target === el) el.classList.add('hidden'); });
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+    el.addEventListener('click',(e)=>{ if(e.target===el) el.classList.add('hidden'); });
 });
 
 function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.remove('hidden');
-    const m = document.getElementById('menu-' + tabId);
-    if (m) m.classList.add('active');
-    if (tabId === 'shop') loadCatalogue();
-    if (tabId === 'orders') loadMyOrders();
-    if (tabId === 'vendre') loadVendeurView();
-    if (tabId === 'admin') loadAdminPanel();
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+    document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+    document.getElementById('tab-'+tabId).classList.remove('hidden');
+    const m=document.getElementById('menu-'+tabId); if(m) m.classList.add('active');
+    if(tabId==='shop') loadCatalogue();
+    if(tabId==='orders') loadMyOrders();
+    if(tabId==='vendre') loadVendeurView();
+    if(tabId==='admin') loadAdminPanel();
 }
 </script>
 </body>
