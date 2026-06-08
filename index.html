@@ -149,11 +149,11 @@
         <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
         <form id="auth-form">
             <label>Pseudo / Login</label>
-            <input type="text" id="login-pure-username" placeholder="Monpseudo" required autocomplete="off">
+            <input type="text" id="login-pure-username" placeholder="Indiquez votre pseudo" required autocomplete="off">
             <label>Numéro de ville</label>
-            <input type="number" id="login-city-number" placeholder="51871" required autocomplete="off">
+            <input type="number" id="login-city-number" placeholder="Ex : 12069" required autocomplete="off">
             <label>Mot de passe</label>
-            <input type="password" id="password" required>
+            <input type="password" id="password" placeholder="••••••••" required>
             <button type="submit" class="btn" style="width:100%">S'authentifier</button>
         </form>
         <div style="text-align:center;margin-top:20px;font-size:13px;">
@@ -168,11 +168,11 @@
         <div class="auth-subtitle">Créer son compte sécurisé</div>
         <form id="reg-form">
             <label>Pseudo / Login</label>
-            <input type="text" id="reg-pure-username" placeholder="Monpseudo" required autocomplete="off">
+            <input type="text" id="reg-pure-username" placeholder="Indiquez votre pseudo" required autocomplete="off">
             <label>Numéro de ville</label>
-            <input type="number" id="reg-city-number" placeholder="51871" min="0" required autocomplete="off">
+            <input type="number" id="reg-city-number" placeholder="Ex : 12069" min="0" required autocomplete="off">
             <label>Mot de passe</label>
-            <input type="password" id="reg-password" required>
+            <input type="password" id="reg-password" placeholder="••••••••" required>
             <button type="submit" class="btn" style="width:100%">Soumettre la demande</button>
         </form>
         <div style="text-align:center;margin-top:20px;font-size:13px;">
@@ -199,8 +199,9 @@
             </ul>
         </div>
         <div style="padding:20px;border-top:1px solid var(--lost-border);font-size:13px;">
-            <div id="user-display" style="margin-bottom:8px;"></div>
-            <div id="user-badge-display" style="margin-bottom:12px;"></div>
+            <div id="sidebar-avatar" style="margin-bottom:12px;text-align:center;"></div>
+            <div id="user-display" style="margin-bottom:8px;text-align:center;"></div>
+            <div id="user-badge-display" style="margin-bottom:12px;text-align:center;"></div>
             <button class="btn btn-secondary btn-small" style="width:100%" onclick="location.reload()">Déconnexion</button>
         </div>
     </div>
@@ -491,7 +492,18 @@ document.getElementById('reg-form').onsubmit = async (e) => {
 function loginSuccess() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-structure').classList.remove('hidden');
+
+    // Avatar sidebar
+    const avatarEl = document.getElementById('sidebar-avatar');
+    if (currentUser.avatar_url) {
+        avatarEl.innerHTML = `<img src="${currentUser.avatar_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-red);">`;
+    } else {
+        avatarEl.innerHTML = `<div style="width:56px;height:56px;border-radius:50%;background:var(--bg-input);border:2px solid var(--lost-border);display:inline-flex;align-items:center;justify-content:center;font-size:24px;">👤</div>`;
+    }
+
     document.getElementById('user-display').innerHTML = `<strong>${currentUser.login_pure}</strong><br><span style="color:var(--text-muted);font-size:12px;">#${currentUser.id_serveur}</span>`;
+
+    // Tous les rôles actifs affichés
     let badges = '';
     if (currentUser.role_admin) badges += '<span class="badge badge-admin">Admin</span> ';
     if (currentUser.role_vendeur) badges += '<span class="badge badge-vendeur">Vendeur</span> ';
@@ -499,6 +511,7 @@ function loginSuccess() {
     if (currentUser.code_vip === 'VIP') badges += '<span class="badge badge-vip">VIP</span>';
     if (currentUser.code_vip === 'LOST') badges += '<span class="badge badge-lost">LOST</span>';
     document.getElementById('user-badge-display').innerHTML = badges;
+
     document.getElementById('menu-vendre').classList.toggle('hidden', !(currentUser.role_admin || currentUser.role_vendeur));
     document.getElementById('menu-admin').classList.toggle('hidden', !currentUser.role_admin);
     showTab('shop');
