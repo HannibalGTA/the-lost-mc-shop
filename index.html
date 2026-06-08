@@ -10,7 +10,7 @@
             --bg-main:#0c0d12; --bg-card:#14161d; --bg-input:#1a1d26;
             --accent-red:#da292a; --accent-gold:#f59e0b;
             --lost-border:#262a36; --text-main:#f1f5f9; --text-muted:#94a3b8;
-            --s-pending:#f59e0b; --s-process:#3b82f6; --s-done:#10b981; --s-cancel:#64748b;
+            --s-pending:#f59e0b; --s-process:#3b82f6; --s-ready:#8b5cf6; --s-done:#10b981; --s-cancel:#64748b;
         }
         *{box-sizing:border-box;}
         body{background:var(--bg-main);color:var(--text-main);font-family:'Segoe UI',sans-serif;margin:0;padding:0;}
@@ -22,37 +22,41 @@
         .auth-logo-img{display:block;max-width:200px;height:auto;margin:0 auto 15px;}
         .auth-logo{text-align:center;font-size:24px;font-weight:800;letter-spacing:2px;color:var(--accent-red);margin-bottom:5px;text-transform:uppercase;}
         .auth-subtitle{text-align:center;color:var(--text-muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:30px;}
-
         label{display:block;font-size:12px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-weight:600;}
         input[type="text"],input[type="password"],input[type="number"],input[type="email"],select,textarea{width:100%;padding:12px;background:var(--bg-input);border:1px solid var(--lost-border);border-radius:4px;color:var(--text-main);margin-bottom:20px;font-size:14px;transition:border-color .2s;}
         input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-red);}
         select option{background:var(--bg-card);}
-
         .btn{background:var(--accent-red);color:#fff;border:none;padding:12px 24px;font-weight:600;border-radius:4px;cursor:pointer;text-transform:uppercase;font-size:13px;letter-spacing:.5px;transition:opacity .2s;}
         .btn:hover{opacity:.85;}
         .btn-secondary{background:#334155;} .btn-danger{background:#b91c1c;} .btn-success{background:#059669;}
-        .btn-warning{background:#d97706;} .btn-info{background:#0369a1;} .btn-small{padding:6px 12px;font-size:11px;}
+        .btn-warning{background:#d97706;} .btn-info{background:#0369a1;} .btn-purple{background:#7c3aed;} .btn-small{padding:6px 12px;font-size:11px;}
+        .discord-footer{text-align:center;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:25px;padding-top:15px;border-top:1px dashed var(--lost-border);font-weight:700;}
 
-        /* APP */
+        /* APP LAYOUT */
         #app-structure{display:flex;min-height:100vh;}
         #sidebar{width:260px;background:var(--bg-card);border-right:1px solid var(--lost-border);display:flex;flex-direction:column;justify-content:space-between;position:sticky;top:0;height:100vh;overflow-y:auto;}
         .sidebar-brand-container{padding:20px 25px;border-bottom:1px solid var(--lost-border);text-align:center;}
         .sidebar-logo-img{max-width:120px;height:auto;margin-bottom:10px;}
         .sidebar-brand{font-size:16px;font-weight:800;color:var(--accent-red);letter-spacing:1px;text-transform:uppercase;}
         .menu-list{list-style:none;padding:15px 0;margin:0;}
-        .menu-item{padding:14px 25px;color:var(--text-muted);cursor:pointer;font-weight:600;font-size:14px;display:flex;align-items:center;transition:all .2s;gap:10px;border-left:3px solid transparent;}
+        .menu-item{padding:14px 25px;color:var(--text-muted);cursor:pointer;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:space-between;transition:all .2s;gap:10px;border-left:3px solid transparent;}
         .menu-item:hover,.menu-item.active{color:var(--text-main);background:rgba(255,255,255,.03);border-left-color:var(--accent-red);}
         .menu-item.admin-item:hover,.menu-item.admin-item.active{border-left-color:var(--accent-gold);color:var(--accent-gold);}
         .menu-item.profile-item:hover,.menu-item.profile-item.active{border-left-color:#6366f1;color:#6366f1;}
+        .menu-label{display:flex;align-items:center;gap:10px;}
         #main-content{flex:1;padding:40px;overflow-y:auto;background:var(--bg-main);}
         .view-title{font-size:22px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-top:0;margin-bottom:25px;border-bottom:2px solid var(--lost-border);padding-bottom:15px;}
+
+        /* NOTIFICATION BADGE */
+        .notif-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent-red);color:#fff;border-radius:10px;font-size:10px;font-weight:800;min-width:18px;height:18px;padding:0 4px;line-height:1;}
+        .notif-badge.msg{background:#3b82f6;}
+        .order-notif{display:inline-flex;gap:4px;margin-left:8px;vertical-align:middle;}
 
         /* SUB TABS */
         .sub-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
         .sub-tab{padding:8px 18px;border-radius:20px;border:1px solid var(--lost-border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
-        .sub-tab.active,.sub-tab:hover{color:#fff;}
-        .sub-tab.active{background:var(--accent-red);border-color:var(--accent-red);}
-        .sub-tab.blue.active{background:var(--s-process);border-color:var(--s-process);}
+        .sub-tab.active{background:var(--accent-red);border-color:var(--accent-red);color:#fff;}
+        .sub-tab.blue.active{background:var(--s-process);border-color:var(--s-process);color:#fff;}
 
         /* SHOP */
         .shop-layout{display:grid;grid-template-columns:1fr 320px;gap:30px;}
@@ -70,6 +74,7 @@
 
         /* ORDERS */
         .order-item{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;margin-bottom:15px;overflow:hidden;}
+        .order-item.has-notif{border-color:var(--accent-red);}
         .order-header{padding:15px 20px;background:rgba(255,255,255,.01);display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
         .order-content{padding:20px;display:none;border-top:1px solid var(--lost-border);}
         .order-item.expanded .order-content{display:block;}
@@ -92,32 +97,37 @@
         .badge-admin{background:#7c3aed;} .badge-vendeur{background:var(--s-process);} .badge-client{background:#334155;}
         .badge-vip{background:var(--accent-gold);color:#000;} .badge-lost{background:var(--accent-red);}
 
-        /* ADMIN / FINANCE */
+        /* ADMIN */
         .admin-section{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:25px;margin-bottom:25px;}
         .admin-section-title{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--accent-gold);margin-bottom:20px;}
         .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;margin-bottom:25px;}
         .stat-card{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:20px;text-align:center;}
         .stat-number{font-size:32px;font-weight:800;color:var(--accent-red);}
         .stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:5px;}
+
+        /* USERS TABLE with scroll */
+        .table-scroll-wrap{max-height:270px;overflow-y:auto;border:1px solid var(--lost-border);border-radius:4px;}
         .users-table{width:100%;border-collapse:collapse;font-size:13px;}
-        .users-table th{background:var(--bg-input);color:var(--text-muted);padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;}
+        .users-table th{background:var(--bg-input);color:var(--text-muted);padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;position:sticky;top:0;z-index:1;}
         .users-table td{padding:10px 12px;border-bottom:1px solid var(--lost-border);vertical-align:middle;}
         .users-table tr:last-child td{border-bottom:none;}
         .users-table tr:hover td{background:rgba(255,255,255,.02);}
-        .search-bar{padding:9px 14px;background:var(--bg-input);border:1px solid var(--lost-border);border-radius:4px;color:var(--text-main);font-size:13px;margin-bottom:15px;width:300px;}
+        .search-bar{padding:9px 14px;background:var(--bg-input);border:1px solid var(--lost-border);border-radius:4px;color:var(--text-main);font-size:13px;margin-bottom:12px;}
         .search-bar:focus{outline:none;border-color:var(--accent-red);}
 
         /* FILTERS */
-        .filter-bar{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:flex-end;padding:16px;background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;}
-        .filter-group{display:flex;flex-direction:column;gap:4px;min-width:160px;}
-        .filter-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;}
-        select[multiple]{height:80px;padding:6px;font-size:12px;margin-bottom:0;}
+        .filter-bar{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;padding:16px;background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;align-items:flex-start;}
+        .filter-group{display:flex;flex-direction:column;gap:6px;}
+        .filter-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:700;}
+        .filter-checks{display:flex;flex-wrap:wrap;gap:6px;}
+        .filter-check-btn{padding:5px 12px;border-radius:14px;border:1px solid var(--lost-border);background:var(--bg-input);color:var(--text-muted);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;user-select:none;}
+        .filter-check-btn.selected{background:var(--accent-red);color:#fff;border-color:var(--accent-red);}
         .finance-total{background:var(--bg-card);border:1px solid var(--lost-border);border-left:4px solid var(--s-done);border-radius:6px;padding:20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
         .finance-amount{font-size:28px;font-weight:800;color:var(--s-done);}
 
         /* MODALS */
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;justify-content:center;align-items:center;z-index:1000;}
-        .modal-box{background:var(--bg-card);border:1px solid var(--lost-border);border-top:3px solid var(--accent-red);border-radius:8px;padding:30px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;}
+        .modal-box{background:var(--bg-card);border:1px solid var(--lost-border);border-top:3px solid var(--accent-red);border-radius:8px;padding:30px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;}
         .modal-title{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;color:var(--accent-red);}
         .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
         .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px;}
@@ -125,18 +135,21 @@
         .img-preview{width:100%;height:150px;object-fit:cover;border-radius:4px;margin-bottom:10px;display:block;border:1px solid var(--lost-border);}
         .file-label{display:block;padding:10px;background:var(--bg-input);border:1px dashed var(--lost-border);border-radius:4px;text-align:center;cursor:pointer;font-size:12px;color:var(--text-muted);margin-bottom:20px;transition:border-color .2s;}
         .file-label:hover{border-color:var(--accent-red);color:var(--text-main);}
-        .discord-footer{text-align:center;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:25px;padding-top:15px;border-top:1px dashed var(--lost-border);font-weight:700;}
-        .section-empty{color:var(--text-muted);padding:20px;font-size:14px;}
-
-        /* PROFILE */
-        .profile-avatar{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent-red);display:block;margin:0 auto 15px;}
-        .profile-avatar-placeholder{width:90px;height:90px;border-radius:50%;background:var(--bg-input);border:3px solid var(--lost-border);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 15px;}
-        .profile-card{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:30px;max-width:500px;}
-
-        /* CHECKBOXES */
         .checkbox-group{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
         .checkbox-group label{display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;color:var(--text-main);cursor:pointer;margin-bottom:0;}
         .checkbox-group input[type="checkbox"]{width:auto;margin-bottom:0;cursor:pointer;}
+
+        /* PROFILE */
+        .profile-card{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:30px;max-width:500px;}
+        .profile-avatar{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent-red);display:block;margin:0 auto 15px;}
+        .profile-avatar-placeholder{width:90px;height:90px;border-radius:50%;background:var(--bg-input);border:3px solid var(--lost-border);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 15px;}
+
+        .section-empty{color:var(--text-muted);padding:20px;font-size:14px;}
+
+        /* CODES REMISE */
+        .remise-card{background:var(--bg-input);border:1px solid var(--lost-border);border-radius:6px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .remise-code{font-size:18px;font-weight:800;font-family:monospace;color:var(--accent-gold);}
+        .remise-taux{font-size:14px;color:var(--s-done);font-weight:700;}
     </style>
 </head>
 <body>
@@ -191,11 +204,17 @@
                 <div class="sidebar-brand">The Lost MC Shop</div>
             </div>
             <ul class="menu-list">
-                <li class="menu-item" id="menu-shop" onclick="showTab('shop')">📂 Catalogue</li>
-                <li class="menu-item" id="menu-orders" onclick="showTab('orders')">📦 Mes Commandes</li>
-                <li class="menu-item hidden" id="menu-vendre" onclick="showTab('vendre')">🎯 Gestion Ventes</li>
-                <li class="menu-item admin-item hidden" id="menu-admin" onclick="showTab('admin')">⚙️ Administration</li>
-                <li class="menu-item profile-item" id="menu-profile" onclick="showTab('profile')">👤 Mon Profil</li>
+                <li class="menu-item" id="menu-shop" onclick="showTab('shop')"><span class="menu-label">📂 Catalogue</span></li>
+                <li class="menu-item" id="menu-orders" onclick="showTab('orders');markNotifsRead('statut')">
+                    <span class="menu-label">📦 Mes Commandes</span>
+                    <span id="badge-orders" class="notif-badge hidden">0</span>
+                </li>
+                <li class="menu-item hidden" id="menu-vendre" onclick="showTab('vendre')">
+                    <span class="menu-label">🎯 Gestion Ventes</span>
+                    <span id="badge-vendre" class="notif-badge msg hidden">0</span>
+                </li>
+                <li class="menu-item admin-item hidden" id="menu-admin" onclick="showTab('admin')"><span class="menu-label">⚙️ Administration</span></li>
+                <li class="menu-item profile-item" id="menu-profile" onclick="showTab('profile')"><span class="menu-label">👤 Mon Profil</span></li>
             </ul>
         </div>
         <div style="padding:20px;border-top:1px solid var(--lost-border);font-size:13px;">
@@ -234,7 +253,7 @@
             </div>
         </div>
 
-        <!-- MES COMMANDES -->
+        <!-- MES COMMANDES CLIENT -->
         <div id="tab-orders" class="tab-content hidden">
             <h2 class="view-title">Mes Commandes</h2>
             <div class="sub-tabs">
@@ -266,50 +285,52 @@
         <div id="tab-admin" class="tab-content hidden">
             <h2 class="view-title">⚙️ Panneau d'Administration</h2>
             <div class="stat-grid" id="admin-stats"></div>
+
+            <!-- USERS -->
             <div class="admin-section">
                 <div class="admin-section-title">👥 Gestion des Utilisateurs</div>
-                <input class="search-bar" id="user-search" placeholder="🔍 Rechercher..." oninput="filterUsers()">
-                <div style="overflow-x:auto;">
+                <input class="search-bar" id="user-search" placeholder="🔍 Rechercher par login ou #ville..." oninput="filterUsers()" style="width:100%;max-width:380px;">
+                <div class="table-scroll-wrap">
                     <table class="users-table">
                         <thead><tr><th>Login</th><th>#Ville</th><th>Rôles</th><th>Code VIP</th><th>Actions</th></tr></thead>
                         <tbody id="users-tbody"></tbody>
                     </table>
                 </div>
             </div>
+
+            <!-- COMMANDES ADMIN -->
             <div class="admin-section">
                 <div class="admin-section-title">📦 Commandes</div>
+                <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:center;">
+                    <input class="search-bar" id="admin-order-search" placeholder="🔍 Réf. ou client..." oninput="filterAdminOrders()" style="margin-bottom:0;width:240px;">
+                </div>
                 <div class="sub-tabs" style="margin-bottom:15px;">
                     <button class="sub-tab active" id="stab-a-pending" onclick="switchAdminOrderTab('pending')">⏳ En attente</button>
                     <button class="sub-tab" id="stab-a-process" onclick="switchAdminOrderTab('process')">🔄 En cours</button>
+                    <button class="sub-tab" id="stab-a-ready" onclick="switchAdminOrderTab('ready')">📦 Préparées</button>
                     <button class="sub-tab" id="stab-a-done" onclick="switchAdminOrderTab('done')">✅ Terminées</button>
                     <button class="sub-tab" id="stab-a-cancel" onclick="switchAdminOrderTab('cancel')">✕ Annulées</button>
                     <button class="sub-tab" id="stab-a-bilan" onclick="switchAdminOrderTab('bilan')">💰 Bilan</button>
                 </div>
-                <!-- Filters for admin bilan -->
-                <div id="admin-bilan-filters" class="filter-bar hidden">
-                    <div class="filter-group">
-                        <span class="filter-label">Type d'articles</span>
-                        <select id="af-cat" multiple>
-                            <option value="weapons" selected>Armes à feu</option>
-                            <option value="others" selected>Équipement</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <span class="filter-label">Vendeurs</span>
-                        <select id="af-vendeur" multiple id="af-vendeur"></select>
-                    </div>
-                    <div class="filter-group">
-                        <span class="filter-label">Clients</span>
-                        <select id="af-client" multiple></select>
-                    </div>
-                    <button class="btn btn-small btn-secondary" onclick="renderAdminBilan()">Appliquer</button>
-                </div>
                 <div id="a-pending-list"></div>
                 <div id="a-process-list" class="hidden"></div>
+                <div id="a-ready-list" class="hidden"></div>
                 <div id="a-done-list" class="hidden"></div>
                 <div id="a-cancel-list" class="hidden"></div>
-                <div id="a-bilan-list" class="hidden"></div>
+                <div id="a-bilan-list" class="hidden">
+                    <div id="admin-bilan-filters"></div>
+                    <div id="admin-bilan-result"></div>
+                </div>
             </div>
+
+            <!-- CODES REMISE -->
+            <div class="admin-section">
+                <div class="admin-section-title">💳 Codes Remise / VIP</div>
+                <button class="btn btn-small btn-success" style="margin-bottom:20px;" onclick="openRemiseModal(null)">+ Nouveau code</button>
+                <div id="remise-list"></div>
+            </div>
+
+            <!-- CATALOGUE -->
             <div class="admin-section">
                 <div class="admin-section-title">🗂️ Catalogue — Articles</div>
                 <button class="btn btn-small" style="margin-bottom:20px;" onclick="openItemModal(null)">+ Ajouter un article</button>
@@ -327,20 +348,19 @@
                 <div style="border-top:1px solid var(--lost-border);padding-top:20px;margin-bottom:20px;">
                     <label>Adresse e-mail (facultative)</label>
                     <input type="email" id="profile-email" placeholder="mon@email.com">
-                    <button class="btn btn-small btn-secondary" onclick="saveProfileInfo()">💾 Sauvegarder les infos</button>
+                    <button class="btn btn-small btn-secondary" onclick="saveProfileInfo()">💾 Sauvegarder</button>
                 </div>
                 <div style="border-top:1px solid var(--lost-border);padding-top:20px;">
                     <label>Mot de passe actuel</label>
                     <input type="password" id="pwd-current" placeholder="••••••••">
                     <label>Nouveau mot de passe</label>
                     <input type="password" id="pwd-new" placeholder="••••••••">
-                    <label>Confirmer le nouveau mot de passe</label>
+                    <label>Confirmer</label>
                     <input type="password" id="pwd-confirm" placeholder="••••••••">
                     <button class="btn btn-small btn-danger" onclick="changePassword()">🔑 Changer le mot de passe</button>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -348,20 +368,15 @@
 <div class="modal-overlay hidden" id="modal-user">
     <div class="modal-box">
         <div class="modal-title">✏️ Modifier l'utilisateur</div>
-        <input type="hidden" id="edit-user-login">
-        <input type="hidden" id="edit-user-id">
-        <label>Rôles (multi-sélection)</label>
+        <input type="hidden" id="edit-user-login"><input type="hidden" id="edit-user-id">
+        <label>Rôles</label>
         <div class="checkbox-group">
             <label><input type="checkbox" id="role-client" checked disabled> Client (défaut)</label>
             <label><input type="checkbox" id="role-vendeur"> Vendeur</label>
             <label><input type="checkbox" id="role-admin"> Admin</label>
         </div>
         <label>Code VIP / Remise</label>
-        <select id="edit-user-vip">
-            <option value="">Aucun</option>
-            <option value="VIP">VIP — -10%</option>
-            <option value="LOST">LOST — -20%</option>
-        </select>
+        <select id="edit-user-vip"><option value="">Aucun</option></select>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-user')">Annuler</button>
             <button class="btn btn-small" onclick="saveUserEdit()">Sauvegarder</button>
@@ -375,19 +390,14 @@
         <div class="modal-title" id="modal-item-title">Nouvel Article</div>
         <input type="hidden" id="item-edit-id">
         <img id="item-img-preview" class="img-preview hidden" alt="Aperçu">
-        <label class="file-label" for="item-img-file">📷 Cliquer pour choisir une image</label>
+        <label class="file-label" for="item-img-file">📷 Choisir une image</label>
         <input type="file" id="item-img-file" accept="image/*" style="display:none" onchange="previewItemImage(event)">
         <div class="form-grid">
             <div><label>Nom</label><input type="text" id="item-name" placeholder="Pistolet de combat"></div>
             <div><label>Prix ($)</label><input type="number" id="item-price" placeholder="50000" min="0"></div>
             <div class="full"><label>Description</label><textarea id="item-desc" rows="2" placeholder="Description courte..."></textarea></div>
             <div><label>Chargeur / Infos</label><input type="text" id="item-mag" placeholder="30 balles"></div>
-            <div><label>Catégorie</label>
-                <select id="item-cat">
-                    <option value="weapons">Armes à feu</option>
-                    <option value="others">Équipement & autres</option>
-                </select>
-            </div>
+            <div><label>Catégorie</label><select id="item-cat"><option value="weapons">Armes à feu</option><option value="others">Équipement & autres</option></select></div>
         </div>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-item')">Annuler</button>
@@ -410,55 +420,82 @@
     </div>
 </div>
 
+<!-- MODAL : Code remise -->
+<div class="modal-overlay hidden" id="modal-remise">
+    <div class="modal-box">
+        <div class="modal-title" id="modal-remise-title">Nouveau Code Remise</div>
+        <input type="hidden" id="remise-edit-id">
+        <label>Code (ex: VIP, GOLD, STAFF…)</label>
+        <input type="text" id="remise-code" placeholder="VIP" style="text-transform:uppercase">
+        <label>Taux de remise (%)</label>
+        <input type="number" id="remise-taux" placeholder="10" min="1" max="99">
+        <label>Description (facultatif)</label>
+        <input type="text" id="remise-desc" placeholder="Membres VIP">
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-small" onclick="closeModal('modal-remise')">Annuler</button>
+            <button class="btn btn-small" onclick="saveRemise()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+
 <script>
-// =============================================
+// ============================================
 // 1. SUPABASE
-// =============================================
+// ============================================
 const SUPABASE_URL = "https://mvmngahkjvfpcwrstlns.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// =============================================
+// ============================================
 // 2. STATE
-// =============================================
+// ============================================
 let currentUser = null;
 let cart = [];
 let activeShopCat = 'weapons';
 let catalog = [];
 let allUsers = [];
 let allOrdersCache = [];
+let codesRemise = [];
 let itemImgBase64 = null;
 let profileAvatarBase64 = null;
+let notifPollInterval = null;
+let adminOrderSearch = '';
 
-// =============================================
-// 3. NUMÉRO DE COMMANDE
-// Format: LOST-XXYYDDDD (8 chars après LOST-)
-// XX = type (WP/EQ/MX), YY = année 2 chiffres, DDDD = jour*10 + heure%10 padded
-// =============================================
+// ============================================
+// 3. REMISE HELPERS
+// ============================================
+function getUserRemiseTaux() {
+    if (!currentUser || !currentUser.code_vip) return 0;
+    const code = codesRemise.find(c => c.code === currentUser.code_vip);
+    return code ? code.taux : 0;
+}
+
+function applyRemise(price) {
+    const taux = getUserRemiseTaux();
+    if (!taux) return price;
+    const raw = price * (1 - taux / 100);
+    // Arrondi au 1000 supérieur
+    return Math.ceil(raw / 1000) * 1000;
+}
+
+// ============================================
+// 4. REF COMMANDE
+// ============================================
 function generateRef(cartItems) {
-    const hasWeapons = cartItems.some(i => {
-        const art = catalog.find(a => a.id === i.id);
-        return art && art.cat === 'weapons';
-    });
-    const hasOthers = cartItems.some(i => {
-        const art = catalog.find(a => a.id === i.id);
-        return art && art.cat === 'others';
-    });
-    let type = hasWeapons && hasOthers ? 'MX' : hasWeapons ? 'WP' : 'EQ';
+    const hasW = cartItems.some(i => { const a = catalog.find(x=>x.id===i.id); return a && a.cat==='weapons'; });
+    const hasO = cartItems.some(i => { const a = catalog.find(x=>x.id===i.id); return a && a.cat==='others'; });
+    const type = hasW && hasO ? 'MX' : hasW ? 'WP' : 'EQ';
     const now = new Date();
     const yy = String(now.getFullYear()).slice(-2);
-    const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-    const h = now.getHours();
-    const m = now.getMinutes();
-    // 4 digits: 2 pour le jour de l'année condensé (mod 99) + 2 pour heure+minute condensés
-    const d1 = String(dayOfYear % 100).padStart(2, '0');
-    const d2 = String((h * 6 + Math.floor(m / 10)) % 100).padStart(2, '0');
+    const day = Math.floor((now - new Date(now.getFullYear(),0,0))/86400000);
+    const d1 = String(day%100).padStart(2,'0');
+    const d2 = String((now.getHours()*6+Math.floor(now.getMinutes()/10))%100).padStart(2,'0');
     return `LOST-${type}${yy}${d1}${d2}`;
 }
 
-// =============================================
-// 4. AUTH
-// =============================================
+// ============================================
+// 5. AUTH
+// ============================================
 function toggleAuth(isReg) {
     document.getElementById('login-form-div').classList.toggle('hidden', isReg);
     document.getElementById('register-form-div').classList.toggle('hidden', !isReg);
@@ -469,9 +506,10 @@ document.getElementById('auth-form').onsubmit = async (e) => {
     const login = document.getElementById('login-pure-username').value.trim();
     const cityNum = parseInt(document.getElementById('login-city-number').value.trim());
     const pwd = document.getElementById('password').value;
-    const { data: u, error } = await supabaseClient.from('utilisateurs').select('*').eq('login', login).eq('id_serveur', cityNum).maybeSingle();
-    if (!error && u && u.mot_de_pass === pwd) {
-        currentUser = { login_pure: u.login, id_serveur: u.id_serveur, role_admin: u.role_admin||false, role_vendeur: u.role_vendeur||false, code_vip: u.code_vip||null, avatar_url: u.avatar_url||null, email: u.email||null };
+    const { data: u } = await sb.from('utilisateurs').select('*').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
+    if (u && u.mot_de_pass === pwd) {
+        currentUser = { login_pure:u.login, id_serveur:u.id_serveur, role_admin:u.role_admin||false, role_vendeur:u.role_vendeur||false, code_vip:u.code_vip||null, avatar_url:u.avatar_url||null, email:u.email||null };
+        await loadCodesRemise();
         loginSuccess();
     } else { alert("Accès refusé. Vérifiez vos identifiants."); }
 };
@@ -481,10 +519,10 @@ document.getElementById('reg-form').onsubmit = async (e) => {
     const login = document.getElementById('reg-pure-username').value.trim();
     const cityNum = parseInt(document.getElementById('reg-city-number').value.trim());
     const pwd = document.getElementById('reg-password').value;
-    const { data: ex } = await supabaseClient.from('utilisateurs').select('login').eq('login', login).eq('id_serveur', cityNum).maybeSingle();
+    const { data: ex } = await sb.from('utilisateurs').select('login').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
     if (ex) { alert("Ce compte existe déjà."); return; }
-    const { error } = await supabaseClient.from('utilisateurs').insert([{ id_serveur: cityNum, login, mot_de_pass: pwd, role_admin: false, role_vendeur: false, code_vip: null }]);
-    if (error) { alert("Erreur : " + error.message); return; }
+    const { error } = await sb.from('utilisateurs').insert([{ id_serveur:cityNum, login, mot_de_pass:pwd, role_admin:false, role_vendeur:false, code_vip:null }]);
+    if (error) { alert("Erreur : "+error.message); return; }
     alert(`Compte créé pour ${login} ! Connectez-vous.`);
     toggleAuth(false);
 };
@@ -493,7 +531,6 @@ function loginSuccess() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-structure').classList.remove('hidden');
 
-    // Avatar sidebar
     const avatarEl = document.getElementById('sidebar-avatar');
     if (currentUser.avatar_url) {
         avatarEl.innerHTML = `<img src="${currentUser.avatar_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-red);">`;
@@ -502,53 +539,92 @@ function loginSuccess() {
     }
 
     document.getElementById('user-display').innerHTML = `<strong>${currentUser.login_pure}</strong><br><span style="color:var(--text-muted);font-size:12px;">#${currentUser.id_serveur}</span>`;
-
-    // Tous les rôles actifs affichés
     let badges = '';
     if (currentUser.role_admin) badges += '<span class="badge badge-admin">Admin</span> ';
     if (currentUser.role_vendeur) badges += '<span class="badge badge-vendeur">Vendeur</span> ';
     if (!currentUser.role_admin && !currentUser.role_vendeur) badges += '<span class="badge badge-client">Client</span> ';
-    if (currentUser.code_vip === 'VIP') badges += '<span class="badge badge-vip">VIP</span>';
-    if (currentUser.code_vip === 'LOST') badges += '<span class="badge badge-lost">LOST</span>';
+    const codeObj = codesRemise.find(c=>c.code===currentUser.code_vip);
+    if (codeObj) badges += `<span class="badge" style="background:var(--accent-gold);color:#000">${codeObj.code} -${codeObj.taux}%</span>`;
     document.getElementById('user-badge-display').innerHTML = badges;
-
-    document.getElementById('menu-vendre').classList.toggle('hidden', !(currentUser.role_admin || currentUser.role_vendeur));
+    document.getElementById('menu-vendre').classList.toggle('hidden', !(currentUser.role_admin||currentUser.role_vendeur));
     document.getElementById('menu-admin').classList.toggle('hidden', !currentUser.role_admin);
+
+    startNotifPoll();
     showTab('shop');
 }
 
-// =============================================
-// 5. CATALOGUE
-// =============================================
+// ============================================
+// 6. CODES REMISE
+// ============================================
+async function loadCodesRemise() {
+    const { data } = await sb.from('codes_remise').select('*').order('taux');
+    codesRemise = data || [];
+}
+
+// ============================================
+// 7. NOTIFICATIONS
+// ============================================
+function startNotifPoll() {
+    pollNotifs();
+    notifPollInterval = setInterval(pollNotifs, 15000);
+}
+
+async function pollNotifs() {
+    // Notifs statut pour client
+    const { data: statuts } = await sb.from('notifications')
+        .select('*').eq('login', currentUser.login_pure).eq('lu', false);
+    const nStatut = (statuts||[]).filter(n=>n.type==='statut').length;
+    const nMsg = (statuts||[]).filter(n=>n.type==='message').length;
+
+    const badgeOrders = document.getElementById('badge-orders');
+    const badgeVendre = document.getElementById('badge-vendre');
+
+    // Badge "Mes Commandes" (statuts non lus)
+    if (nStatut > 0) { badgeOrders.textContent = nStatut; badgeOrders.classList.remove('hidden'); }
+    else { badgeOrders.classList.add('hidden'); }
+
+    // Badge "Gestion Ventes" (messages non lus)
+    if (nMsg > 0 && (currentUser.role_vendeur||currentUser.role_admin)) {
+        badgeVendre.textContent = nMsg; badgeVendre.classList.remove('hidden');
+    } else { badgeVendre.classList.add('hidden'); }
+}
+
+async function pushNotif(login, id_commande, type, contenu) {
+    await sb.from('notifications').insert([{ login, id_commande, type, contenu }]);
+}
+
+async function markNotifsRead(type) {
+    await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('type',type).eq('lu',false);
+    pollNotifs();
+}
+
+// ============================================
+// 8. CATALOGUE
+// ============================================
 async function loadCatalogue() {
     document.getElementById('weapon-catalogue').innerHTML = '<div class="section-empty">Chargement...</div>';
-    const { data, error } = await supabaseClient.from('articles').select('*').order('id');
-    catalog = (!error && data) ? data : [];
+    const { data } = await sb.from('articles').select('*').order('id');
+    catalog = data || [];
     renderCatalogueGrid();
 }
-function getDiscountRate() {
-    if (!currentUser) return 0;
-    if (currentUser.code_vip === 'LOST') return 20;
-    if (currentUser.code_vip === 'VIP') return 10;
-    return 0;
-}
-function getDiscountedPrice(price) { const r = getDiscountRate(); return r > 0 ? Math.round(price * (1 - r/100)) : price; }
 
 function renderCatalogueGrid() {
     const container = document.getElementById('weapon-catalogue');
-    const discount = getDiscountRate();
-    let rankText = 'CLIENT', rankColor = '#475569';
-    if (currentUser.role_admin) { rankText = 'ADMIN'; rankColor = '#7c3aed'; }
-    else if (currentUser.role_vendeur) { rankText = 'VENDEUR'; rankColor = '#3b82f6'; }
-    else if (currentUser.code_vip === 'LOST') { rankText = 'LOST — -20%'; rankColor = '#da292a'; }
-    else if (currentUser.code_vip === 'VIP') { rankText = 'VIP — -10%'; rankColor = '#f59e0b'; }
+    const taux = getUserRemiseTaux();
+    let rankText='CLIENT', rankColor='#475569';
+    if (currentUser.role_admin) { rankText='ADMIN'; rankColor='#7c3aed'; }
+    else if (currentUser.role_vendeur) { rankText='VENDEUR'; rankColor='#3b82f6'; }
+    else if (currentUser.code_vip) {
+        const c = codesRemise.find(x=>x.code===currentUser.code_vip);
+        if (c) { rankText=`${c.code} -${c.taux}%`; rankColor='#da292a'; }
+    }
     document.getElementById('client-rank-status').innerHTML = `<span class="badge" style="background:${rankColor}">${rankText}</span>`;
-    const filtered = catalog.filter(i => i.cat === activeShopCat);
-    if (!filtered.length) { container.innerHTML = '<div class="section-empty">Aucun article dans cette catégorie.</div>'; return; }
-    container.innerHTML = filtered.map(w => {
-        const fp = getDiscountedPrice(w.price);
-        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text=' + encodeURIComponent(w.name);
-        const dHtml = discount > 0 ? `<span class="price-original">${w.price.toLocaleString()} $</span><span class="discount-badge">-${discount}%</span>` : '';
+    const filtered = catalog.filter(i=>i.cat===activeShopCat);
+    if (!filtered.length) { container.innerHTML='<div class="section-empty">Aucun article dans cette catégorie.</div>'; return; }
+    container.innerHTML = filtered.map(w=>{
+        const fp = applyRemise(w.price);
+        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);
+        const dHtml = taux>0 ? `<span class="price-original">${w.price.toLocaleString()} $</span><span class="discount-badge">-${taux}%</span>` : '';
         return `<div class="weapon-card">
             <div>
                 <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
@@ -557,93 +633,151 @@ function renderCatalogueGrid() {
                 <div style="font-size:11px;color:var(--accent-red);font-weight:600;margin-bottom:12px;">📊 ${w.mag||''}</div>
             </div>
             <div>
-                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:12px;"><span class="price-tag">${fp.toLocaleString()} $</span>${dHtml}</div>
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
+                    <span class="price-tag">${fp.toLocaleString()} $</span>${dHtml}
+                </div>
                 <button class="btn btn-small" style="width:100%" onclick="addToCart(${w.id})">Ajouter au panier</button>
             </div>
         </div>`;
     }).join('');
 }
+
 function switchShopCat(cat) {
-    activeShopCat = cat;
-    document.getElementById('cat-btn-weapons').classList.toggle('active', cat === 'weapons');
-    document.getElementById('cat-btn-others').classList.toggle('active', cat === 'others');
+    activeShopCat=cat;
+    document.getElementById('cat-btn-weapons').classList.toggle('active',cat==='weapons');
+    document.getElementById('cat-btn-others').classList.toggle('active',cat==='others');
     renderCatalogueGrid();
 }
 
-// =============================================
-// 6. PANIER
-// =============================================
+// ============================================
+// 9. PANIER
+// ============================================
 function addToCart(id) {
-    const w = catalog.find(x => x.id === id); if (!w) return;
-    const fp = getDiscountedPrice(w.price);
-    const item = cart.find(x => x.id === id);
-    if (item) item.qty++; else cart.push({...w, price: fp, qty: 1});
+    const w=catalog.find(x=>x.id===id); if(!w) return;
+    const fp=applyRemise(w.price);
+    const item=cart.find(x=>x.id===id);
+    if(item) item.qty++; else cart.push({...w,price:fp,qty:1});
     updateCart();
 }
 function updateCart() {
-    const c = document.getElementById('cart-items');
-    if (!cart.length) { c.innerHTML = 'Panier vide.'; document.getElementById('cart-total').textContent = '0 $'; return; }
-    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
-    c.innerHTML = cart.map((c, i) => `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;">
+    const c=document.getElementById('cart-items');
+    if(!cart.length){c.innerHTML='Panier vide.';document.getElementById('cart-total').textContent='0 $';return;}
+    const total=cart.reduce((s,c)=>s+c.price*c.qty,0);
+    c.innerHTML=cart.map((c,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;">
         <div>${c.name} <span style="color:var(--accent-red)">x${c.qty}</span></div>
         <span><strong>${(c.price*c.qty).toLocaleString()} $</strong>
         <button onclick="cart.splice(${i},1);updateCart()" style="background:none;border:none;color:var(--accent-red);cursor:pointer;margin-left:6px;">✕</button></span>
     </div>`).join('');
-    document.getElementById('cart-total').textContent = total.toLocaleString() + ' $';
+    document.getElementById('cart-total').textContent=total.toLocaleString()+' $';
 }
 async function checkout() {
-    if (!cart.length) return;
-    const ref = generateRef(cart);
-    const { data: od, error: oe } = await supabaseClient.from('commandes').insert([{
-        client_id: currentUser.id_serveur, client_pseudo: currentUser.login_pure,
-        statut: 'En attente', ref_commande: ref
-    }]).select();
-    if (oe) { alert("Erreur : " + oe.message); return; }
-    const lines = cart.map(i => ({ id_commande: od[0].id, nom_article: i.name, quantite: i.qty, prix_achat: i.price }));
-    const { error: le } = await supabaseClient.from('details_commande').insert(lines);
-    if (le) { alert("Erreur lignes : " + le.message); return; }
-    cart = []; updateCart();
-    alert(`Commande ${ref} transmise aux vendeurs Lost MC !`);
+    if(!cart.length) return;
+    const ref=generateRef(cart);
+    const total=cart.reduce((s,c)=>s+c.price*c.qty,0);
+    const {data:od,error:oe}=await sb.from('commandes').insert([{client_id:currentUser.id_serveur,client_pseudo:currentUser.login_pure,statut:'En attente',ref_commande:ref,montant_ajuste:null}]).select();
+    if(oe){alert("Erreur : "+oe.message);return;}
+    const lines=cart.map(i=>({id_commande:od[0].id,nom_article:i.name,quantite:i.qty,prix_achat:i.price}));
+    await sb.from('details_commande').insert(lines);
+    cart=[];updateCart();
+    alert(`Commande ${ref} transmise !`);
     showTab('orders');
 }
 
-// =============================================
-// 7. HELPERS COMMANDES
-// =============================================
-function statusColor(s) {
-    if (s === 'Terminée') return 'var(--s-done)';
-    if (s === 'En cours') return 'var(--s-process)';
-    if (s === 'Annulée') return 'var(--s-cancel)';
+// ============================================
+// 10. HELPERS COMMANDES
+// ============================================
+function statusColor(s){
+    if(s==='Terminée') return 'var(--s-done)';
+    if(s==='En cours') return 'var(--s-process)';
+    if(s==='Préparée') return 'var(--s-ready)';
+    if(s==='Annulée') return 'var(--s-cancel)';
     return 'var(--s-pending)';
 }
 
-function renderOrderHTML(o, ctx) {
-    const sc = statusColor(o.statut);
-    let actions = '';
-    if (ctx === 'client' && o.statut === 'En attente')
-        actions += `<button class="btn btn-small btn-danger" onclick="cancelOrder(${o.id})">✕ Annuler</button>`;
-    if ((ctx === 'vendeur' || ctx === 'vendeur-all') && o.statut === 'En attente' && !o.vendeur_affecte)
-        actions += `<button class="btn btn-small btn-success" onclick="claimOrder(${o.id})">🎯 Prendre en charge</button>`;
-    if ((ctx === 'vendeur' || ctx === 'vendeur-all') && o.statut === 'En cours' && o.vendeur_affecte === currentUser.login_pure)
-        actions += `<button class="btn btn-small btn-success" onclick="completeOrder(${o.id})">✔️ Marquer Livrée</button>`;
-    if (ctx === 'admin') {
-        actions += `<button class="btn btn-small btn-warning" onclick="openReassign(${o.id})" style="margin-right:6px;">🔄 Réaffecter</button>`;
-        actions += `<button class="btn btn-small btn-danger" onclick="deleteOrder(${o.id})">🗑️ Supprimer</button>`;
+function getOrderTotal(o){
+    if(o.montant_ajuste != null) return o.montant_ajuste;
+    if(!o.details_commande||!o.details_commande.length) return 0;
+    return o.details_commande.reduce((s,i)=>s+i.prix_achat*i.quantite,0);
+}
+
+// Messages non lus pour cet order
+function unreadMsgs(o){
+    if(!o.messages_chat||!o.messages_chat.length) return 0;
+    return o.messages_chat.filter(m=>{
+        if(m.auteur===currentUser.login_pure) return false;
+        return !(m.lu_par||[]).includes(currentUser.login_pure);
+    }).length;
+}
+
+function renderOrderHTML(o,ctx){
+    const sc=statusColor(o.statut);
+    const total=getOrderTotal(o);
+    const isTerminated=['Terminée','Annulée'].includes(o.statut);
+    const unread=unreadMsgs(o);
+
+    let actions='';
+    // CLIENT
+    if(ctx==='client'&&o.statut==='En attente')
+        actions+=`<button class="btn btn-small btn-danger" onclick="cancelOrder(${o.id})">✕ Annuler</button>`;
+    // VENDEUR
+    if((ctx==='vendeur'||ctx==='vendeur-all')&&o.statut==='En attente'&&!o.vendeur_affecte)
+        actions+=`<button class="btn btn-small btn-success" onclick="claimOrder(${o.id})" style="margin-right:6px;">🎯 Prendre en charge</button>`;
+    if((ctx==='vendeur'||ctx==='vendeur-all')&&!isTerminated&&o.vendeur_affecte===currentUser.login_pure){
+        if(o.statut==='En cours')
+            actions+=`<button class="btn btn-small btn-purple" onclick="setOrderStatut(${o.id},'Préparée')" style="margin-right:6px;">📦 Marquer Préparée</button>`;
+        if(o.statut==='Préparée')
+            actions+=`<button class="btn btn-small btn-success" onclick="setOrderStatut(${o.id},'Terminée')" style="margin-right:6px;">✔️ Marquer Livrée</button>`;
+        actions+=`<button class="btn btn-small btn-danger" onclick="cancelOrder(${o.id})">✕ Annuler</button>`;
     }
-    let total = 0, rows = '';
-    if (o.details_commande && o.details_commande.length) {
-        total = o.details_commande.reduce((s, i) => s + i.prix_achat * i.quantite, 0);
-        rows = o.details_commande.map(i => `<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat*i.quantite).toLocaleString()} $</td></tr>`).join('');
-    } else { rows = `<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`; }
-    const buyerLine = ctx !== 'client' ? `Acheteur : <strong>${o.client_pseudo}</strong> (#${o.client_id})` : 'Suivi Logistique';
-    const vendeurLine = o.vendeur_affecte ? `<strong>${o.vendeur_affecte}</strong>` : '<span style="color:var(--text-muted)">Non affecté</span>';
-    const refLabel = o.ref_commande || `LOST-${o.id}`;
-    return `<div class="order-item">
-        <div class="order-header" onclick="this.parentElement.classList.toggle('expanded')">
-            <div><strong style="color:var(--accent-red);margin-right:10px;font-family:monospace;">${refLabel}</strong>
-                <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span></div>
-            <div style="display:flex;align-items:center;gap:12px;">
-                <span style="font-weight:bold;color:var(--s-done)">${total.toLocaleString()} $</span>
+    // ADMIN
+    if(ctx==='admin'){
+        if(!isTerminated){
+            actions+=`<button class="btn btn-small btn-warning" onclick="openReassign(${o.id})" style="margin-right:6px;">🔄 Réaffecter</button>`;
+            if(o.statut==='En cours')
+                actions+=`<button class="btn btn-small btn-purple" onclick="setOrderStatut(${o.id},'Préparée')" style="margin-right:6px;">📦 Préparée</button>`;
+            if(o.statut==='Préparée')
+                actions+=`<button class="btn btn-small btn-success" onclick="setOrderStatut(${o.id},'Terminée')" style="margin-right:6px;">✔️ Livrée</button>`;
+        }
+        actions+=`<button class="btn btn-small btn-danger" onclick="deleteOrder(${o.id})">🗑️ Supprimer</button>`;
+    }
+
+    let rows='';
+    if(o.details_commande&&o.details_commande.length){
+        rows=o.details_commande.map(i=>`<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat*i.quantite).toLocaleString()} $</td></tr>`).join('');
+    } else { rows=`<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`; }
+
+    const buyerLine=ctx!=='client'?`Acheteur : <strong>${o.client_pseudo}</strong> (#${o.client_id})`:'Suivi Logistique';
+    const vendeurLine=o.vendeur_affecte?`<strong>${o.vendeur_affecte}</strong>`:'<span style="color:var(--text-muted)">Non affecté</span>';
+    const refLabel=o.ref_commande||`LOST-${o.id}`;
+    const hasNotif=unread>0;
+
+    // Montant ajusté = badge vert si différent du total brut
+    const rawTotal=o.details_commande?o.details_commande.reduce((s,i)=>s+i.prix_achat*i.quantite,0):0;
+    const totalLabel=o.montant_ajuste!=null
+        ? `<span style="color:var(--s-done);font-weight:bold;">${o.montant_ajuste.toLocaleString()} $</span> <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${rawTotal.toLocaleString()} $</span>`
+        : `<span style="font-weight:bold;color:var(--s-done)">${total.toLocaleString()} $</span>`;
+
+    const msgBadge=unread>0?`<span class="notif-badge msg" style="margin-left:6px;">${unread}</span>`:'';
+
+    // Editable montant (vendeur + admin, non terminé)
+    const canEditMontant=(ctx==='vendeur'||ctx==='vendeur-all'||ctx==='admin')&&!isTerminated;
+    const montantEditHtml=canEditMontant?`
+        <div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <label style="margin-bottom:0;font-size:11px;">Montant ajusté :</label>
+            <input type="number" id="montant-input-${o.id}" value="${o.montant_ajuste!=null?o.montant_ajuste:rawTotal}" style="width:130px;padding:6px 10px;margin-bottom:0;font-size:13px;">
+            <button class="btn btn-small btn-warning" onclick="saveMontant(${o.id})">💾 Appliquer</button>
+            ${o.montant_ajuste!=null?`<button class="btn btn-small btn-secondary" onclick="resetMontant(${o.id})">↩ Réinitialiser</button>`:''}
+        </div>`:'';
+
+    return `<div class="order-item${hasNotif?' has-notif':''}" id="order-card-${o.id}">
+        <div class="order-header" onclick="this.parentElement.classList.toggle('expanded');markMsgsRead(${o.id})">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+                <strong style="color:var(--accent-red);font-family:monospace;">${refLabel}</strong>
+                <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span>
+                ${msgBadge}
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                ${totalLabel}
                 <span class="badge" style="background:${sc}">${o.statut}</span>
                 <span style="font-size:11px;color:var(--text-muted)">▼</span>
             </div>
@@ -654,18 +788,36 @@ function renderOrderHTML(o, ctx) {
                 <thead><tr><th>Article</th><th>Qté</th><th>Sous-total</th></tr></thead>
                 <tbody>${rows}</tbody>
             </table>
-            ${actions ? `<div style="margin-top:15px;display:flex;flex-wrap:wrap;gap:8px;">${actions}</div>` : ''}
-            ${renderChat(o.id, o.messages_chat||[])}
+            ${montantEditHtml}
+            ${actions?`<div style="margin-top:15px;display:flex;flex-wrap:wrap;gap:8px;">${actions}</div>`:''}
+            ${renderChat(o.id,o.messages_chat||[])}
         </div>
     </div>`;
 }
 
-// =============================================
-// 8. CHAT
-// =============================================
-function renderChat(orderId, messages) {
-    const msgs = messages.map(m => {
-        const mine = m.auteur === currentUser.login_pure;
+// ============================================
+// 11. MONTANT AJUSTÉ
+// ============================================
+async function saveMontant(orderId){
+    const val=parseInt(document.getElementById('montant-input-'+orderId).value);
+    if(isNaN(val)||val<0){alert("Montant invalide.");return;}
+    await sb.from('commandes').update({montant_ajuste:val}).eq('id',orderId);
+    // Notif client
+    const o=allOrdersCache.find(x=>x.id===orderId);
+    if(o) await pushNotif(o.client_pseudo,orderId,'statut',`Le montant de votre commande a été ajusté à ${val.toLocaleString()} $`);
+    await reloadCurrentView();
+}
+async function resetMontant(orderId){
+    await sb.from('commandes').update({montant_ajuste:null}).eq('id',orderId);
+    await reloadCurrentView();
+}
+
+// ============================================
+// 12. CHAT
+// ============================================
+function renderChat(orderId,messages){
+    const msgs=messages.map(m=>{
+        const mine=m.auteur===currentUser.login_pure;
         return `<div class="chat-msg ${mine?'mine':'theirs'}">
             <div class="chat-msg-author">${m.auteur}</div>
             <div>${m.message}</div>
@@ -679,335 +831,485 @@ function renderChat(orderId, messages) {
         </div>
     </div>`;
 }
-async function sendChat(orderId) {
-    const input = document.getElementById('chat-input-'+orderId);
-    const msg = input.value.trim(); if (!msg) return;
-    input.value = '';
-    await supabaseClient.from('messages_chat').insert([{ id_commande: orderId, auteur: currentUser.login_pure, message: msg }]);
-    const { data } = await supabaseClient.from('messages_chat').select('*').eq('id_commande', orderId).order('created_at');
-    const container = document.getElementById('chat-msgs-'+orderId);
-    if (container && data) {
-        container.innerHTML = data.map(m => {
-            const mine = m.auteur === currentUser.login_pure;
+
+async function sendChat(orderId){
+    const input=document.getElementById('chat-input-'+orderId);
+    const msg=input.value.trim(); if(!msg) return;
+    input.value='';
+    await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
+    // Notif destinataire
+    const o=allOrdersCache.find(x=>x.id===orderId);
+    if(o){
+        const destinataires=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);
+        for(const d of destinataires) await pushNotif(d,orderId,'message',`Nouveau message de ${currentUser.login_pure}`);
+    }
+    await refreshChat(orderId);
+}
+
+async function refreshChat(orderId){
+    const {data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
+    const container=document.getElementById('chat-msgs-'+orderId);
+    if(container&&data){
+        container.innerHTML=data.map(m=>{
+            const mine=m.auteur===currentUser.login_pure;
             return `<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-author">${m.auteur}</div><div>${m.message}</div></div>`;
         }).join('');
-        container.scrollTop = container.scrollHeight;
+        container.scrollTop=container.scrollHeight;
     }
 }
 
-// =============================================
-// 9. COMMANDES CLIENT
-// =============================================
-function switchClientOrderTab(tab) {
-    ['active','done'].forEach(t => {
-        document.getElementById('oc-'+t+'-list').classList.toggle('hidden', t !== tab);
-        document.getElementById('stab-oc-'+t).classList.toggle('active', t === tab);
+async function markMsgsRead(orderId){
+    // Marquer les messages non lus comme lus par currentUser
+    const {data:msgs}=await sb.from('messages_chat').select('id,lu_par').eq('id_commande',orderId);
+    if(!msgs) return;
+    for(const m of msgs){
+        if(!(m.lu_par||[]).includes(currentUser.login_pure)){
+            await sb.from('messages_chat').update({lu_par:[...(m.lu_par||[]),currentUser.login_pure]}).eq('id',m.id);
+        }
+    }
+    // Marquer notifs message comme lues pour cette commande
+    await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('id_commande',orderId).eq('type','message');
+    pollNotifs();
+}
+
+// ============================================
+// 13. COMMANDES CLIENT
+// ============================================
+function switchClientOrderTab(tab){
+    ['active','done'].forEach(t=>{
+        document.getElementById('oc-'+t+'-list').classList.toggle('hidden',t!==tab);
+        document.getElementById('stab-oc-'+t).classList.toggle('active',t===tab);
     });
 }
-async function loadMyOrders() {
-    document.getElementById('oc-active-list').innerHTML = '<div class="section-empty">Chargement...</div>';
-    const { data, error } = await supabaseClient.from('commandes')
-        .select('*, details_commande(*), messages_chat(*)')
-        .eq('client_pseudo', currentUser.login_pure).eq('client_id', currentUser.id_serveur)
-        .order('id', {ascending: false});
-    if (error || !data) { document.getElementById('oc-active-list').innerHTML = '<div class="section-empty">Erreur.</div>'; return; }
-    const active = data.filter(o => !['Terminée','Annulée'].includes(o.statut));
-    const done = data.filter(o => ['Terminée','Annulée'].includes(o.statut));
-    document.getElementById('oc-active-list').innerHTML = active.length ? active.map(o => renderOrderHTML(o,'client')).join('') : '<div class="section-empty">Aucune commande en cours.</div>';
-    document.getElementById('oc-done-list').innerHTML = done.length ? done.map(o => renderOrderHTML(o,'client')).join('') : '<div class="section-empty">Aucune commande terminée ou annulée.</div>';
-}
-async function cancelOrder(id) {
-    if (!confirm("Annuler cette commande ?")) return;
-    await supabaseClient.from('commandes').update({statut:'Annulée'}).eq('id',id);
-    await loadMyOrders();
+
+async function loadMyOrders(){
+    document.getElementById('oc-active-list').innerHTML='<div class="section-empty">Chargement...</div>';
+    const {data}=await sb.from('commandes').select('*,details_commande(*),messages_chat(*)').eq('client_pseudo',currentUser.login_pure).eq('client_id',currentUser.id_serveur).order('id',{ascending:false});
+    allOrdersCache=data||[];
+    const active=(data||[]).filter(o=>!['Terminée','Annulée'].includes(o.statut));
+    const done=(data||[]).filter(o=>['Terminée','Annulée'].includes(o.statut));
+    document.getElementById('oc-active-list').innerHTML=active.length?active.map(o=>renderOrderHTML(o,'client')).join(''):'<div class="section-empty">Aucune commande en cours.</div>';
+    document.getElementById('oc-done-list').innerHTML=done.length?done.map(o=>renderOrderHTML(o,'client')).join(''):'<div class="section-empty">Aucune commande terminée.</div>';
+    await markNotifsRead('statut');
 }
 
-// =============================================
-// 10. GESTION VENTES (VENDEUR)
-// =============================================
-const VTABS = ['dispo','miennes','toutes','done','bilan'];
-function switchVendeurTab(tab) {
-    VTABS.forEach(t => {
-        document.getElementById('v-'+t+'-list').classList.toggle('hidden', t !== tab);
-        document.getElementById('stab-v-'+t).classList.toggle('active', t === tab);
+async function cancelOrder(id){
+    if(!confirm("Annuler cette commande ?")) return;
+    const o=allOrdersCache.find(x=>x.id===id)||{client_pseudo:currentUser.login_pure};
+    const {error}=await sb.from('commandes').update({statut:'Annulée'}).eq('id',id);
+    if(error){alert("Erreur : "+error.message);return;}
+    // Notif au client si c'est le vendeur qui annule
+    if(o.client_pseudo&&o.client_pseudo!==currentUser.login_pure)
+        await pushNotif(o.client_pseudo,id,'statut','Votre commande a été annulée.');
+    await reloadCurrentView();
+}
+
+// ============================================
+// 14. GESTION VENTES
+// ============================================
+const VTABS=['dispo','miennes','toutes','done','bilan'];
+function switchVendeurTab(tab){
+    VTABS.forEach(t=>{
+        document.getElementById('v-'+t+'-list').classList.toggle('hidden',t!==tab);
+        document.getElementById('stab-v-'+t).classList.toggle('active',t===tab);
     });
-}
-async function loadVendeurView() {
-    VTABS.forEach(t => { if(t!=='bilan') document.getElementById('v-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>'; });
-    const { data, error } = await supabaseClient.from('commandes')
-        .select('*, details_commande(*), messages_chat(*)')
-        .order('id', {ascending: false});
-    if (error || !data) return;
-    allOrdersCache = data;
-    const dispo = data.filter(o => o.statut === 'En attente' && !o.vendeur_affecte);
-    const miennes = data.filter(o => o.vendeur_affecte === currentUser.login_pure && !['Terminée','Annulée'].includes(o.statut));
-    const toutes = data.filter(o => !['Terminée','Annulée'].includes(o.statut) && o.vendeur_affecte);
-    const done = data.filter(o => ['Terminée','Annulée'].includes(o.statut));
-    document.getElementById('v-dispo-list').innerHTML = dispo.length ? dispo.map(o=>renderOrderHTML(o,'vendeur')).join('') : '<div class="section-empty">Aucune commande disponible.</div>';
-    document.getElementById('v-miennes-list').innerHTML = miennes.length ? miennes.map(o=>renderOrderHTML(o,'vendeur')).join('') : '<div class="section-empty">Aucune commande en cours pour vous.</div>';
-    document.getElementById('v-toutes-list').innerHTML = toutes.length ? toutes.map(o=>renderOrderHTML(o,'vendeur-all')).join('') : '<div class="section-empty">Aucune commande en cours.</div>';
-    document.getElementById('v-done-list').innerHTML = done.length ? done.map(o=>renderOrderHTML(o,'vendeur-all')).join('') : '<div class="section-empty">Aucune commande terminée.</div>';
-    renderVendeurBilan(data);
-}
-async function claimOrder(id) {
-    if (!confirm("Prendre en charge cette commande ?")) return;
-    await supabaseClient.from('commandes').update({statut:'En cours', vendeur_affecte: currentUser.login_pure}).eq('id',id);
-    await loadVendeurView();
-}
-async function completeOrder(id) {
-    if (!confirm("Marquer cette commande comme livrée ?")) return;
-    await supabaseClient.from('commandes').update({statut:'Terminée'}).eq('id',id);
-    await loadVendeurView();
+    if(tab==='bilan') renderVendeurBilan();
 }
 
-// =============================================
-// 11. BILAN FINANCIER (VENDEUR)
-// =============================================
-function renderVendeurBilan(allData) {
-    const container = document.getElementById('v-bilan-list');
-    const terminated = (allData || allOrdersCache).filter(o => o.statut === 'Terminée');
+async function loadVendeurView(){
+    VTABS.filter(t=>t!=='bilan').forEach(t=>document.getElementById('v-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>');
+    const {data}=await sb.from('commandes').select('*,details_commande(*),messages_chat(*)').order('id',{ascending:false});
+    allOrdersCache=data||[];
+    const dispo=(data||[]).filter(o=>o.statut==='En attente'&&!o.vendeur_affecte);
+    const miennes=(data||[]).filter(o=>o.vendeur_affecte===currentUser.login_pure&&!['Terminée','Annulée'].includes(o.statut));
+    const toutes=(data||[]).filter(o=>!['Terminée','Annulée'].includes(o.statut)&&o.vendeur_affecte);
+    const done=(data||[]).filter(o=>['Terminée','Annulée'].includes(o.statut));
+    document.getElementById('v-dispo-list').innerHTML=dispo.length?dispo.map(o=>renderOrderHTML(o,'vendeur')).join(''):'<div class="section-empty">Aucune commande disponible.</div>';
+    document.getElementById('v-miennes-list').innerHTML=miennes.length?miennes.map(o=>renderOrderHTML(o,'vendeur')).join(''):'<div class="section-empty">Aucune commande en cours pour vous.</div>';
+    document.getElementById('v-toutes-list').innerHTML=toutes.length?toutes.map(o=>renderOrderHTML(o,'vendeur-all')).join(''):'<div class="section-empty">Aucune commande en cours.</div>';
+    document.getElementById('v-done-list').innerHTML=done.length?done.map(o=>renderOrderHTML(o,'vendeur-all')).join(''):'<div class="section-empty">Aucune commande terminée.</div>';
+    await markNotifsRead('message');
+}
 
-    // Build filter options
-    const vendeurs = [...new Set(terminated.map(o=>o.vendeur_affecte).filter(Boolean))];
-    const clients = [...new Set(terminated.map(o=>o.client_pseudo).filter(Boolean))];
+async function claimOrder(id){
+    if(!confirm("Prendre en charge cette commande ?")) return;
+    const {error}=await sb.from('commandes').update({statut:'En cours',vendeur_affecte:currentUser.login_pure}).eq('id',id);
+    if(error){alert("Erreur : "+error.message);return;}
+    const o=allOrdersCache.find(x=>x.id===id);
+    if(o) await pushNotif(o.client_pseudo,id,'statut','Votre commande est maintenant En cours.');
+    await reloadCurrentView();
+}
 
-    container.innerHTML = `
+async function setOrderStatut(id,statut){
+    const label={'Préparée':'marquer cette commande comme Préparée','Terminée':'marquer cette commande comme Livrée'}[statut]||statut;
+    if(!confirm(`Voulez-vous ${label} ?`)) return;
+    const {error}=await sb.from('commandes').update({statut}).eq('id',id);
+    if(error){alert("Erreur : "+error.message);return;}
+    const o=allOrdersCache.find(x=>x.id===id);
+    if(o) await pushNotif(o.client_pseudo,id,'statut',`Votre commande est maintenant : ${statut}`);
+    await reloadCurrentView();
+}
+
+// ============================================
+// 15. BILAN FINANCIER (VENDEUR + ADMIN)
+// ============================================
+let bilanFilters={cats:['weapons','others'],vendeurs:[],clients:[]};
+
+function renderVendeurBilan(){
+    const container=document.getElementById('v-bilan-list');
+    const terminated=allOrdersCache.filter(o=>o.statut==='Terminée');
+    const allVendeurs=[...new Set(terminated.map(o=>o.vendeur_affecte).filter(Boolean))];
+    const allClients=[...new Set(terminated.map(o=>o.client_pseudo).filter(Boolean))];
+    if(!bilanFilters.vendeurs.length) bilanFilters.vendeurs=[...allVendeurs];
+    if(!bilanFilters.clients.length) bilanFilters.clients=[...allClients];
+
+    container.innerHTML=`
         <div class="filter-bar">
             <div class="filter-group">
                 <span class="filter-label">Type d'articles</span>
-                <select id="vf-cat" multiple style="height:70px;">
-                    <option value="weapons" selected>Armes à feu</option>
-                    <option value="others" selected>Équipement</option>
-                </select>
+                <div class="filter-checks" id="vf-cats">
+                    ${['weapons','others'].map(c=>`<span class="filter-check-btn${bilanFilters.cats.includes(c)?' selected':''}" onclick="toggleBilanFilter('cats','${c}',this)">${c==='weapons'?'🔫 Armes':'🎒 Équipement'}</span>`).join('')}
+                </div>
             </div>
             <div class="filter-group">
                 <span class="filter-label">Vendeurs</span>
-                <select id="vf-vendeur" multiple style="height:70px;">
-                    ${vendeurs.map(v=>`<option value="${v}" selected>${v}</option>`).join('')}
-                </select>
+                <div class="filter-checks" id="vf-vendeurs">
+                    ${allVendeurs.length?allVendeurs.map(v=>`<span class="filter-check-btn${bilanFilters.vendeurs.includes(v)?' selected':''}" onclick="toggleBilanFilter('vendeurs','${v}',this)">${v}</span>`).join(''):'<span style="color:var(--text-muted);font-size:12px;">Aucun</span>'}
+                </div>
             </div>
             <div class="filter-group">
                 <span class="filter-label">Clients</span>
-                <select id="vf-client" multiple style="height:70px;">
-                    ${clients.map(c=>`<option value="${c}" selected>${c}</option>`).join('')}
-                </select>
+                <div class="filter-checks" id="vf-clients">
+                    ${allClients.length?allClients.map(c=>`<span class="filter-check-btn${bilanFilters.clients.includes(c)?' selected':''}" onclick="toggleBilanFilter('clients','${c}',this)">${c}</span>`).join(''):'<span style="color:var(--text-muted);font-size:12px;">Aucun</span>'}
+                </div>
             </div>
-            <button class="btn btn-small btn-secondary" onclick="applyVendeurBilanFilters()">🔍 Appliquer</button>
         </div>
         <div id="vf-result"></div>`;
-    applyVendeurBilanFilters();
+    applyBilan('vf-result',terminated);
 }
 
-function applyVendeurBilanFilters() {
-    const terminated = allOrdersCache.filter(o => o.statut === 'Terminée');
-    const selCat = [...(document.getElementById('vf-cat')?.selectedOptions||[])].map(o=>o.value);
-    const selVendeur = [...(document.getElementById('vf-vendeur')?.selectedOptions||[])].map(o=>o.value);
-    const selClient = [...(document.getElementById('vf-client')?.selectedOptions||[])].map(o=>o.value);
+function toggleBilanFilter(key,val,el){
+    el.classList.toggle('selected');
+    if(bilanFilters[key].includes(val)) bilanFilters[key]=bilanFilters[key].filter(x=>x!==val);
+    else bilanFilters[key].push(val);
+    const terminated=allOrdersCache.filter(o=>o.statut==='Terminée');
+    applyBilan('vf-result',terminated);
+}
 
-    let total = 0;
-    let rows = '';
-    terminated.forEach(o => {
-        if (selVendeur.length && !selVendeur.includes(o.vendeur_affecte)) return;
-        if (selClient.length && !selClient.includes(o.client_pseudo)) return;
-        if (!o.details_commande) return;
-        const lines = o.details_commande.filter(d => {
-            const art = catalog.find(a => a.name === d.nom_article);
-            if (!art) return selCat.length === 2; // si on a les 2 cats, on inclut même les inconnus
-            return selCat.includes(art.cat);
+function applyBilan(resultId,terminated){
+    let total=0,rows='';
+    terminated.forEach(o=>{
+        if(bilanFilters.vendeurs.length&&!bilanFilters.vendeurs.includes(o.vendeur_affecte)) return;
+        if(bilanFilters.clients.length&&!bilanFilters.clients.includes(o.client_pseudo)) return;
+        if(!o.details_commande) return;
+        const lines=o.details_commande.filter(d=>{
+            const art=catalog.find(a=>a.name===d.nom_article);
+            return art?bilanFilters.cats.includes(art.cat):bilanFilters.cats.length===2;
         });
-        if (!lines.length) return;
-        const orderTotal = lines.reduce((s,i) => s + i.prix_achat * i.quantite, 0);
-        total += orderTotal;
-        const ref = o.ref_commande || `LOST-${o.id}`;
-        rows += `<tr>
-            <td style="font-family:monospace;color:var(--accent-red)">${ref}</td>
-            <td>${o.client_pseudo}</td>
-            <td>${o.vendeur_affecte||'—'}</td>
-            <td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td>
-            <td style="font-weight:bold;color:var(--s-done)">${orderTotal.toLocaleString()} $</td>
-        </tr>`;
+        if(!lines.length) return;
+        const ot=getOrderTotal(o);
+        total+=ot;
+        const ref=o.ref_commande||`LOST-${o.id}`;
+        rows+=`<tr><td style="font-family:monospace;color:var(--accent-red)">${ref}</td><td>${o.client_pseudo}</td><td>${o.vendeur_affecte||'—'}</td><td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td><td style="font-weight:bold;color:var(--s-done)">${ot.toLocaleString()} $</td></tr>`;
     });
-    document.getElementById('vf-result').innerHTML = `
+    document.getElementById(resultId).innerHTML=`
         <div class="finance-total">
-            <div><div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Chiffre d'affaires filtré</div>
+            <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Chiffre d'affaires</div>
             <div class="finance-amount">${total.toLocaleString()} $</div></div>
-            <div style="font-size:13px;color:var(--text-muted)">${rows ? rows.split('<tr>').length - 1 : 0} commande(s)</div>
+            <div style="font-size:13px;color:var(--text-muted)">${rows?rows.split('<tr>').length-1:0} commande(s)</div>
         </div>
-        ${rows ? `<div style="overflow-x:auto;"><table class="order-table">
+        ${rows?`<div style="overflow-x:auto;"><table class="order-table">
             <thead><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th><th>Total</th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table></div>` : '<div class="section-empty">Aucune commande ne correspond aux filtres.</div>'}`;
+            <tbody>${rows}</tbody></table></div>`:'<div class="section-empty">Aucune commande ne correspond aux filtres.</div>'}`;
 }
 
-// =============================================
-// 12. ADMIN — USERS
-// =============================================
-async function loadAdminPanel() {
-    await Promise.all([loadAdminStats(), loadAdminUsers(), loadAdminOrders(), loadAdminCatalogue()]);
+// ============================================
+// 16. RELOAD HELPER
+// ============================================
+async function reloadCurrentView(){
+    const activeTab=document.querySelector('.tab-content:not(.hidden)');
+    if(!activeTab) return;
+    const id=activeTab.id;
+    if(id==='tab-orders') await loadMyOrders();
+    else if(id==='tab-vendre') await loadVendeurView();
+    else if(id==='tab-admin') await loadAdminOrders();
 }
-async function loadAdminStats() {
-    const [{ count: cU },{ count: cO },{ count: cA }] = await Promise.all([
-        supabaseClient.from('utilisateurs').select('*',{count:'exact',head:true}),
-        supabaseClient.from('commandes').select('*',{count:'exact',head:true}),
-        supabaseClient.from('articles').select('*',{count:'exact',head:true})
+
+// ============================================
+// 17. ADMIN
+// ============================================
+async function loadAdminPanel(){
+    await Promise.all([loadAdminStats(),loadAdminUsers(),loadAdminOrders(),loadAdminCatalogue(),loadRemises()]);
+}
+
+async function loadAdminStats(){
+    const [{count:cU},{count:cO},{count:cA}]=await Promise.all([
+        sb.from('utilisateurs').select('*',{count:'exact',head:true}),
+        sb.from('commandes').select('*',{count:'exact',head:true}),
+        sb.from('articles').select('*',{count:'exact',head:true})
     ]);
-    document.getElementById('admin-stats').innerHTML = `
+    document.getElementById('admin-stats').innerHTML=`
         <div class="stat-card"><div class="stat-number">${cU||0}</div><div class="stat-label">Utilisateurs</div></div>
         <div class="stat-card"><div class="stat-number">${cO||0}</div><div class="stat-label">Commandes</div></div>
         <div class="stat-card"><div class="stat-number">${cA||0}</div><div class="stat-label">Articles</div></div>`;
 }
-async function loadAdminUsers() {
-    const { data } = await supabaseClient.from('utilisateurs').select('*').order('login');
-    allUsers = data || [];
+
+async function loadAdminUsers(){
+    const {data}=await sb.from('utilisateurs').select('*').order('login');
+    allUsers=data||[];
     renderUsersTable(allUsers);
+    // Populate VIP select in modal
+    const sel=document.getElementById('edit-user-vip');
+    sel.innerHTML='<option value="">Aucun</option>'+codesRemise.map(c=>`<option value="${c.code}">${c.code} (-${c.taux}%)</option>`).join('');
 }
-function filterUsers() {
-    const q = document.getElementById('user-search').value.toLowerCase();
-    renderUsersTable(allUsers.filter(u => u.login.toLowerCase().includes(q) || String(u.id_serveur).includes(q)));
+
+function filterUsers(){
+    const q=document.getElementById('user-search').value.toLowerCase();
+    renderUsersTable(allUsers.filter(u=>u.login.toLowerCase().includes(q)||String(u.id_serveur).includes(q)));
 }
-function renderUsersTable(users) {
-    document.getElementById('users-tbody').innerHTML = users.map(u => {
-        let roles = [];
-        if (u.role_admin) roles.push('<span class="badge badge-admin">Admin</span>');
-        if (u.role_vendeur) roles.push('<span class="badge badge-vendeur">Vendeur</span>');
+
+function renderUsersTable(users){
+    document.getElementById('users-tbody').innerHTML=users.map(u=>{
+        let roles=[];
+        if(u.role_admin) roles.push('<span class="badge badge-admin">Admin</span>');
+        if(u.role_vendeur) roles.push('<span class="badge badge-vendeur">Vendeur</span>');
         roles.push('<span class="badge badge-client">Client</span>');
-        let vb = u.code_vip === 'VIP' ? '<span class="badge badge-vip">VIP</span>' : u.code_vip === 'LOST' ? '<span class="badge badge-lost">LOST</span>' : '—';
-        const isSelf = u.login === currentUser.login_pure && u.id_serveur === currentUser.id_serveur;
+        const c=codesRemise.find(x=>x.code===u.code_vip);
+        const vb=c?`<span class="badge" style="background:var(--accent-gold);color:#000">${c.code} -${c.taux}%</span>`:'—';
+        const isSelf=u.login===currentUser.login_pure&&u.id_serveur===currentUser.id_serveur;
         return `<tr>
             <td><strong>${u.login}</strong></td><td>#${u.id_serveur}</td>
             <td>${roles.join(' ')}</td><td>${vb}</td>
-            <td>
-                <button class="btn btn-small btn-secondary" style="margin-right:6px;" onclick="openUserModal('${u.login}',${u.id_serveur})">✏️ Modifier</button>
-                ${!isSelf ? `<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>` : ''}
+            <td style="white-space:nowrap;">
+                <button class="btn btn-small btn-secondary" style="margin-right:4px;" onclick="openUserModal('${u.login}',${u.id_serveur})">✏️</button>
+                ${!isSelf?`<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>`:''}
             </td>
         </tr>`;
     }).join('');
 }
-function openUserModal(login, idServeur) {
-    const u = allUsers.find(x => x.login === login && x.id_serveur === idServeur); if (!u) return;
-    document.getElementById('edit-user-login').value = u.login;
-    document.getElementById('edit-user-id').value = u.id_serveur;
-    document.getElementById('role-vendeur').checked = u.role_vendeur || false;
-    document.getElementById('role-admin').checked = u.role_admin || false;
-    document.getElementById('edit-user-vip').value = u.code_vip || '';
+
+function openUserModal(login,idServeur){
+    const u=allUsers.find(x=>x.login===login&&x.id_serveur===idServeur);if(!u) return;
+    document.getElementById('edit-user-login').value=u.login;
+    document.getElementById('edit-user-id').value=u.id_serveur;
+    document.getElementById('role-vendeur').checked=u.role_vendeur||false;
+    document.getElementById('role-admin').checked=u.role_admin||false;
+    document.getElementById('edit-user-vip').value=u.code_vip||'';
     document.getElementById('modal-user').classList.remove('hidden');
 }
-async function saveUserEdit() {
-    const login = document.getElementById('edit-user-login').value;
-    const idServeur = parseInt(document.getElementById('edit-user-id').value);
-    const role_vendeur = document.getElementById('role-vendeur').checked;
-    const role_admin = document.getElementById('role-admin').checked;
-    const vip = document.getElementById('edit-user-vip').value;
-    const { error } = await supabaseClient.from('utilisateurs').update({ role_admin, role_vendeur, code_vip: vip||null }).eq('login',login).eq('id_serveur',idServeur);
-    if (error) { alert("Erreur : " + error.message); return; }
-    closeModal('modal-user'); await loadAdminUsers(); await loadAdminStats();
-}
-async function deleteUser(login, idServeur) {
-    if (!confirm(`Supprimer ${login} (#${idServeur}) ?`)) return;
-    await supabaseClient.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);
-    await loadAdminUsers(); await loadAdminStats();
+
+async function saveUserEdit(){
+    const login=document.getElementById('edit-user-login').value;
+    const idServeur=parseInt(document.getElementById('edit-user-id').value);
+    const role_vendeur=document.getElementById('role-vendeur').checked;
+    const role_admin=document.getElementById('role-admin').checked;
+    const vip=document.getElementById('edit-user-vip').value;
+    const {error}=await sb.from('utilisateurs').update({role_admin,role_vendeur,code_vip:vip||null}).eq('login',login).eq('id_serveur',idServeur);
+    if(error){alert("Erreur : "+error.message);return;}
+    closeModal('modal-user');await loadAdminUsers();await loadAdminStats();
 }
 
-// =============================================
-// 13. ADMIN — COMMANDES + BILAN
-// =============================================
-const ATABS = ['pending','process','done','cancel','bilan'];
-function switchAdminOrderTab(tab) {
-    ATABS.forEach(t => {
-        document.getElementById('a-'+t+'-list').classList.toggle('hidden', t !== tab);
-        document.getElementById('stab-a-'+t).classList.toggle('active', t === tab);
+async function deleteUser(login,idServeur){
+    if(!confirm(`Supprimer ${login} (#${idServeur}) ?`)) return;
+    await sb.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);
+    await loadAdminUsers();await loadAdminStats();
+}
+
+// ============================================
+// 18. ADMIN COMMANDES
+// ============================================
+const ATABS=['pending','process','ready','done','cancel','bilan'];
+function switchAdminOrderTab(tab){
+    ATABS.forEach(t=>{
+        document.getElementById('a-'+t+'-list').classList.toggle('hidden',t!==tab);
+        document.getElementById('stab-a-'+t).classList.toggle('active',t===tab);
     });
-    document.getElementById('admin-bilan-filters').classList.toggle('hidden', tab !== 'bilan');
-    if (tab === 'bilan') renderAdminBilan();
-}
-async function loadAdminOrders() {
-    ATABS.filter(t=>t!=='bilan').forEach(t => document.getElementById('a-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>');
-    const { data } = await supabaseClient.from('commandes').select('*, details_commande(*), messages_chat(*)').order('id',{ascending:false});
-    allOrdersCache = data || [];
-
-    // Populate filter selects
-    const vendeurs = [...new Set(allOrdersCache.map(o=>o.vendeur_affecte).filter(Boolean))];
-    const clients = [...new Set(allOrdersCache.map(o=>o.client_pseudo).filter(Boolean))];
-    document.getElementById('af-vendeur').innerHTML = vendeurs.map(v=>`<option value="${v}" selected>${v}</option>`).join('');
-    document.getElementById('af-client').innerHTML = clients.map(c=>`<option value="${c}" selected>${c}</option>`).join('');
-
-    const pending = allOrdersCache.filter(o=>o.statut==='En attente');
-    const process = allOrdersCache.filter(o=>o.statut==='En cours');
-    const done = allOrdersCache.filter(o=>o.statut==='Terminée');
-    const cancel = allOrdersCache.filter(o=>o.statut==='Annulée');
-    document.getElementById('a-pending-list').innerHTML = pending.length ? pending.map(o=>renderOrderHTML(o,'admin')).join('') : '<div class="section-empty">Aucune commande en attente.</div>';
-    document.getElementById('a-process-list').innerHTML = process.length ? process.map(o=>renderOrderHTML(o,'admin')).join('') : '<div class="section-empty">Aucune commande en cours.</div>';
-    document.getElementById('a-done-list').innerHTML = done.length ? done.map(o=>renderOrderHTML(o,'admin')).join('') : '<div class="section-empty">Aucune commande terminée.</div>';
-    document.getElementById('a-cancel-list').innerHTML = cancel.length ? cancel.map(o=>renderOrderHTML(o,'admin')).join('') : '<div class="section-empty">Aucune commande annulée.</div>';
+    if(tab==='bilan') renderAdminBilan();
 }
 
-function renderAdminBilan() {
-    const terminated = allOrdersCache.filter(o => o.statut === 'Terminée');
-    const selCat = [...(document.getElementById('af-cat')?.selectedOptions||[])].map(o=>o.value);
-    const selVendeur = [...(document.getElementById('af-vendeur')?.selectedOptions||[])].map(o=>o.value);
-    const selClient = [...(document.getElementById('af-client')?.selectedOptions||[])].map(o=>o.value);
+function filterAdminOrders(){
+    adminOrderSearch=document.getElementById('admin-order-search').value.toLowerCase();
+    renderAdminOrderLists();
+}
 
-    let total = 0, rows = '';
-    terminated.forEach(o => {
-        if (selVendeur.length && !selVendeur.includes(o.vendeur_affecte)) return;
-        if (selClient.length && !selClient.includes(o.client_pseudo)) return;
-        if (!o.details_commande) return;
-        const lines = o.details_commande.filter(d => {
-            const art = catalog.find(a => a.name === d.nom_article);
-            if (!art) return selCat.length === 2;
-            return selCat.includes(art.cat);
-        });
-        if (!lines.length) return;
-        const ot = lines.reduce((s,i)=>s+i.prix_achat*i.quantite,0);
-        total += ot;
-        const ref = o.ref_commande || `LOST-${o.id}`;
-        rows += `<tr><td style="font-family:monospace;color:var(--accent-red)">${ref}</td><td>${o.client_pseudo}</td><td>${o.vendeur_affecte||'—'}</td><td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td><td style="font-weight:bold;color:var(--s-done)">${ot.toLocaleString()} $</td></tr>`;
+function renderAdminOrderLists(){
+    const f=o=>{
+        if(!adminOrderSearch) return true;
+        return (o.ref_commande||`LOST-${o.id}`).toLowerCase().includes(adminOrderSearch)||o.client_pseudo.toLowerCase().includes(adminOrderSearch);
+    };
+    const pending=allOrdersCache.filter(o=>o.statut==='En attente'&&f(o));
+    const process=allOrdersCache.filter(o=>o.statut==='En cours'&&f(o));
+    const ready=allOrdersCache.filter(o=>o.statut==='Préparée'&&f(o));
+    const done=allOrdersCache.filter(o=>o.statut==='Terminée'&&f(o));
+    const cancel=allOrdersCache.filter(o=>o.statut==='Annulée'&&f(o));
+    document.getElementById('a-pending-list').innerHTML=pending.length?pending.map(o=>renderOrderHTML(o,'admin')).join(''):'<div class="section-empty">Aucune.</div>';
+    document.getElementById('a-process-list').innerHTML=process.length?process.map(o=>renderOrderHTML(o,'admin')).join(''):'<div class="section-empty">Aucune.</div>';
+    document.getElementById('a-ready-list').innerHTML=ready.length?ready.map(o=>renderOrderHTML(o,'admin')).join(''):'<div class="section-empty">Aucune.</div>';
+    document.getElementById('a-done-list').innerHTML=done.length?done.map(o=>renderOrderHTML(o,'admin')).join(''):'<div class="section-empty">Aucune.</div>';
+    document.getElementById('a-cancel-list').innerHTML=cancel.length?cancel.map(o=>renderOrderHTML(o,'admin')).join(''):'<div class="section-empty">Aucune.</div>';
+}
+
+async function loadAdminOrders(){
+    ATABS.filter(t=>t!=='bilan').forEach(t=>document.getElementById('a-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>');
+    const {data}=await sb.from('commandes').select('*,details_commande(*),messages_chat(*)').order('id',{ascending:false});
+    allOrdersCache=data||[];
+    renderAdminOrderLists();
+}
+
+let adminBilanFilters={cats:['weapons','others'],vendeurs:[],clients:[]};
+function renderAdminBilan(){
+    const terminated=allOrdersCache.filter(o=>o.statut==='Terminée');
+    const allVendeurs=[...new Set(terminated.map(o=>o.vendeur_affecte).filter(Boolean))];
+    const allClients=[...new Set(terminated.map(o=>o.client_pseudo).filter(Boolean))];
+    if(!adminBilanFilters.vendeurs.length) adminBilanFilters.vendeurs=[...allVendeurs];
+    if(!adminBilanFilters.clients.length) adminBilanFilters.clients=[...allClients];
+
+    document.getElementById('admin-bilan-filters').innerHTML=`
+        <div class="filter-bar">
+            <div class="filter-group">
+                <span class="filter-label">Type d'articles</span>
+                <div class="filter-checks">
+                    ${['weapons','others'].map(c=>`<span class="filter-check-btn${adminBilanFilters.cats.includes(c)?' selected':''}" onclick="toggleAdminBilanFilter('cats','${c}',this)">${c==='weapons'?'🔫 Armes':'🎒 Équipement'}</span>`).join('')}
+                </div>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Vendeurs</span>
+                <div class="filter-checks">
+                    ${allVendeurs.length?allVendeurs.map(v=>`<span class="filter-check-btn${adminBilanFilters.vendeurs.includes(v)?' selected':''}" onclick="toggleAdminBilanFilter('vendeurs','${v}',this)">${v}</span>`).join(''):'<span style="color:var(--text-muted);font-size:12px;">Aucun</span>'}
+                </div>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Clients</span>
+                <div class="filter-checks">
+                    ${allClients.length?allClients.map(c=>`<span class="filter-check-btn${adminBilanFilters.clients.includes(c)?' selected':''}" onclick="toggleAdminBilanFilter('clients','${c}',this)">${c}</span>`).join(''):'<span style="color:var(--text-muted);font-size:12px;">Aucun</span>'}
+                </div>
+            </div>
+        </div>`;
+    applyAdminBilan(terminated);
+}
+
+function toggleAdminBilanFilter(key,val,el){
+    el.classList.toggle('selected');
+    if(adminBilanFilters[key].includes(val)) adminBilanFilters[key]=adminBilanFilters[key].filter(x=>x!==val);
+    else adminBilanFilters[key].push(val);
+    applyAdminBilan(allOrdersCache.filter(o=>o.statut==='Terminée'));
+}
+
+function applyAdminBilan(terminated){
+    let total=0,rows='';
+    const f=adminBilanFilters;
+    terminated.forEach(o=>{
+        if(f.vendeurs.length&&!f.vendeurs.includes(o.vendeur_affecte)) return;
+        if(f.clients.length&&!f.clients.includes(o.client_pseudo)) return;
+        if(!o.details_commande) return;
+        const lines=o.details_commande.filter(d=>{const art=catalog.find(a=>a.name===d.nom_article);return art?f.cats.includes(art.cat):f.cats.length===2;});
+        if(!lines.length) return;
+        const ot=getOrderTotal(o);total+=ot;
+        const ref=o.ref_commande||`LOST-${o.id}`;
+        rows+=`<tr><td style="font-family:monospace;color:var(--accent-red)">${ref}</td><td>${o.client_pseudo}</td><td>${o.vendeur_affecte||'—'}</td><td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td><td style="font-weight:bold;color:var(--s-done)">${ot.toLocaleString()} $</td></tr>`;
     });
-    document.getElementById('a-bilan-list').innerHTML = `
+    document.getElementById('admin-bilan-result').innerHTML=`
         <div class="finance-total">
-            <div><div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Chiffre d'affaires filtré</div>
+            <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Chiffre d'affaires</div>
             <div class="finance-amount">${total.toLocaleString()} $</div></div>
-            <div style="font-size:13px;color:var(--text-muted)">${rows ? rows.split('<tr>').length - 1 : 0} commande(s)</div>
+            <div style="font-size:13px;color:var(--text-muted)">${rows?rows.split('<tr>').length-1:0} commande(s)</div>
         </div>
-        ${rows ? `<div style="overflow-x:auto;"><table class="order-table">
-            <thead><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th><th>Total</th></tr></thead>
-            <tbody>${rows}</tbody></table></div>` : '<div class="section-empty">Aucune commande ne correspond aux filtres.</div>'}`;
+        ${rows?`<div style="overflow-x:auto;"><table class="order-table"><thead><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="section-empty">Aucune commande ne correspond.</div>'}`;
 }
 
-async function deleteOrder(id) {
-    if (!confirm(`Supprimer cette commande ?`)) return;
-    await supabaseClient.from('messages_chat').delete().eq('id_commande',id);
-    await supabaseClient.from('details_commande').delete().eq('id_commande',id);
-    await supabaseClient.from('commandes').delete().eq('id',id);
-    await loadAdminOrders(); await loadAdminStats();
+async function deleteOrder(id){
+    if(!confirm(`Supprimer cette commande ?`)) return;
+    await sb.from('notifications').delete().eq('id_commande',id);
+    await sb.from('messages_chat').delete().eq('id_commande',id);
+    await sb.from('details_commande').delete().eq('id_commande',id);
+    await sb.from('commandes').delete().eq('id',id);
+    await loadAdminOrders();await loadAdminStats();
 }
-async function openReassign(orderId) {
-    document.getElementById('reassign-order-id').value = orderId;
-    if (!allUsers.length) await loadAdminUsers();
-    const vendeurs = allUsers.filter(u => u.role_vendeur || u.role_admin);
-    document.getElementById('reassign-vendeur-select').innerHTML = vendeurs.map(v=>`<option value="${v.login}">${v.login} (#${v.id_serveur})</option>`).join('');
+
+async function openReassign(orderId){
+    document.getElementById('reassign-order-id').value=orderId;
+    if(!allUsers.length) await loadAdminUsers();
+    const vendeurs=allUsers.filter(u=>u.role_vendeur||u.role_admin);
+    document.getElementById('reassign-vendeur-select').innerHTML=vendeurs.map(v=>`<option value="${v.login}">${v.login} (#${v.id_serveur})</option>`).join('');
     document.getElementById('modal-reassign').classList.remove('hidden');
 }
-async function confirmReassign() {
-    const orderId = parseInt(document.getElementById('reassign-order-id').value);
-    const vendeur = document.getElementById('reassign-vendeur-select').value;
-    await supabaseClient.from('commandes').update({vendeur_affecte:vendeur,statut:'En cours'}).eq('id',orderId);
-    closeModal('modal-reassign'); await loadAdminOrders();
+
+async function confirmReassign(){
+    const orderId=parseInt(document.getElementById('reassign-order-id').value);
+    const vendeur=document.getElementById('reassign-vendeur-select').value;
+    const {error}=await sb.from('commandes').update({vendeur_affecte:vendeur,statut:'En cours'}).eq('id',orderId);
+    if(error){alert("Erreur : "+error.message);return;}
+    const o=allOrdersCache.find(x=>x.id===orderId);
+    if(o) await pushNotif(o.client_pseudo,orderId,'statut',`Votre commande a été réaffectée à ${vendeur}.`);
+    closeModal('modal-reassign');await loadAdminOrders();
 }
 
-// =============================================
-// 14. ADMIN — CATALOGUE
-// =============================================
-async function loadAdminCatalogue() {
-    const { data } = await supabaseClient.from('articles').select('*').order('id');
-    if (data) catalog = data;
+// ============================================
+// 19. CODES REMISE ADMIN
+// ============================================
+async function loadRemises(){
+    await loadCodesRemise();
+    const container=document.getElementById('remise-list');
+    if(!codesRemise.length){container.innerHTML='<div class="section-empty">Aucun code.</div>';return;}
+    container.innerHTML=codesRemise.map(c=>`<div class="remise-card">
+        <div>
+            <div class="remise-code">${c.code}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${c.description||'—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="remise-taux">-${c.taux}%</div>
+            <button class="btn btn-small btn-secondary" onclick="openRemiseModal(${c.id})" style="margin-right:4px;">✏️</button>
+            <button class="btn btn-small btn-danger" onclick="deleteRemise(${c.id})">🗑️</button>
+        </div>
+    </div>`).join('');
+    // Mettre à jour le select dans modal user
+    const sel=document.getElementById('edit-user-vip');
+    if(sel) sel.innerHTML='<option value="">Aucun</option>'+codesRemise.map(c=>`<option value="${c.code}">${c.code} (-${c.taux}%)</option>`).join('');
+}
+
+function openRemiseModal(id){
+    const c=codesRemise.find(x=>x.id===id);
+    document.getElementById('remise-edit-id').value=id||'';
+    document.getElementById('remise-code').value=c?c.code:'';
+    document.getElementById('remise-taux').value=c?c.taux:'';
+    document.getElementById('remise-desc').value=c?c.description||'':'';
+    document.getElementById('modal-remise-title').textContent=id?'✏️ Modifier Code Remise':'+ Nouveau Code Remise';
+    document.getElementById('modal-remise').classList.remove('hidden');
+}
+
+async function saveRemise(){
+    const id=document.getElementById('remise-edit-id').value;
+    const code=document.getElementById('remise-code').value.trim().toUpperCase();
+    const taux=parseInt(document.getElementById('remise-taux').value);
+    const description=document.getElementById('remise-desc').value.trim();
+    if(!code||isNaN(taux)){alert("Code et taux requis.");return;}
+    let error;
+    if(id){({error}=await sb.from('codes_remise').update({code,taux,description}).eq('id',parseInt(id)));}
+    else{({error}=await sb.from('codes_remise').insert([{code,taux,description}]));}
+    if(error){alert("Erreur : "+error.message);return;}
+    closeModal('modal-remise');await loadRemises();
+}
+
+async function deleteRemise(id){
+    if(!confirm("Supprimer ce code remise ? Les utilisateurs qui l'ont ne seront pas affectés immédiatement.")) return;
+    await sb.from('codes_remise').delete().eq('id',id);
+    await loadRemises();
+}
+
+// ============================================
+// 20. ADMIN CATALOGUE
+// ============================================
+async function loadAdminCatalogue(){
+    const {data}=await sb.from('articles').select('*').order('id');
+    if(data) catalog=data;
     renderAdminCatalogueGrid();
 }
-function renderAdminCatalogueGrid() {
-    const grid = document.getElementById('admin-catalogue-grid');
-    if (!catalog.length) { grid.innerHTML='<div class="section-empty">Aucun article.</div>'; return; }
-    grid.innerHTML = catalog.map(w => {
-        const ph = 'https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);
+
+function renderAdminCatalogueGrid(){
+    const grid=document.getElementById('admin-catalogue-grid');
+    if(!catalog.length){grid.innerHTML='<div class="section-empty">Aucun article.</div>';return;}
+    grid.innerHTML=catalog.map(w=>{
+        const ph='https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);
         return `<div class="weapon-card">
             <div>
                 <img src="${w.img_url||ph}" onerror="this.src='${ph}'" style="cursor:pointer" onclick="openItemModal(${w.id})">
@@ -1025,35 +1327,38 @@ function renderAdminCatalogueGrid() {
         </div>`;
     }).join('');
 }
-function openItemModal(id) {
-    itemImgBase64 = null;
-    document.getElementById('item-img-file').value = '';
+
+function openItemModal(id){
+    itemImgBase64=null;
+    document.getElementById('item-img-file').value='';
     document.getElementById('item-img-preview').classList.add('hidden');
-    if (id === null) {
-        document.getElementById('modal-item-title').textContent = '+ Nouvel Article';
-        document.getElementById('item-edit-id').value = '';
+    if(id===null){
+        document.getElementById('modal-item-title').textContent='+ Nouvel Article';
+        document.getElementById('item-edit-id').value='';
         ['item-name','item-price','item-desc','item-mag'].forEach(x=>document.getElementById(x).value='');
-        document.getElementById('item-cat').value = 'weapons';
+        document.getElementById('item-cat').value='weapons';
     } else {
-        const w = catalog.find(x=>x.id===id); if(!w) return;
-        document.getElementById('modal-item-title').textContent = '✏️ Modifier Article';
-        document.getElementById('item-edit-id').value = w.id;
-        document.getElementById('item-name').value = w.name;
-        document.getElementById('item-price').value = w.price;
-        document.getElementById('item-desc').value = w.description||'';
-        document.getElementById('item-mag').value = w.mag||'';
-        document.getElementById('item-cat').value = w.cat;
-        if (w.img_url) { const p=document.getElementById('item-img-preview'); p.src=w.img_url; p.classList.remove('hidden'); }
+        const w=catalog.find(x=>x.id===id);if(!w) return;
+        document.getElementById('modal-item-title').textContent='✏️ Modifier Article';
+        document.getElementById('item-edit-id').value=w.id;
+        document.getElementById('item-name').value=w.name;
+        document.getElementById('item-price').value=w.price;
+        document.getElementById('item-desc').value=w.description||'';
+        document.getElementById('item-mag').value=w.mag||'';
+        document.getElementById('item-cat').value=w.cat;
+        if(w.img_url){const p=document.getElementById('item-img-preview');p.src=w.img_url;p.classList.remove('hidden');}
     }
     document.getElementById('modal-item').classList.remove('hidden');
 }
-function previewItemImage(event) {
-    const file=event.target.files[0]; if(!file) return;
-    const reader=new FileReader();
-    reader.onload=(e)=>{itemImgBase64=e.target.result;const p=document.getElementById('item-img-preview');p.src=itemImgBase64;p.classList.remove('hidden');};
-    reader.readAsDataURL(file);
+
+function previewItemImage(e){
+    const file=e.target.files[0];if(!file) return;
+    const r=new FileReader();
+    r.onload=(ev)=>{itemImgBase64=ev.target.result;const p=document.getElementById('item-img-preview');p.src=itemImgBase64;p.classList.remove('hidden');};
+    r.readAsDataURL(file);
 }
-async function saveItem() {
+
+async function saveItem(){
     const id=document.getElementById('item-edit-id').value;
     const name=document.getElementById('item-name').value.trim();
     const price=parseInt(document.getElementById('item-price').value);
@@ -1065,72 +1370,70 @@ async function saveItem() {
     if(!img_url&&id){const ex=catalog.find(x=>x.id===parseInt(id));img_url=ex?ex.img_url:null;}
     const payload={name,price,description,mag,cat,img_url};
     let error;
-    if(id){({error}=await supabaseClient.from('articles').update(payload).eq('id',parseInt(id)));}
-    else{({error}=await supabaseClient.from('articles').insert([payload]));}
+    if(id){({error}=await sb.from('articles').update(payload).eq('id',parseInt(id)));}
+    else{({error}=await sb.from('articles').insert([payload]));}
     if(error){alert("Erreur : "+error.message);return;}
     closeModal('modal-item');await loadAdminCatalogue();await loadAdminStats();
 }
-async function deleteItem(id) {
-    if(!confirm("Supprimer cet article ?"))return;
-    await supabaseClient.from('articles').delete().eq('id',id);
+
+async function deleteItem(id){
+    if(!confirm("Supprimer cet article ?")) return;
+    await sb.from('articles').delete().eq('id',id);
     await loadAdminCatalogue();await loadAdminStats();
 }
 
-// =============================================
-// 15. PROFIL
-// =============================================
-function loadProfile() {
-    const avatarDiv = document.getElementById('profile-avatar-display');
-    if (currentUser.avatar_url) {
-        avatarDiv.innerHTML = `<img src="${currentUser.avatar_url}" class="profile-avatar" alt="Avatar">`;
-    } else {
-        avatarDiv.innerHTML = `<div class="profile-avatar-placeholder">👤</div>`;
-    }
-    document.getElementById('profile-email').value = currentUser.email || '';
+// ============================================
+// 21. PROFIL
+// ============================================
+function loadProfile(){
+    const d=document.getElementById('profile-avatar-display');
+    if(currentUser.avatar_url) d.innerHTML=`<img src="${currentUser.avatar_url}" class="profile-avatar">`;
+    else d.innerHTML=`<div class="profile-avatar-placeholder">👤</div>`;
+    document.getElementById('profile-email').value=currentUser.email||'';
 }
-function previewProfileAvatar(event) {
-    const file=event.target.files[0]; if(!file) return;
-    const reader=new FileReader();
-    reader.onload=(e)=>{
-        profileAvatarBase64=e.target.result;
-        const d=document.getElementById('profile-avatar-display');
-        d.innerHTML=`<img src="${profileAvatarBase64}" class="profile-avatar" alt="Avatar">`;
-    };
-    reader.readAsDataURL(file);
+
+function previewProfileAvatar(e){
+    const file=e.target.files[0];if(!file) return;
+    const r=new FileReader();
+    r.onload=(ev)=>{profileAvatarBase64=ev.target.result;document.getElementById('profile-avatar-display').innerHTML=`<img src="${profileAvatarBase64}" class="profile-avatar">`;};
+    r.readAsDataURL(file);
 }
-async function saveProfileInfo() {
+
+async function saveProfileInfo(){
     const email=document.getElementById('profile-email').value.trim();
     const updates={email:email||null};
     if(profileAvatarBase64) updates.avatar_url=profileAvatarBase64;
-    const{error}=await supabaseClient.from('utilisateurs').update(updates).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
+    const{error}=await sb.from('utilisateurs').update(updates).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
     if(error){alert("Erreur : "+error.message);return;}
     currentUser.email=email;
-    if(profileAvatarBase64){currentUser.avatar_url=profileAvatarBase64;profileAvatarBase64=null;}
+    if(profileAvatarBase64){currentUser.avatar_url=profileAvatarBase64;profileAvatarBase64=null;
+        document.getElementById('sidebar-avatar').innerHTML=`<img src="${currentUser.avatar_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-red);">`;}
     alert("Profil mis à jour !");
 }
-async function changePassword() {
+
+async function changePassword(){
     const cur=document.getElementById('pwd-current').value;
     const nw=document.getElementById('pwd-new').value;
     const conf=document.getElementById('pwd-confirm').value;
     if(!cur||!nw||!conf){alert("Remplissez tous les champs.");return;}
-    if(nw!==conf){alert("Les nouveaux mots de passe ne correspondent pas.");return;}
-    if(nw.length<4){alert("Le mot de passe doit faire au moins 4 caractères.");return;}
-    const{data:u}=await supabaseClient.from('utilisateurs').select('mot_de_pass').eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur).maybeSingle();
+    if(nw!==conf){alert("Les mots de passe ne correspondent pas.");return;}
+    if(nw.length<4){alert("Minimum 4 caractères.");return;}
+    const{data:u}=await sb.from('utilisateurs').select('mot_de_pass').eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur).maybeSingle();
     if(!u||u.mot_de_pass!==cur){alert("Mot de passe actuel incorrect.");return;}
-    const{error}=await supabaseClient.from('utilisateurs').update({mot_de_pass:nw}).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
-    if(error){alert("Erreur : "+error.message);return;}
+    await sb.from('utilisateurs').update({mot_de_pass:nw}).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
     ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
-    alert("Mot de passe changé avec succès !");
+    alert("Mot de passe changé !");
 }
 
-// =============================================
-// 16. MODALS & NAVIGATION
-// =============================================
+// ============================================
+// 22. MODALS & NAVIGATION
+// ============================================
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
 document.querySelectorAll('.modal-overlay').forEach(el=>{
     el.addEventListener('click',(e)=>{if(e.target===el)el.classList.add('hidden');});
 });
-function showTab(tabId) {
+
+function showTab(tabId){
     document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
     document.getElementById('tab-'+tabId).classList.remove('hidden');
