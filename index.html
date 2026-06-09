@@ -478,6 +478,7 @@ function renderUserInline(login,code_vip,avatarUrl){
 
 // AUTH
 function toggleAuth(isReg){document.getElementById('login-form-div').classList.toggle('hidden',isReg);document.getElementById('register-form-div').classList.toggle('hidden',!isReg);}
+document.addEventListener('DOMContentLoaded',()=>{
 document.getElementById('auth-form').onsubmit=async(e)=>{
     e.preventDefault();
     const login=document.getElementById('login-pure-username').value.trim();
@@ -500,6 +501,7 @@ document.getElementById('reg-form').onsubmit=async(e)=>{
     if(error){alert("Erreur : "+error.message);return;}
     alert(`Compte créé pour ${login} !`);toggleAuth(false);
 };
+}); // end DOMContentLoaded
 function loginSuccess(){
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-structure').classList.remove('hidden');
