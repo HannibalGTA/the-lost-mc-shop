@@ -845,11 +845,13 @@ function renderBilanUI(containerId,filters){
     applyBilanResult(isAdmin?adminBilanFilters:bilanFilters,isAdmin);
 }
 
+const _fpOpts={};// stockage global des options par pfx+key
+
 function mkDropdown(key,label,options,selected,labelFn,isAdmin){
     const count=selected.length,total=options.length;
     const indicator=count===total?'Tous':`${count}/${total}`;
     const pfx=isAdmin?'a':'v';
-    const safeOpts=JSON.stringify(options).replace(/'/g,"\'");
+    _fpOpts[pfx+'-'+key]=[...options];// stocker pour fpAll
     return`<div class="filter-dropdown" id="${pfx}fd-${key}">
         <div class="filter-btn" onclick="toggleFP('${pfx}','${key}')">
             ${label} <span id="${pfx}fi-${key}" style="color:var(--accent-gold);font-size:11px;">(${indicator})</span> <span style="font-size:9px;color:var(--text-muted)">▼</span>
@@ -857,12 +859,12 @@ function mkDropdown(key,label,options,selected,labelFn,isAdmin){
         <div class="filter-panel hidden" id="${pfx}fp-${key}">
             <input class="fp-search" placeholder="Rechercher..." oninput="fpSearch('${pfx}fp-opts-${key}',this.value)">
             <div class="fp-actions">
-                <button onclick="fpAll('${pfx}','${key}',${safeOpts},true,${isAdmin})">Tout</button>
-                <button onclick="fpAll('${pfx}','${key}',${safeOpts},false,${isAdmin})">Aucun</button>
+                <button onclick="fpAll('${pfx}','${key}',true,${isAdmin})">Tout</button>
+                <button onclick="fpAll('${pfx}','${key}',false,${isAdmin})">Aucun</button>
             </div>
             <div id="${pfx}fp-opts-${key}">
                 ${options.map(o=>`<label class="filter-option">
-                    <input type="checkbox" ${selected.includes(o)?'checked':''} onchange="fpChange('${pfx}','${key}','${o.replace(/'/g,"\'")}',this.checked,${isAdmin})">
+                    <input type="checkbox" data-val="${o.replace(/"/g,'&quot;')}" ${selected.includes(o)?'checked':''} onchange="fpChange('${pfx}','${key}',this.dataset.val,this.checked,${isAdmin})">
                     ${labelFn(o)}
                 </label>`).join('')}
             </div>
@@ -880,14 +882,18 @@ function fpChange(pfx,key,val,checked,isAdmin){
     const f=isAdmin?adminBilanFilters:bilanFilters;
     if(checked){if(!f[key].includes(val))f[key].push(val);}else f[key]=f[key].filter(x=>x!==val);
     applyBilanResult(f,isAdmin);
-    const cnt=f[key].length,allOpts=document.querySelectorAll('#'+pfx+'fp-opts-'+key+' .filter-option').length;
-    const ind=document.getElementById(pfx+'fi-'+key);if(ind)ind.textContent=`(${cnt===allOpts?'Tous':cnt+'/'+allOpts})`;
+    const opts=_fpOpts[pfx+'-'+key]||[];
+    const ind=document.getElementById(pfx+'fi-'+key);
+    if(ind)ind.textContent=`(${f[key].length===opts.length?'Tous':f[key].length+'/'+opts.length})`;
 }
-function fpAll(pfx,key,options,all,isAdmin){
-    const f=isAdmin?adminBilanFilters:bilanFilters;f[key]=all?[...options]:[];
+function fpAll(pfx,key,all,isAdmin){
+    const f=isAdmin?adminBilanFilters:bilanFilters;
+    const opts=_fpOpts[pfx+'-'+key]||[];
+    f[key]=all?[...opts]:[];
     document.querySelectorAll('#'+pfx+'fp-opts-'+key+' input[type="checkbox"]').forEach(cb=>cb.checked=all);
     applyBilanResult(f,isAdmin);
-    const ind=document.getElementById(pfx+'fi-'+key);if(ind)ind.textContent=all?'(Tous)':'(0/'+options.length+')';
+    const ind=document.getElementById(pfx+'fi-'+key);
+    if(ind)ind.textContent=all?'(Tous)':'(0/'+opts.length+')';
 }
 function applyBilanResult(filters,isAdmin){
     const terminated=allOrdersCache.filter(o=>o.statut==='Terminée');
