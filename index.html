@@ -146,7 +146,7 @@
         <img src="logo.png" alt="Logo" class="auth-logo-img">
         <div class="auth-logo">The Lost MC Shop</div>
         <div class="auth-subtitle">Terminal de Connexion Sécurisé</div>
-        <form id="auth-form">
+        <form id="auth-form" onsubmit="handleLogin(event)">
             <label>Pseudo / Login</label>
             <input type="text" id="login-pure-username" placeholder="Indiquez votre pseudo" required autocomplete="off">
             <label>Numéro de ville</label>
@@ -165,7 +165,7 @@
         <img src="logo.png" alt="Logo" class="auth-logo-img">
         <div class="auth-logo">Enregistrement</div>
         <div class="auth-subtitle">Créer son compte sécurisé</div>
-        <form id="reg-form">
+        <form id="reg-form" onsubmit="handleRegister(event)">
             <label>Pseudo / Login</label>
             <input type="text" id="reg-pure-username" placeholder="Indiquez votre pseudo" required autocomplete="off">
             <label>Numéro de ville</label>
@@ -477,31 +477,39 @@ function renderUserInline(login,code_vip,avatarUrl){
 }
 
 // AUTH
-function toggleAuth(isReg){document.getElementById('login-form-div').classList.toggle('hidden',isReg);document.getElementById('register-form-div').classList.toggle('hidden',!isReg);}
-document.addEventListener('DOMContentLoaded',()=>{
-document.getElementById('auth-form').onsubmit=async(e)=>{
+function toggleAuth(isReg){
+    document.getElementById('login-form-div').classList.toggle('hidden',isReg);
+    document.getElementById('register-form-div').classList.toggle('hidden',!isReg);
+}
+async function handleLogin(e){
     e.preventDefault();
     const login=document.getElementById('login-pure-username').value.trim();
     const cityNum=parseInt(document.getElementById('login-city-number').value.trim());
     const pwd=document.getElementById('password').value;
-    const{data:u}=await sb.from('utilisateurs').select('*').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
+    const{data:u,error}=await sb.from('utilisateurs').select('*').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
+    if(error){alert("Erreur Supabase : "+error.message);return;}
     if(u&&u.mot_de_pass===pwd){
         currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
-        await Promise.all([loadCodesRemise(),loadCodesPromo()]);loginSuccess();
-    }else alert("Accès refusé.");
-};
-document.getElementById('reg-form').onsubmit=async(e)=>{
+        await Promise.all([loadCodesRemise(),loadCodesPromo()]);
+        loginSuccess();
+    }else{
+        alert("Accès refusé. Vérifiez votre pseudo, numéro de ville et mot de passe.");
+    }
+    return false;
+}
+async function handleRegister(e){
     e.preventDefault();
     const login=document.getElementById('reg-pure-username').value.trim();
     const cityNum=parseInt(document.getElementById('reg-city-number').value.trim());
     const pwd=document.getElementById('reg-password').value;
     const{data:ex}=await sb.from('utilisateurs').select('login').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
-    if(ex){alert("Ce compte existe déjà.");return;}
+    if(ex){alert("Ce compte existe déjà.");return false;}
     const{error}=await sb.from('utilisateurs').insert([{id_serveur:cityNum,login,mot_de_pass:pwd,role_admin:false,role_vendeur:false,code_vip:null}]);
-    if(error){alert("Erreur : "+error.message);return;}
-    alert(`Compte créé pour ${login} !`);toggleAuth(false);
-};
-}); // end DOMContentLoaded
+    if(error){alert("Erreur : "+error.message);return false;}
+    alert(`Compte créé pour ${login} ! Vous pouvez vous connecter.`);
+    toggleAuth(false);
+    return false;
+}
 function loginSuccess(){
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-structure').classList.remove('hidden');
