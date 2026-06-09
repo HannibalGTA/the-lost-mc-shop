@@ -55,7 +55,7 @@
         .catalogue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;}
         .weapon-card{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:15px;display:flex;flex-direction:column;justify-content:space-between;transition:border-color .2s;}
         .weapon-card:hover{border-color:#3d4256;}
-        .weapon-card img{width:100%;height:130px;object-fit:cover;object-position:center;border-radius:4px;background:var(--bg-input);margin-bottom:12px;display:block;}
+        .weapon-card img{width:100%;height:130px;object-fit:contain;object-position:center;border-radius:4px;background:var(--bg-input);margin-bottom:12px;display:block;}
         .price-tag{font-size:18px;font-weight:700;color:var(--s-done);}
         .price-original{text-decoration:line-through;color:var(--text-muted);font-size:13px;margin-left:6px;}
         .discount-badge{display:inline-block;background:var(--accent-gold);color:#000;font-size:10px;font-weight:800;padding:2px 6px;border-radius:3px;margin-left:5px;vertical-align:middle;}
@@ -727,6 +727,8 @@ async function resetMontant(orderId){await sb.from('commandes').update({montant_
 // CHAT
 function renderChat(orderId,messages){
     const msgs=messages.map(m=>{
+        const isSystem=m.auteur==='🤖 Système';
+        if(isSystem) return`<div style="text-align:center;margin:4px 0;"><span style="display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:6px;padding:6px 12px;font-size:11px;color:#a78bfa;max-width:90%;">${m.message}</span></div>`;
         const mine=m.auteur===currentUser.login_pure;
         const av=userAvatarCache[m.auteur]||null;
         const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
@@ -809,7 +811,14 @@ async function claimOrder(id){
 async function setOrderStatut(id,statut){
     if(!confirm(`Marquer comme "${statut}" ?`))return;
     await sb.from('commandes').update({statut}).eq('id',id);
-    const o=allOrdersCache.find(x=>x.id===id);if(o)await pushNotif(o.client_pseudo,id,'statut',`Votre commande : ${statut}`);
+    const o=allOrdersCache.find(x=>x.id===id);
+    if(o) await pushNotif(o.client_pseudo,id,'statut',`Votre commande : ${statut}`);
+    // Message automatique dans le chat selon le statut
+    const autoMsg={
+        'En cours':'🔄 La commande est en cours de préparation par un vendeur.',
+        'Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC en indiquant le numéro de commande ${o?.ref_commande||'LOST-'+id}, afin d'organiser la transaction.`
+    }[statut];
+    if(autoMsg) await sb.from('messages_chat').insert([{id_commande:id,auteur:'🤖 Système',message:autoMsg,lu_par:[]}]);
     await reloadCurrentView();
 }
 
