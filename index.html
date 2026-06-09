@@ -955,7 +955,6 @@ function switchAdminOrderTab(tab){
     ATABS.forEach(t=>{document.getElementById('a-'+t+'-list').classList.toggle('hidden',t!==tab);document.getElementById('stab-a-'+t).classList.toggle('active',t===tab);});
     if(tab==='bilan')renderBilanUI('a-bilan-list',adminBilanFilters);
 }
-let adminOrderSearch='';
 function filterAdminOrders(){adminOrderSearch=document.getElementById('admin-order-search').value.toLowerCase();renderAdminOrderLists();}
 function renderAdminOrderLists(){
     const f=o=>!adminOrderSearch||(o.ref_commande||`LOST-${o.id}`).toLowerCase().includes(adminOrderSearch)||o.client_pseudo.toLowerCase().includes(adminOrderSearch);
