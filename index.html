@@ -505,11 +505,12 @@ async function getAvatar(login){
     const{data}=await sb.from('utilisateurs').select('avatar_url').eq('login',login).maybeSingle();
     userAvatarCache[login]=data?data.avatar_url:null;return userAvatarCache[login];
 }
-function renderUserInline(login,code_vip,avatarUrl){
+function renderUserInline(login,id_serveur,code_vip,avatarUrl){
     const img=avatarUrl?`<img src="${avatarUrl}" onerror="this.style.display='none'">`:`<span class="avatar-ph">👤</span>`;
     const cObj=codesRemise.find(c=>c.code===code_vip);
     const codeBadge=cObj?`<span class="badge" style="background:var(--accent-gold);color:#000;font-size:9px;">${cObj.code}</span>`:'';
-    return`<span class="user-inline">${img}<strong>${login}</strong>${codeBadge}</span>`;
+    const idLabel=id_serveur!=null?`<span style="color:var(--text-muted);font-size:11px;"> | ${id_serveur}</span>`:'';
+    return`<span class="user-inline">${img}<strong>${login}</strong>${idLabel}${codeBadge}</span>`;
 }
 
 // AUTH
@@ -720,8 +721,8 @@ async function renderOrderHTMLAsync(o,ctx){
         <button class="btn btn-small btn-warning" onclick="saveMontant(${o.id})">💾 Appliquer</button>
         ${o.montant_ajuste!=null?`<button class="btn btn-small btn-secondary" onclick="resetMontant(${o.id})">↩ Reset</button>`:''}
     </div>`:'';
-    const clientLabel=renderUserInline(o.client_pseudo,clientU?.code_vip,clientAv);
-    const vendeurLabel=o.vendeur_affecte?renderUserInline(o.vendeur_affecte,vendeurU?.code_vip,vendeurAv):'<span style="color:var(--text-muted)">Non affecté</span>';
+    const clientLabel=renderUserInline(o.client_pseudo,clientU?.id_serveur??o.client_id,clientU?.code_vip,clientAv);
+    const vendeurLabel=o.vendeur_affecte?renderUserInline(o.vendeur_affecte,vendeurU?.id_serveur??null,vendeurU?.code_vip,vendeurAv):'<span style="color:var(--text-muted)">Non affecté</span>';
     const buyerLine=ctx!=='client'?`Acheteur : ${clientLabel}`:'Suivi Logistique';
     const msgBadge=unread>0?`<span class="notif-badge msg" style="margin-left:6px;">${unread}</span>`:'';
     const totalLabel=o.montant_ajuste!=null?`<span style="color:var(--s-done);font-weight:bold;">${total.toLocaleString()} $</span> <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${rawTotal.toLocaleString()} $</span>`:`<span style="font-weight:bold;color:var(--s-done)">${total.toLocaleString()} $</span>`;
