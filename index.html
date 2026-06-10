@@ -728,13 +728,16 @@ async function renderOrderHTMLAsync(o,ctx){
     const clientLabel=renderUserInline(o.client_pseudo,clientU?.id_serveur??o.client_id,clientU?.code_vip,clientAv);
     const vendeurLabel=o.vendeur_affecte?renderUserInline(o.vendeur_affecte,vendeurU?.id_serveur??null,vendeurU?.code_vip,vendeurAv):'<span style="color:var(--text-muted)">Non affecté</span>';
     const buyerLine=ctx!=='client'?`Acheteur : ${clientLabel}`:'Suivi Logistique';
+    const vendeurHeaderLine=(ctx==='vendeur'||ctx==='vendeur-all')&&o.vendeur_affecte
+        ?`<span style="color:var(--text-muted);font-size:12px;">🎯 ${vendeurLabel}</span>`:'';
     const msgBadge=unread>0?`<span class="notif-badge msg" style="margin-left:6px;">${unread}</span>`:'';
     const totalLabel=o.montant_ajuste!=null?`<span style="color:var(--s-done);font-weight:bold;">${total.toLocaleString()} $</span> <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${rawTotal.toLocaleString()} $</span>`:`<span style="font-weight:bold;color:var(--s-done)">${total.toLocaleString()} $</span>`;
     return`<div class="order-item${unread>0?' has-notif':''}" id="order-card-${o.id}">
         <div class="order-header" onclick="toggleOrder(this,${o.id})">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
                 <strong style="color:var(--accent-red);font-family:monospace;">${refLabel}</strong>
-                <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span>${msgBadge}
+                <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span>
+                ${vendeurHeaderLine}${msgBadge}
             </div>
             <div style="display:flex;align-items:center;gap:10px;">${totalLabel}<span class="badge" style="background:${sc}">${o.statut}</span><span style="font-size:11px;color:var(--text-muted)">▼</span></div>
         </div>
