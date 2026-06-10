@@ -487,13 +487,15 @@ function getUserRemiseTaux(){if(!currentUser||!currentUser.code_vip)return 0;con
 function applyRemise(p){const t=getUserRemiseTaux();if(!t)return p;return Math.ceil(p*(1-t/100)/1000)*1000;}
 function applyPromoTaux(p,t){if(!t)return p;return Math.ceil(p*(1-t/100)/1000)*1000;}
 function statusColor(s){if(s==='Terminée')return'var(--s-done)';if(s==='En cours')return'var(--s-process)';if(s==='Préparée')return'var(--s-ready)';if(s==='Annulée')return'var(--s-cancel)';return'var(--s-pending)';}
-function generateRef(items){
+function generateRef(items, dbId){
     const hasW=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='weapons';});
     const hasO=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='others';});
     const type=hasW&&hasO?'MX':hasW?'WP':'EQ';
     const now=new Date(),yy=String(now.getFullYear()).slice(-2);
     const day=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
-    return`LOST-${type}${yy}${String(day%100).padStart(2,'0')}${String((now.getHours()*6+Math.floor(now.getMinutes()/10))%100).padStart(2,'0')}`;
+    const dayPart=String(day%100).padStart(2,'0');
+    // On utilise l'id DB comme suffixe unique — garantit l'unicité absolue
+    return`LOST-${type}${yy}${dayPart}-${dbId}`;
 }
 function getOrderRawTotal(o){if(!o.details_commande||!o.details_commande.length)return 0;return o.details_commande.reduce((s,i)=>s+i.prix_achat*i.quantite,0);}
 function getOrderTotal(o){return o.montant_ajuste!=null?o.montant_ajuste:getOrderRawTotal(o);}
@@ -662,7 +664,6 @@ function updateCart(){
 }
 async function checkout(){
     if(!cart.length)return;
-    const ref=generateRef(cart);
     const rawTotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
     let finalTotal=rawTotal,codePromoUsed=null,tauxPromoUsed=null;
     if(appliedPromo&&!currentUser.code_vip){
@@ -671,8 +672,11 @@ async function checkout(){
         await sb.from('codes_promo').update({uses_count:appliedPromo.uses_count+1}).eq('id',appliedPromo.id);
         if(!appliedPromo.reutilisable)await sb.from('codes_promo').update({actif:false}).eq('id',appliedPromo.id);
     }
-    const{data:od,error:oe}=await sb.from('commandes').insert([{client_id:currentUser.id_serveur,client_pseudo:currentUser.login_pure,statut:'En attente',ref_commande:ref,montant_ajuste:codePromoUsed?finalTotal:null,code_promo:codePromoUsed,taux_promo:tauxPromoUsed}]).select();
+    const{data:od,error:oe}=await sb.from('commandes').insert([{client_id:currentUser.id_serveur,client_pseudo:currentUser.login_pure,statut:'En attente',ref_commande:null,montant_ajuste:codePromoUsed?finalTotal:null,code_promo:codePromoUsed,taux_promo:tauxPromoUsed}]).select();
     if(oe){alert("Erreur : "+oe.message);return;}
+    // Générer la ref APRÈS insertion pour utiliser l'id DB (unicité garantie)
+    const ref=generateRef(cart, od[0].id);
+    await sb.from('commandes').update({ref_commande:ref}).eq('id',od[0].id);
     await sb.from('details_commande').insert(cart.map(i=>({id_commande:od[0].id,nom_article:i.name,quantite:i.qty,prix_achat:i.price})));
     cart=[];appliedPromo=null;updateCart();renderPromoSection();
     alert(`Commande ${ref} transmise !`);showTab('orders');
