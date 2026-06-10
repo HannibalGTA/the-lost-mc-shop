@@ -737,9 +737,12 @@ async function renderOrderHTMLAsync(o,ctx){
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
                 <strong style="color:var(--accent-red);font-family:monospace;">${refLabel}</strong>
                 <span style="color:var(--text-muted);font-size:13px;">${buyerLine}</span>
-                ${vendeurHeaderLine}${msgBadge}
+                ${msgBadge}
             </div>
-            <div style="display:flex;align-items:center;gap:10px;">${totalLabel}<span class="badge" style="background:${sc}">${o.statut}</span><span style="font-size:11px;color:var(--text-muted)">▼</span></div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                ${vendeurHeaderLine}
+                ${totalLabel}<span class="badge" style="background:${sc}">${o.statut}</span><span style="font-size:11px;color:var(--text-muted)">▼</span>
+            </div>
         </div>
         <div class="order-content">
             <p style="margin-top:0;font-size:12px;color:var(--text-muted)">Vendeur : ${vendeurLabel}</p>
