@@ -527,6 +527,7 @@ async function handleLogin(e){
     if(u&&u.mot_de_pass===pwd){
         currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
         await Promise.all([loadCodesRemise(),loadCodesPromo()]);
+        await loadMateriaux();
         loginSuccess();
     }else{
         alert("Accès refusé. Vérifiez votre pseudo, numéro de ville et mot de passe.");
@@ -715,7 +716,7 @@ async function renderOrderHTMLAsync(o,ctx){
     const canEdit=(ctx==='vendeur'||ctx==='vendeur-all'||ctx==='admin')&&!isTerminated;
     const montantEdit=canEdit?`<div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <label style="margin-bottom:0;font-size:11px;">Montant ajusté :</label>
-        <input type="number" id="montant-input-${o.id}" value="${o.montant_ajuste!=null?o.montant_ajuste:rawTotal}" style="width:130px;padding:6px 10px;margin-bottom:0;font-size:13px;">
+        <input type="number" id="montant-input-${o.id}" value="${o.montant_ajuste!=null?o.montant_ajuste:baseAvantAjust}" style="width:130px;padding:6px 10px;margin-bottom:0;font-size:13px;">
         <button class="btn btn-small btn-warning" onclick="saveMontant(${o.id})">💾 Appliquer</button>
         ${o.montant_ajuste!=null?`<button class="btn btn-small btn-secondary" onclick="resetMontant(${o.id})">↩ Reset</button>`:''}
     </div>`:'';
@@ -1063,24 +1064,24 @@ async function saveMateriauxQty(){
 async function showMateriauxCommande(orderId){
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(!o||!o.details_commande||!o.details_commande.length){alert("Aucun article dans cette commande.");return;}
-    if(!materiaux.length){alert("Aucun matériau configuré.");return;}
 
-    // Charger les liens si pas encore fait
-    if(!Object.keys(articleMateriaux).length){
-        const{data:links}=await sb.from('article_materiaux').select('*');
-        (links||[]).forEach(l=>{
-            if(!articleMateriaux[l.article_id])articleMateriaux[l.article_id]={};
-            articleMateriaux[l.article_id][l.materiau_id]=l.quantite;
-        });
+    // Toujours recharger depuis Supabase pour garantir les données fraîches
+    await loadMateriaux();
+    // S'assurer que le catalogue est chargé
+    if(!catalog.length){
+        const{data}=await sb.from('articles').select('*');
+        catalog=data||[];
     }
 
-    const totaux={};// materiau_id -> total
+    if(!materiaux.length){alert("Aucun matériau configuré. Demandez à un admin d'en créer.");return;}
+
+    const totaux={};
     let detailRows='';
 
     o.details_commande.forEach(line=>{
-        const art=catalog.find(a=>a.name===line.nom_article);
-        if(!art)return;
-        const matLine=articleMateriaux[art.id]||{};
+        // Chercher l'article par nom (insensible à la casse)
+        const art=catalog.find(a=>a.name.toLowerCase()===line.nom_article.toLowerCase());
+        const matLine=art?(articleMateriaux[art.id]||{}):{};
         const matCols=materiaux.map(m=>{
             const qUnit=matLine[m.id]||0;
             const qTotal=qUnit*line.quantite;
