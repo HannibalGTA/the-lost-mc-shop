@@ -136,10 +136,11 @@
         .remise-card,.promo-card{background:var(--bg-input);border:1px solid var(--lost-border);border-radius:6px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
         .remise-code{font-size:18px;font-weight:800;font-family:monospace;color:var(--accent-gold);}
         .section-empty{color:var(--text-muted);padding:20px;font-size:14px;}
-        .mat-table-wrap{overflow-x:auto;border:1px solid var(--lost-border);border-radius:6px;}
+        .mat-table-wrap{overflow-x:auto;overflow-y:auto;max-height:245px;border:1px solid var(--lost-border);border-radius:6px;}
         .mat-table{border-collapse:collapse;min-width:100%;font-size:13px;white-space:nowrap;}
-        .mat-table th{background:var(--bg-input);color:var(--text-muted);padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;border:1px solid var(--lost-border);}
-        .mat-table th.art-col{text-align:left;position:sticky;left:0;z-index:3;background:var(--bg-input);}
+        .mat-table thead{position:sticky;top:0;z-index:4;}
+        .mat-table th{background:var(--bg-input);color:var(--text-muted);padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;border:1px solid var(--lost-border);position:sticky;top:0;z-index:2;}
+        .mat-table th.art-col{text-align:left;position:sticky;left:0;top:0;z-index:5;background:var(--bg-input);}
         .mat-table td{padding:8px 10px;border:1px solid var(--lost-border);text-align:center;vertical-align:middle;}
         .mat-table td.art-name{text-align:left;font-weight:600;position:sticky;left:0;background:var(--bg-card);z-index:1;min-width:140px;}
         .mat-table tr:hover td{background:rgba(255,255,255,.02);}
