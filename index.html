@@ -705,8 +705,12 @@ async function renderOrderHTMLAsync(o,ctx){
     if(o.details_commande&&o.details_commande.length)
         rows=o.details_commande.map(i=>`<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat*i.quantite).toLocaleString()} $</td></tr>`).join('');
     else rows=`<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`;
-    if(o.montant_ajuste!=null){const diff=o.montant_ajuste-rawTotal;rows+=`<tr class="adjust-row"><td>⚙️ Ajustement</td><td>—</td><td>${diff>=0?'+':''}${diff.toLocaleString()} $</td></tr>`;}
-    if(o.code_promo&&o.taux_promo){const d=Math.round(rawTotal*o.taux_promo/100);rows+=`<tr class="adjust-row"><td>🎟️ Code promo ${o.code_promo} (-${o.taux_promo}%)</td><td>—</td><td>-${d.toLocaleString()} $</td></tr>`;}
+    // Base avant ajustement = rawTotal après éventuelle remise promo
+    const baseAvantAjust = o.code_promo&&o.taux_promo
+        ? Math.ceil(rawTotal*(1-o.taux_promo/100)/1000)*1000
+        : rawTotal;
+    if(o.code_promo&&o.taux_promo){const d=rawTotal-baseAvantAjust;rows+=`<tr class="adjust-row"><td>🎟️ Code promo ${o.code_promo} (-${o.taux_promo}%)</td><td>—</td><td>-${d.toLocaleString()} $</td></tr>`;}
+    if(o.montant_ajuste!=null){const diff=o.montant_ajuste-baseAvantAjust;rows+=`<tr class="adjust-row"><td>⚙️ Ajustement vendeur</td><td>—</td><td>${diff>=0?'+':''}${diff.toLocaleString()} $</td></tr>`;}
     rows+=`<tr style="font-weight:bold;"><td colspan="2">TOTAL</td><td style="color:var(--s-done)">${total.toLocaleString()} $</td></tr>`;
     const canEdit=(ctx==='vendeur'||ctx==='vendeur-all'||ctx==='admin')&&!isTerminated;
     const montantEdit=canEdit?`<div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
