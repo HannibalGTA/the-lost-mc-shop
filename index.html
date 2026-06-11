@@ -234,7 +234,7 @@
             <div id="sidebar-avatar" style="margin-bottom:12px;text-align:center;"></div>
             <div id="user-display" style="margin-bottom:8px;text-align:center;"></div>
             <div id="user-badge-display" style="margin-bottom:12px;text-align:center;"></div>
-            <button class="btn btn-secondary btn-small" style="width:100%" onclick="location.reload()">Déconnexion</button>
+            <button class="btn btn-secondary btn-small" style="width:100%" onclick="clearSession();location.reload()">Déconnexion</button>
         </div>
     </div>
 
@@ -589,6 +589,7 @@ function loginSuccess(){
     document.getElementById('menu-vendre').classList.toggle('hidden',!(currentUser.role_admin||currentUser.role_vendeur));
     document.getElementById('menu-admin').classList.toggle('hidden',!currentUser.role_admin);
     startNotifPoll();showTab('shop');
+    saveSession();
 }
 
 // CODES
@@ -1460,19 +1461,52 @@ document.addEventListener('wheel', function(e){
     }
 }, {passive:false});
 
-function closeModal(id){document.getElementById(id).classList.add('hidden');}
-document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',(e)=>{if(e.target===el)el.classList.add('hidden');});});
+// Sauvegarder la session dans localStorage
+function saveSession(){
+    if(currentUser) localStorage.setItem('lostmc_session', JSON.stringify(currentUser));
+}
+function clearSession(){
+    localStorage.removeItem('lostmc_session');
+    localStorage.removeItem('lostmc_tab');
+}
+
+// Sauvegarder l'onglet actif
 function showTab(tabId){
     document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
     document.getElementById('tab-'+tabId).classList.remove('hidden');
     const m=document.getElementById('menu-'+tabId);if(m)m.classList.add('active');
+    localStorage.setItem('lostmc_tab', tabId);
     if(tabId==='shop')loadCatalogue();
     if(tabId==='orders')loadMyOrders();
     if(tabId==='vendre')loadVendeurView();
     if(tabId==='admin')loadAdminPanel();
     if(tabId==='profile')loadProfile();
 }
+
+// Restauration automatique au chargement de la page
+(async function autoRestore(){
+    const saved = localStorage.getItem('lostmc_session');
+    if(!saved) return;
+    try {
+        const u = JSON.parse(saved);
+        // Vérifier que le compte existe toujours en base
+        const{data, error} = await sb.from('utilisateurs').select('*')
+            .eq('login', u.login_pure).eq('id_serveur', u.id_serveur).maybeSingle();
+        if(error || !data){ clearSession(); return; }
+        // Rafraîchir les données user depuis la base (rôles/vip peuvent avoir changé)
+        currentUser = {
+            login_pure: data.login, id_serveur: data.id_serveur,
+            role_admin: data.role_admin||false, role_vendeur: data.role_vendeur||false,
+            code_vip: data.code_vip||null, avatar_url: data.avatar_url||null, email: data.email||null
+        };
+        await Promise.all([loadCodesRemise(), loadCodesPromo(), loadMateriaux()]);
+        loginSuccess();
+        // Restaurer l'onglet actif
+        const lastTab = localStorage.getItem('lostmc_tab');
+        if(lastTab) showTab(lastTab);
+    } catch(e){ clearSession(); }
+})();
 </script>
 </body>
 </html>
