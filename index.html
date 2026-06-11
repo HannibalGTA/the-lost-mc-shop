@@ -870,12 +870,16 @@ async function cancelOrder(id){
 
 // GESTION VENTES
 const VTABS=['dispo','miennes','toutes','done','bilan'];
+let historiqueFilters={statuts:['Terminée','Annulée'],vendeurs:[]};
+
 function switchVendeurTab(tab){
     VTABS.forEach(t=>{document.getElementById('v-'+t+'-list').classList.toggle('hidden',t!==tab);document.getElementById('stab-v-'+t).classList.toggle('active',t===tab);});
     if(tab==='bilan')renderBilanUI('v-bilan-list',bilanFilters);
+    if(tab==='done')renderHistoriqueFilters();
 }
 async function loadVendeurView(){
-    VTABS.filter(t=>t!=='bilan').forEach(t=>document.getElementById('v-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>');
+    VTABS.filter(t=>t!=='bilan'&&t!=='done').forEach(t=>document.getElementById('v-'+t+'-list').innerHTML='<div class="section-empty">Chargement...</div>');
+    document.getElementById('v-done-list').innerHTML='<div class="section-empty">Chargement...</div>';
     const{data}=await sb.from('commandes').select('*,details_commande(*),messages_chat(*)').order('id',{ascending:false});
     allOrdersCache=data||[];
     const logins=[...new Set((data||[]).flatMap(o=>[o.client_pseudo,o.vendeur_affecte].filter(Boolean)))];
@@ -884,8 +888,66 @@ async function loadVendeurView(){
     document.getElementById('v-dispo-list').innerHTML=await r((data||[]).filter(o=>o.statut==='En attente'&&!o.vendeur_affecte),'vendeur');
     document.getElementById('v-miennes-list').innerHTML=await r((data||[]).filter(o=>o.vendeur_affecte===currentUser.login_pure&&!['Terminée','Annulée'].includes(o.statut)),'vendeur');
     document.getElementById('v-toutes-list').innerHTML=await r((data||[]).filter(o=>!['Terminée','Annulée'].includes(o.statut)&&o.vendeur_affecte),'vendeur-all');
-    document.getElementById('v-done-list').innerHTML=await r((data||[]).filter(o=>['Terminée','Annulée'].includes(o.statut)),'vendeur-all');
+    // Historique : rendu avec filtres
+    renderHistoriqueFilters();
     await markNotifsRead('message');
+}
+
+function renderHistoriqueFilters(){
+    const container=document.getElementById('v-done-list');
+    const done=(allOrdersCache||[]).filter(o=>['Terminée','Annulée'].includes(o.statut));
+    const allVendeurs=[...new Set(done.map(o=>o.vendeur_affecte).filter(Boolean))];
+    // Init filtres si vides
+    if(!historiqueFilters.vendeurs.length) historiqueFilters.vendeurs=[...allVendeurs];
+
+    container.innerHTML=`
+        <div class="filter-bar" style="margin-bottom:16px;">
+            <div class="filter-group">
+                <span class="filter-label">Statut</span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    ${['Terminée','Annulée'].map(s=>`
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text-main);">
+                            <input type="checkbox" ${historiqueFilters.statuts.includes(s)?'checked':''} style="accent-color:var(--accent-red);width:auto;margin-bottom:0;"
+                                onchange="toggleHistoriqueFilter('statuts','${s}',this.checked)">
+                            <span class="badge" style="background:${s==='Terminée'?'var(--s-done)':'var(--s-cancel)'}">${s}</span>
+                        </label>`).join('')}
+                </div>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Vendeur</span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    ${allVendeurs.length ? allVendeurs.map(v=>`
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text-main);">
+                            <input type="checkbox" ${historiqueFilters.vendeurs.includes(v)?'checked':''} style="accent-color:var(--accent-red);width:auto;margin-bottom:0;"
+                                onchange="toggleHistoriqueFilter('vendeurs','${v}',this.checked)">
+                            ${v}
+                        </label>`).join('') : '<span style="color:var(--text-muted);font-size:12px;">Aucun vendeur</span>'}
+                </div>
+            </div>
+        </div>
+        <div id="v-done-results"></div>`;
+    applyHistoriqueFilters();
+}
+
+function toggleHistoriqueFilter(key,val,checked){
+    if(checked){if(!historiqueFilters[key].includes(val))historiqueFilters[key].push(val);}
+    else historiqueFilters[key]=historiqueFilters[key].filter(x=>x!==val);
+    applyHistoriqueFilters();
+}
+
+async function applyHistoriqueFilters(){
+    const result=document.getElementById('v-done-results');
+    if(!result)return;
+    result.innerHTML='<div class="section-empty">Filtrage...</div>';
+    const done=(allOrdersCache||[]).filter(o=>{
+        if(!historiqueFilters.statuts.includes(o.statut))return false;
+        // Si aucun vendeur sélectionné ou commande non affectée : inclure si filtre vide
+        if(historiqueFilters.vendeurs.length&&o.vendeur_affecte&&!historiqueFilters.vendeurs.includes(o.vendeur_affecte))return false;
+        return true;
+    });
+    result.innerHTML=done.length
+        ?(await Promise.all(done.map(o=>renderOrderHTMLAsync(o,'vendeur-all')))).join('')
+        :'<div class="section-empty">Aucune commande ne correspond aux filtres.</div>';
 }
 async function claimOrder(id){
     if(!confirm("Prendre en charge ?"))return;
