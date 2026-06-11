@@ -759,8 +759,17 @@ async function renderOrderHTMLAsync(o,ctx){
     const clientLabel=renderUserInline(o.client_pseudo,clientU?.id_serveur??o.client_id,clientU?.code_vip,clientAv);
     const vendeurLabel=o.vendeur_affecte?renderUserInline(o.vendeur_affecte,vendeurU?.id_serveur??null,vendeurU?.code_vip,vendeurAv):'<span style="color:var(--text-muted)">Non affecté</span>';
     const buyerLine=ctx!=='client'?`Acheteur : ${clientLabel}`:'Suivi Logistique';
+
+    // Dates formatées
+    const fmtDate=d=>d?new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+    const dateCmd=fmtDate(o.date_commande);
+    const dateFin=o.date_fin?fmtDate(o.date_fin):null;
+    const isTerminated=['Terminée','Annulée'].includes(o.statut);
+    const dateHtml=`<span style="color:var(--text-muted);font-size:11px;">📅 ${dateCmd}${dateFin?` → ${dateFin}`:''}</span>`;
+
     const vendeurHeaderLine=(ctx==='vendeur'||ctx==='vendeur-all')&&o.vendeur_affecte
-        ?`<span style="color:var(--text-muted);font-size:12px;">🎯 ${vendeurLabel}</span>`:'';
+        ?`<span style="color:var(--text-muted);font-size:12px;">🎯 ${vendeurLabel}</span> ${dateHtml}`
+        : dateHtml;
     const msgBadge=unread>0?`<span class="notif-badge msg" style="margin-left:6px;">${unread}</span>`:'';
     const totalLabel=o.montant_ajuste!=null?`<span style="color:var(--s-done);font-weight:bold;">${total.toLocaleString()} $</span> <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${rawTotal.toLocaleString()} $</span>`:`<span style="font-weight:bold;color:var(--s-done)">${total.toLocaleString()} $</span>`;
     return`<div class="order-item${unread>0?' has-notif':''}" id="order-card-${o.id}">
@@ -863,7 +872,7 @@ async function loadMyOrders(){
 async function cancelOrder(id){
     if(!confirm("Annuler cette commande ?"))return;
     const o=allOrdersCache.find(x=>x.id===id);
-    await sb.from('commandes').update({statut:'Annulée'}).eq('id',id);
+    await sb.from('commandes').update({statut:'Annulée',date_fin:new Date().toISOString()}).eq('id',id);
     if(o&&o.client_pseudo!==currentUser.login_pure)await pushNotif(o.client_pseudo,id,'statut','Votre commande a été annulée.');
     await reloadCurrentView();
 }
@@ -957,15 +966,15 @@ async function claimOrder(id){
 }
 async function setOrderStatut(id,statut){
     if(!confirm(`Marquer comme "${statut}" ?`))return;
-    await sb.from('commandes').update({statut}).eq('id',id);
+    const updates={statut};
+    if(['Terminée','Annulée'].includes(statut)) updates.date_fin=new Date().toISOString();
+    await sb.from('commandes').update(updates).eq('id',id);
     const o=allOrdersCache.find(x=>x.id===id);
     if(o) await pushNotif(o.client_pseudo,id,'statut',`Votre commande : ${statut}`);
-    // Message automatique dans le chat selon le statut
-    const autoMsg={
-        'En cours':'🔄 La commande est en cours de préparation par un vendeur.',
-        'Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC en indiquant le numéro de commande ${o?.ref_commande||'LOST-'+id}, afin d'organiser la transaction.`
-    }[statut];
-    if(autoMsg) await sb.from('messages_chat').insert([{id_commande:id,auteur:'🤖 Système',message:autoMsg,lu_par:[]}]);
+    if(statut==='En cours'||statut==='Préparée'){
+        const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC en indiquant le numéro de commande ${o?.ref_commande||'LOST-'+id}, afin d'organiser la transaction.`}[statut];
+        if(autoMsg) await sb.from('messages_chat').insert([{id_commande:id,auteur:'🤖 Système',message:autoMsg,lu_par:[]}]);
+    }
     await reloadCurrentView();
 }
 
