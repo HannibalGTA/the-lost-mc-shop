@@ -1052,7 +1052,8 @@ function fpAll(pfx,key,all,isAdmin){
 }
 function applyBilanResult(filters,isAdmin){
     const terminated=allOrdersCache.filter(o=>o.statut==='Terminée');
-    let total=0,totalArticles=0,rows='';
+    let total=0,totalArticles=0,rows='',totalDelais=0,nbDelais=0;
+    const fmtDate=d=>d?new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
     terminated.forEach(o=>{
         if(filters.vendeurs.length&&!filters.vendeurs.includes(o.vendeur_affecte))return;
         if(filters.clients.length&&!filters.clients.includes(o.client_pseudo))return;
@@ -1065,15 +1066,34 @@ function applyBilanResult(filters,isAdmin){
         });
         if(!lines.length)return;
         const ot=getOrderTotal(o);total+=ot;totalArticles+=lines.reduce((s,l)=>s+l.quantite,0);
+        // Calcul délai
+        let delaiHtml='—',delaiJours=null;
+        if(o.date_commande&&o.date_fin){
+            const ms=new Date(o.date_fin)-new Date(o.date_commande);
+            delaiJours=Math.max(0,Math.round(ms/86400000));
+            totalDelais+=delaiJours;nbDelais++;
+            delaiHtml=`${delaiJours}j`;
+        }
         const ref=o.ref_commande||`LOST-${o.id}`;
-        rows+=`<tr><td style="font-family:monospace;color:var(--accent-red)">${ref}</td><td>${o.client_pseudo}</td><td>${o.vendeur_affecte||'—'}</td><td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td><td style="font-weight:bold;color:var(--s-done)">${ot.toLocaleString()} $</td></tr>`;
+        rows+=`<tr>
+            <td style="font-family:monospace;color:var(--accent-red)">${ref}</td>
+            <td>${o.client_pseudo}</td>
+            <td>${o.vendeur_affecte||'—'}</td>
+            <td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td>
+            <td style="font-weight:bold;color:var(--s-done)">${ot.toLocaleString()} $</td>
+            <td style="color:var(--text-muted);font-size:12px;">${fmtDate(o.date_fin)}</td>
+            <td style="text-align:center;color:var(--s-process);font-weight:600;">${delaiHtml}</td>
+        </tr>`;
     });
     const nb=rows?rows.split('<tr>').length-1:0;
+    const moyenneDelai=nbDelais>0?Math.round(totalDelais/nbDelais):null;
+    const moyenneHtml=moyenneDelai!=null?`${moyenneDelai}j`:'—';
     const html=`<div class="bilan-stats">
         <div class="bilan-stat"><div class="bilan-stat-val" style="color:var(--s-done)">${total.toLocaleString()} $</div><div class="bilan-stat-lbl">Chiffre d'affaires</div></div>
         <div class="bilan-stat"><div class="bilan-stat-val" style="color:var(--s-process)">${nb}</div><div class="bilan-stat-lbl">Commandes terminées</div></div>
         <div class="bilan-stat"><div class="bilan-stat-val" style="color:var(--accent-gold)">${totalArticles}</div><div class="bilan-stat-lbl">Articles vendus</div></div>
-    </div>${rows?`<div style="overflow-x:auto;"><table class="order-table"><thead><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="section-empty">Aucune commande ne correspond.</div>'}`;
+        <div class="bilan-stat"><div class="bilan-stat-val" style="color:var(--s-process)">${moyenneHtml}</div><div class="bilan-stat-lbl">Délai moyen</div></div>
+    </div>${rows?`<div style="overflow-x:auto;"><table class="order-table"><thead><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th><th>Total</th><th>Date fin</th><th style="text-align:center">Délai</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="section-empty">Aucune commande ne correspond.</div>'}`;
     const resEl=document.getElementById(isAdmin?'a-bilan-result':'v-bilan-result');
     if(resEl)resEl.innerHTML=html;
 }
