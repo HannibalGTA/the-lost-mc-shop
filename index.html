@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lost MC Shop</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
     <style>
         :root {
             --bg-main:#0c0d12; --bg-card:#14161d; --bg-input:#1a1d26;
@@ -608,7 +609,13 @@
 <script>
 const SUPABASE_URL="https://mvmngahkjvfpcwrstlns.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const APP_SECRET="lostmc_2026_k9x7q";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+    global:{headers:{'x-app-secret':APP_SECRET}}
+});
+// Bcrypt helpers
+async function hashPassword(pwd){ return await dcodeIO.bcrypt.hash(pwd,10); }
+async function checkPassword(pwd,hash){ return await dcodeIO.bcrypt.compare(pwd,hash); }
 let currentUser=null,cart=[],activeShopCat='weapons',catalog=[],allUsers=[],allOrdersCache=[];
 let codesRemise=[],codesPromo=[],itemImgBase64=null,profileAvatarBase64=null,appliedPromo=null,adminOrderSearch='';
 let userAvatarCache={};
@@ -665,12 +672,28 @@ async function handleLogin(e){
     const pwd=document.getElementById('password').value;
     const{data:u,error}=await sb.from('utilisateurs').select('*').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
     if(error){alert("Erreur Supabase : "+error.message);return;}
-    if(u&&u.mot_de_pass===pwd){
-        currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
-        await Promise.all([loadCodesRemise(),loadCodesPromo()]);
-        await loadMateriaux();
-        loginSuccess();
-    }else{
+    if(u&&u.mot_de_pass){
+        let valid=false;
+        if(u.mot_de_pass.startsWith('$2')){
+            // Mot de passe déjà hashé
+            valid=await checkPassword(pwd,u.mot_de_pass);
+        } else {
+            // Ancien mot de passe en clair → migration automatique vers bcrypt
+            valid=(u.mot_de_pass===pwd);
+            if(valid){
+                const hashed=await hashPassword(pwd);
+                await sb.from('utilisateurs').update({mot_de_pass:hashed}).eq('login',login).eq('id_serveur',cityNum);
+            }
+        }
+        if(valid){
+            currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
+            await Promise.all([loadCodesRemise(),loadCodesPromo()]);
+            await loadMateriaux();
+            loginSuccess();
+        } else {
+            alert("Accès refusé. Vérifiez votre pseudo, numéro de ville et mot de passe.");
+        }
+    } else {
         alert("Accès refusé. Vérifiez votre pseudo, numéro de ville et mot de passe.");
     }
     return false;
@@ -686,7 +709,9 @@ async function handleRegister(e){
     const pwd=document.getElementById('reg-password').value;
     const{data:ex}=await sb.from('utilisateurs').select('login').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
     if(ex){alert("Ce compte existe déjà.");return false;}
-    const{error}=await sb.from('utilisateurs').insert([{id_serveur:cityNum,login,mot_de_pass:pwd,role_admin:false,role_vendeur:false,code_vip:null}]);
+    // Hasher le mot de passe avant stockage
+    const hashedPwd=await hashPassword(pwd);
+    const{error}=await sb.from('utilisateurs').insert([{id_serveur:cityNum,login,mot_de_pass:hashedPwd,role_admin:false,role_vendeur:false,code_vip:null}]);
     if(error){alert("Erreur : "+error.message);return false;}
     alert(`Compte créé pour ${login} ! Vous pouvez vous connecter.`);
     toggleAuth(false);
@@ -1757,8 +1782,14 @@ async function changePassword(){
     const cur=document.getElementById('pwd-current').value,nw=document.getElementById('pwd-new').value,conf=document.getElementById('pwd-confirm').value;
     if(!cur||!nw||!conf){alert("Remplissez tous les champs.");return;}if(nw!==conf){alert("Mots de passe différents.");return;}if(nw.length<4){alert("Min 4 caractères.");return;}
     const{data:u}=await sb.from('utilisateurs').select('mot_de_pass').eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur).maybeSingle();
-    if(!u||u.mot_de_pass!==cur){alert("Mot de passe actuel incorrect.");return;}
-    await sb.from('utilisateurs').update({mot_de_pass:nw}).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
+    if(!u){alert("Erreur.");return;}
+    // Vérifier l'ancien mot de passe (hash ou clair)
+    let valid=false;
+    if(u.mot_de_pass.startsWith('$2')) valid=await checkPassword(cur,u.mot_de_pass);
+    else valid=(u.mot_de_pass===cur);
+    if(!valid){alert("Mot de passe actuel incorrect.");return;}
+    const hashed=await hashPassword(nw);
+    await sb.from('utilisateurs').update({mot_de_pass:hashed}).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
     ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');alert("Mot de passe changé !");
 }
 
