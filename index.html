@@ -55,7 +55,11 @@
         .catalogue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;}
         .weapon-card{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:15px;display:flex;flex-direction:column;justify-content:space-between;transition:border-color .2s;}
         .weapon-card:hover{border-color:#3d4256;}
+        .weapon-card{position:relative;}
         .weapon-card img{width:100%;height:130px;object-fit:contain;object-position:center;border-radius:4px;background:var(--bg-input);margin-bottom:12px;display:block;}
+        .card-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;border-radius:6px;background:rgba(0,0,0,.45);}
+        .card-unavailable-text{color:#fff;font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:3px;transform:rotate(-30deg);text-shadow:0 2px 6px rgba(0,0,0,.8);border:3px solid rgba(255,255,255,.6);padding:4px 12px;border-radius:4px;opacity:.85;}
+        .card-highlight-badge{position:absolute;top:10px;right:10px;z-index:3;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;box-shadow:0 2px 8px rgba(0,0,0,.4);}
         .price-tag{font-size:18px;font-weight:700;color:var(--s-done);}
         .price-original{text-decoration:line-through;color:var(--text-muted);font-size:13px;margin-left:6px;}
         .discount-badge{display:inline-block;background:var(--accent-gold);color:#000;font-size:10px;font-weight:800;padding:2px 6px;border-radius:3px;margin-left:5px;vertical-align:middle;}
@@ -400,6 +404,12 @@
             <div class="full"><label>Description</label><textarea id="item-desc" rows="2"></textarea></div>
             <div><label>Chargeur / Infos</label><input type="text" id="item-mag"></div>
             <div><label>Catégorie</label><select id="item-cat"><option value="weapons">Armes à feu</option><option value="others">Équipement</option></select></div>
+            <div><label>Ordre d'affichage</label><input type="number" id="item-sort" min="0" placeholder="0"></div>
+            <div><label>Badge surbrillance</label><input type="text" id="item-badge" placeholder="Ex : PROMO, NOUVEAUTÉ..."></div>
+            <div class="full" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+                <input type="checkbox" id="item-disponible" style="width:auto;margin-bottom:0;">
+                <label for="item-disponible" style="margin-bottom:0;text-transform:none;font-size:13px;color:var(--text-main);">Article disponible (décocher = indisponible)</label>
+            </div>
         </div>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-item')">Annuler</button>
@@ -600,23 +610,31 @@ function renderCatalogueGrid(){
     else if(currentUser.role_vendeur){rankText='VENDEUR';rankColor='#3b82f6';}
     else if(currentUser.code_vip){const c=codesRemise.find(x=>x.code===currentUser.code_vip);if(c){rankText=`${c.code} -${c.taux}%`;rankColor='#da292a';}}
     document.getElementById('client-rank-status').innerHTML=`<span class="badge" style="background:${rankColor}">${rankText}</span>`;
-    const filtered=catalog.filter(i=>i.cat===activeShopCat);
+    const filtered=catalog.filter(i=>i.cat===activeShopCat).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
     if(!filtered.length){container.innerHTML='<div class="section-empty">Aucun article.</div>';return;}
     container.innerHTML=filtered.map(w=>{
         const fp=applyRemise(w.price);
         const ph='https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);
         const dHtml=taux>0?`<span class="price-original">${w.price.toLocaleString()} $</span><span class="discount-badge">-${taux}%</span>`:'';
-        return`<div class="weapon-card"><div>
-            <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
-            <div style="font-weight:bold;font-size:16px;margin-bottom:5px;">${w.name}</div>
-            <div style="color:var(--text-muted);font-size:12px;line-height:1.4;margin-bottom:8px;">${w.description||''}</div>
-            <div style="font-size:11px;color:var(--accent-red);font-weight:600;margin-bottom:12px;">📊 ${w.mag||''}</div>
-        </div><div>
-            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
-                <span class="price-tag">${fp.toLocaleString()} $</span>${dHtml}
+        const unavailableOverlay=w.disponible===false?`<div class="card-unavailable"><span class="card-unavailable-text">Indisponible</span></div>`:'';
+        const badgeHtml=w.badge_label?`<span class="card-highlight-badge" style="background:var(--accent-red);">${w.badge_label}</span>`:'';
+        const btnAdd=w.disponible===false
+            ?`<button class="btn btn-small btn-secondary" style="width:100%;opacity:.5;cursor:not-allowed;" disabled>Indisponible</button>`
+            :`<button class="btn btn-small" style="width:100%" onclick="addToCart(${w.id})">Ajouter au panier</button>`;
+        return`<div class="weapon-card">
+            ${unavailableOverlay}${badgeHtml}
+            <div>
+                <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
+                <div style="font-weight:bold;font-size:16px;margin-bottom:5px;">${w.name}</div>
+                <div style="color:var(--text-muted);font-size:12px;line-height:1.4;margin-bottom:8px;">${w.description||''}</div>
+                <div style="font-size:11px;color:var(--accent-red);font-weight:600;margin-bottom:12px;">📊 ${w.mag||''}</div>
+            </div><div>
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
+                    <span class="price-tag">${fp.toLocaleString()} $</span>${dHtml}
+                </div>
+                ${btnAdd}
             </div>
-            <button class="btn btn-small" style="width:100%" onclick="addToCart(${w.id})">Ajouter au panier</button>
-        </div></div>`;
+        </div>`;
     }).join('');
 }
 function switchShopCat(cat){activeShopCat=cat;document.getElementById('cat-btn-weapons').classList.toggle('active',cat==='weapons');document.getElementById('cat-btn-others').classList.toggle('active',cat==='others');renderCatalogueGrid();}
@@ -1238,15 +1256,67 @@ async function savePromo(){
 async function deletePromo(id){if(!confirm("Supprimer ce code promo ?"))return;await sb.from('codes_promo').delete().eq('id',id);await loadPromos();}
 
 // CATALOGUE ADMIN
-async function loadAdminCatalogue(){const{data}=await sb.from('articles').select('*').order('id');if(data)catalog=data;renderAdminCatalogueGrid();}
+async function loadAdminCatalogue(){const{data}=await sb.from('articles').select('*').order('cat').order('sort_order');if(data)catalog=data;renderAdminCatalogueGrid();}
 function renderAdminCatalogueGrid(){
     const grid=document.getElementById('admin-catalogue-grid');if(!catalog.length){grid.innerHTML='<div class="section-empty">Aucun article.</div>';return;}
-    grid.innerHTML=catalog.map(w=>{const ph='https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);return`<div class="weapon-card"><div><img src="${w.img_url||ph}" onerror="this.src='${ph}'"><div style="font-weight:bold;font-size:15px;margin-bottom:4px;">${w.name}</div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${w.cat==='weapons'?'Arme':'Équipement'}</div><div style="font-size:12px;color:var(--accent-red);">📊 ${w.mag||''}</div></div><div><div class="price-tag" style="font-size:16px;margin-bottom:10px;">${w.price.toLocaleString()} $</div><div style="display:flex;gap:8px;"><button class="btn btn-small btn-secondary" style="flex:1" onclick="openItemModal(${w.id})">✏️</button><button class="btn btn-small btn-danger" onclick="deleteItem(${w.id})">🗑️</button></div></div></div>`;}).join('');
+    // Grouper par catégorie et trier par sort_order
+    const cats=[{key:'weapons',label:'⚙️ Armes à feu'},{key:'others',label:'🎒 Équipement & autres'}];
+    grid.innerHTML=cats.map(c=>{
+        const items=catalog.filter(w=>w.cat===c.key).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+        if(!items.length)return'';
+        const cards=items.map((w,idx)=>{
+            const ph='https://placehold.co/280x130/14161d/94a3b8?text='+encodeURIComponent(w.name);
+            const isFirst=idx===0,isLast=idx===items.length-1;
+            const dispoBtn=w.disponible===false
+                ?`<button class="btn btn-small btn-success" onclick="toggleDispo(${w.id},true)" title="Réactiver">✅</button>`
+                :`<button class="btn btn-small btn-warning" onclick="toggleDispo(${w.id},false)" title="Désactiver">🚫</button>`;
+            const badgePill=w.badge_label?`<span style="display:inline-block;background:var(--accent-red);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:3px;margin-left:4px;">${w.badge_label}</span>`:'';
+            const unavailPill=w.disponible===false?`<span style="display:inline-block;background:var(--s-cancel);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:3px;margin-left:4px;">INACTIF</span>`:'';
+            return`<div class="weapon-card" style="${w.disponible===false?'opacity:.6;':''}">
+                <div>
+                    <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
+                    <div style="font-weight:bold;font-size:14px;margin-bottom:3px;">${w.name}${badgePill}${unavailPill}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Ordre : ${w.sort_order||0}</div>
+                </div>
+                <div style="margin-top:10px;">
+                    <div style="display:flex;gap:4px;margin-bottom:6px;">
+                        <button class="btn btn-small btn-secondary" style="flex:1" ${isFirst?'disabled style="flex:1;opacity:.4"':''} onclick="moveItem(${w.id},'up','${c.key}')">▲</button>
+                        <button class="btn btn-small btn-secondary" style="flex:1" ${isLast?'disabled style="flex:1;opacity:.4"':''} onclick="moveItem(${w.id},'down','${c.key}')">▼</button>
+                    </div>
+                    <div style="display:flex;gap:4px;">
+                        ${dispoBtn}
+                        <button class="btn btn-small btn-secondary" style="flex:1" onclick="openItemModal(${w.id})">✏️</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteItem(${w.id})">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+        return`<div style="grid-column:1/-1;font-size:13px;font-weight:800;text-transform:uppercase;color:var(--accent-gold);letter-spacing:1px;margin-bottom:8px;margin-top:16px;">${c.label}</div>${cards}`;
+    }).join('');
 }
 function openItemModal(id){
     itemImgBase64=null;document.getElementById('item-img-file').value='';document.getElementById('item-img-preview').classList.add('hidden');
-    if(id===null){document.getElementById('modal-item-title').textContent='+ Nouvel Article';document.getElementById('item-edit-id').value='';['item-name','item-price','item-desc','item-mag'].forEach(x=>document.getElementById(x).value='');document.getElementById('item-cat').value='weapons';}
-    else{const w=catalog.find(x=>x.id===id);if(!w)return;document.getElementById('modal-item-title').textContent='✏️ Modifier';document.getElementById('item-edit-id').value=w.id;document.getElementById('item-name').value=w.name;document.getElementById('item-price').value=w.price;document.getElementById('item-desc').value=w.description||'';document.getElementById('item-mag').value=w.mag||'';document.getElementById('item-cat').value=w.cat;if(w.img_url){const p=document.getElementById('item-img-preview');p.src=w.img_url;p.classList.remove('hidden');}}
+    if(id===null){
+        document.getElementById('modal-item-title').textContent='+ Nouvel Article';
+        document.getElementById('item-edit-id').value='';
+        ['item-name','item-price','item-desc','item-mag','item-badge'].forEach(x=>document.getElementById(x).value='');
+        document.getElementById('item-cat').value='weapons';
+        document.getElementById('item-sort').value=0;
+        document.getElementById('item-disponible').checked=true;
+    }else{
+        const w=catalog.find(x=>x.id===id);if(!w)return;
+        document.getElementById('modal-item-title').textContent='✏️ Modifier';
+        document.getElementById('item-edit-id').value=w.id;
+        document.getElementById('item-name').value=w.name;
+        document.getElementById('item-price').value=w.price;
+        document.getElementById('item-desc').value=w.description||'';
+        document.getElementById('item-mag').value=w.mag||'';
+        document.getElementById('item-cat').value=w.cat;
+        document.getElementById('item-sort').value=w.sort_order||0;
+        document.getElementById('item-badge').value=w.badge_label||'';
+        document.getElementById('item-disponible').checked=w.disponible!==false;
+        if(w.img_url){const p=document.getElementById('item-img-preview');p.src=w.img_url;p.classList.remove('hidden');}
+    }
     document.getElementById('modal-item').classList.remove('hidden');
 }
 function previewItemImage(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=(ev)=>{itemImgBase64=ev.target.result;const p=document.getElementById('item-img-preview');p.src=itemImgBase64;p.classList.remove('hidden');};r.readAsDataURL(file);}
@@ -1254,7 +1324,10 @@ async function saveItem(){
     const id=document.getElementById('item-edit-id').value,name=document.getElementById('item-name').value.trim(),price=parseInt(document.getElementById('item-price').value),description=document.getElementById('item-desc').value.trim(),mag=document.getElementById('item-mag').value.trim(),cat=document.getElementById('item-cat').value;
     if(!name||isNaN(price)){alert("Nom et prix requis.");return;}
     let img_url=itemImgBase64||null;if(!img_url&&id){const ex=catalog.find(x=>x.id===parseInt(id));img_url=ex?ex.img_url:null;}
-    const payload={name,price,description,mag,cat,img_url};let error;
+    const sort_order=parseInt(document.getElementById('item-sort').value)||0;
+    const badge_label=document.getElementById('item-badge').value.trim()||null;
+    const disponible=document.getElementById('item-disponible').checked;
+    const payload={name,price,description,mag,cat,img_url,sort_order,badge_label,disponible};let error;
     if(id){({error}=await sb.from('articles').update(payload).eq('id',parseInt(id)));}else{({error}=await sb.from('articles').insert([payload]));}
     if(error){alert("Erreur : "+error.message);return;}
     // Si nouvel article, initialiser les matériaux à 0
@@ -1265,6 +1338,21 @@ async function saveItem(){
         }
     }
     closeModal('modal-item');await loadAdminCatalogue();await loadAdminStats();await loadMateriaux();
+}
+async function moveItem(id,dir,cat){
+    const items=catalog.filter(w=>w.cat===cat).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+    const idx=items.findIndex(w=>w.id===id);if(idx===-1)return;
+    const swapIdx=dir==='up'?idx-1:idx+1;
+    if(swapIdx<0||swapIdx>=items.length)return;
+    const a=items[idx],b=items[swapIdx];
+    const tmpOrder=a.sort_order||0;
+    await sb.from('articles').update({sort_order:b.sort_order||0}).eq('id',a.id);
+    await sb.from('articles').update({sort_order:tmpOrder}).eq('id',b.id);
+    await loadAdminCatalogue();
+}
+async function toggleDispo(id,disponible){
+    await sb.from('articles').update({disponible}).eq('id',id);
+    await loadAdminCatalogue();
 }
 async function deleteItem(id){if(!confirm("Supprimer ?"))return;await sb.from('articles').delete().eq('id',id);await loadAdminCatalogue();await loadAdminStats();}
 
