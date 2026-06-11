@@ -1453,6 +1453,13 @@ async function changePassword(){
 }
 
 // NAVIGATION
+// Bloquer la molette sur les inputs number du tableau matériaux
+document.addEventListener('wheel', function(e){
+    if(e.target.type==='number' && e.target.closest('.mat-table')){
+        e.target.blur();
+    }
+}, {passive:false});
+
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
 document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',(e)=>{if(e.target===el)el.classList.add('hidden');});});
 function showTab(tabId){
