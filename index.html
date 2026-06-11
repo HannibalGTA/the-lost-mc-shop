@@ -498,6 +498,11 @@
         </div>
         <label>Code Famille</label>
         <select id="edit-user-vip"><option value="">Aucun</option></select>
+        <div style="border-top:1px solid var(--lost-border);padding-top:16px;margin-top:4px;">
+            <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;font-weight:700;margin-bottom:10px;">🔑 Réinitialiser le mot de passe</div>
+            <input type="text" id="reset-pwd-input" placeholder="Nouveau mot de passe temporaire" style="margin-bottom:8px;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:0;">Laissez vide pour ne pas modifier le mot de passe.</div>
+        </div>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-user')">Annuler</button>
             <button class="btn btn-small" onclick="saveUserEdit()">Sauvegarder</button>
@@ -1556,12 +1561,26 @@ function openUserModal(login,idServeur){
     const u=allUsers.find(x=>x.login===login&&x.id_serveur===idServeur);if(!u)return;
     document.getElementById('edit-user-login').value=u.login;document.getElementById('edit-user-id').value=u.id_serveur;
     document.getElementById('role-vendeur').checked=u.role_vendeur||false;document.getElementById('role-admin').checked=u.role_admin||false;
-    document.getElementById('edit-user-vip').value=u.code_vip||'';document.getElementById('modal-user').classList.remove('hidden');
+    document.getElementById('edit-user-vip').value=u.code_vip||'';
+    document.getElementById('reset-pwd-input').value='';
+    document.getElementById('modal-user').classList.remove('hidden');
 }
 async function saveUserEdit(){
     const login=document.getElementById('edit-user-login').value,idServeur=parseInt(document.getElementById('edit-user-id').value);
-    const{error}=await sb.from('utilisateurs').update({role_admin:document.getElementById('role-admin').checked,role_vendeur:document.getElementById('role-vendeur').checked,code_vip:document.getElementById('edit-user-vip').value||null}).eq('login',login).eq('id_serveur',idServeur);
-    if(error){alert("Erreur : "+error.message);return;}closeModal('modal-user');await loadAdminUsers();
+    const role_vendeur=document.getElementById('role-vendeur').checked,role_admin=document.getElementById('role-admin').checked;
+    const vip=document.getElementById('edit-user-vip').value;
+    const newPwd=document.getElementById('reset-pwd-input').value.trim();
+    const updates={role_admin,role_vendeur,code_vip:vip||null};
+    // Réinitialisation mot de passe si renseigné
+    if(newPwd){
+        if(newPwd.length<4){alert("Le mot de passe doit faire au moins 4 caractères.");return;}
+        updates.mot_de_pass=await hashPassword(newPwd);
+    }
+    const{error}=await sb.from('utilisateurs').update(updates).eq('login',login).eq('id_serveur',idServeur);
+    if(error){alert("Erreur : "+error.message);return;}
+    closeModal('modal-user');
+    if(newPwd) alert(`✅ Mot de passe de ${login} réinitialisé. Communiquez-lui le nouveau mot de passe : "${newPwd}"`);
+    await loadAdminUsers();
 }
 async function deleteUser(login,idServeur){if(!confirm(`Supprimer ${login} ?`))return;await sb.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);await loadAdminUsers();await loadAdminStats();}
 
