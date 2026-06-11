@@ -764,7 +764,6 @@ async function renderOrderHTMLAsync(o,ctx){
     const fmtDate=d=>d?new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
     const dateCmd=fmtDate(o.date_commande);
     const dateFin=o.date_fin?fmtDate(o.date_fin):null;
-    const isTerminated=['Terminée','Annulée'].includes(o.statut);
     const dateHtml=`<span style="color:var(--text-muted);font-size:11px;">📅 ${dateCmd}${dateFin?` → ${dateFin}`:''}</span>`;
 
     const vendeurHeaderLine=(ctx==='vendeur'||ctx==='vendeur-all')&&o.vendeur_affecte
