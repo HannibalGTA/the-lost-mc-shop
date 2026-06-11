@@ -595,8 +595,17 @@
     </div>
 </div>
 
-<script>
-const SUPABASE_URL="https://mvmngahkjvfpcwrstlns.supabase.co";
+<!-- MODAL : Info code promo -->
+<div class="modal-overlay hidden" id="modal-promo-info">
+    <div class="modal-box" style="max-width:400px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:12px;" id="modal-promo-info-icon">🎟️</div>
+        <div class="modal-title" style="text-align:center;font-size:18px;" id="modal-promo-info-title">Code promo</div>
+        <div id="modal-promo-info-msg" style="color:var(--text-muted);font-size:14px;line-height:1.6;margin-bottom:20px;"></div>
+        <button class="btn" style="min-width:120px;" onclick="closeModal('modal-promo-info')">OK</button>
+    </div>
+</div>
+
+<script>"https://mvmngahkjvfpcwrstlns.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let currentUser=null,cart=[],activeShopCat='weapons',catalog=[],allUsers=[],allOrdersCache=[];
@@ -765,14 +774,27 @@ function renderPromoSection(){
             ${appliedPromo?`<button class="btn btn-small btn-secondary" onclick="removePromo()">✕</button>`:''}
         </div>${applied}</div>`;
 }
+function showPromoInfo(icon, title, msg){
+    document.getElementById('modal-promo-info-icon').textContent=icon;
+    document.getElementById('modal-promo-info-title').textContent=title;
+    document.getElementById('modal-promo-info-msg').innerHTML=msg;
+    document.getElementById('modal-promo-info').classList.remove('hidden');
+}
+
 async function applyPromoCode(){
     const code=document.getElementById('promo-input').value.trim().toUpperCase();if(!code)return;
-    // Toujours vérifier en base pour avoir uses_count à jour
     const{data:promo,error}=await sb.from('codes_promo').select('*').eq('code',code).maybeSingle();
-    if(error||!promo||!promo.actif){alert("Code promo invalide ou inactif.");return;}
-    if(!promo.reutilisable&&promo.uses_count>=1){alert("Ce code a déjà été utilisé.");return;}
-    if(promo.reutilisable&&promo.max_uses!=null&&promo.uses_count>=promo.max_uses){alert("Ce code a atteint son nombre max d'utilisations.");return;}
+    if(error||!promo||!promo.actif){
+        showPromoInfo('❌','Code promo invalide',`Le code <strong>${code}</strong> n'existe pas ou n'est plus actif.`);return;
+    }
+    if(!promo.reutilisable&&promo.uses_count>=1){
+        showPromoInfo('🚫','Code déjà utilisé',`Le code <strong>${promo.code}</strong> est à usage unique et a déjà été utilisé.`);return;
+    }
+    if(promo.reutilisable&&promo.max_uses!=null&&promo.uses_count>=promo.max_uses){
+        showPromoInfo('🚫','Limite atteinte',`Le code <strong>${promo.code}</strong> a atteint son nombre maximum d'utilisations (${promo.max_uses}).`);return;
+    }
     appliedPromo=promo;updateCart();renderPromoSection();
+    showPromoInfo('✅','Code appliqué !',`Le code <strong>${promo.code}</strong> vous offre une réduction de <strong style="color:var(--s-done)">-${promo.taux}%</strong> sur votre commande.`);
 }
 function removePromo(){appliedPromo=null;updateCart();renderPromoSection();}
 function addToCart(id){
@@ -804,7 +826,7 @@ async function checkout(){
         // Revérifier en base que le code est encore valide
         const{data:freshPromo}=await sb.from('codes_promo').select('*').eq('id',appliedPromo.id).maybeSingle();
         if(!freshPromo||!freshPromo.actif||(!freshPromo.reutilisable&&freshPromo.uses_count>=1)||(freshPromo.reutilisable&&freshPromo.max_uses!=null&&freshPromo.uses_count>=freshPromo.max_uses)){
-            alert("Ce code promo n'est plus valide ou a été épuisé. La commande sera passée sans réduction.");
+            showPromoInfo('🚫','Code promo expiré',`Le code <strong>${appliedPromo.code}</strong> n'est plus valide. Votre commande sera passée <strong>sans réduction</strong>.`);
             appliedPromo=null;updateCart();renderPromoSection();return;
         }
         finalTotal=applyPromoTaux(rawTotal,freshPromo.taux);
