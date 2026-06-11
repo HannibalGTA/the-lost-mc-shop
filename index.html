@@ -425,8 +425,8 @@
                     <div id="a-ready-list" class="hidden" style="min-height:100px;"></div>
                     <div id="a-done-list" class="hidden" style="min-height:100px;"></div>
                     <div id="a-cancel-list" class="hidden" style="min-height:100px;"></div>
+                    <div id="a-bilan-list" class="hidden" style="min-height:100px;"></div>
                 </div>
-                <div id="a-bilan-list" class="hidden"></div>
             </div>
             <div class="admin-section">
                 <div class="admin-section-title">💳 Codes Famille / Remise</div>
@@ -1091,31 +1091,16 @@ function renderBilanUI(containerId,filters){
     if(!filters.clients.length)filters.clients=[...allClients];
     if(!filters.articles.length)filters.articles=[...allArticles];
     const isAdmin=containerId.startsWith('a-');
-    // Pour admin : filtres + stats + en-têtes figés HORS du conteneur scrollable
-    // Le conteneur scrollable (420px) ne contient que les lignes du tableau
-    if(isAdmin){
-        document.getElementById(containerId).innerHTML=`
-            <div id="a-bilan-fixed">
-                <div class="filter-bar" style="margin-bottom:12px;">
-                    ${mkDropdown('cats','Type',['weapons','others'],filters.cats,v=>v==='weapons'?'🔫 Armes':'🎒 Équipement',true)}
-                    ${mkDropdown('articles','Articles',allArticles,filters.articles,v=>v,true)}
-                    ${mkDropdown('vendeurs','Vendeurs',allVendeurs,filters.vendeurs,v=>v,true)}
-                    ${mkDropdown('clients','Clients',allClients,filters.clients,v=>v,true)}
-                </div>
-                <div id="a-bilan-stats"></div>
-                <div id="a-bilan-thead"></div>
-            </div>
-            <div id="a-bilan-result"></div>`;
-    } else {
-        document.getElementById(containerId).innerHTML=`
-            <div class="filter-bar">
-                ${mkDropdown('cats','Type',['weapons','others'],filters.cats,v=>v==='weapons'?'🔫 Armes':'🎒 Équipement',false)}
-                ${mkDropdown('articles','Articles',allArticles,filters.articles,v=>v,false)}
-                ${mkDropdown('vendeurs','Vendeurs',allVendeurs,filters.vendeurs,v=>v,false)}
-                ${mkDropdown('clients','Clients',allClients,filters.clients,v=>v,false)}
-            </div>
-            <div id="v-bilan-result"></div>`;
-    }
+    document.getElementById(containerId).innerHTML=`
+        <div class="filter-bar" style="margin-bottom:12px;">
+            ${mkDropdown('cats','Type',['weapons','others'],filters.cats,v=>v==='weapons'?'🔫 Armes':'🎒 Équipement',isAdmin)}
+            ${mkDropdown('articles','Articles',allArticles,filters.articles,v=>v,isAdmin)}
+            ${mkDropdown('vendeurs','Vendeurs',allVendeurs,filters.vendeurs,v=>v,isAdmin)}
+            ${mkDropdown('clients','Clients',allClients,filters.clients,v=>v,isAdmin)}
+        </div>
+        <div id="${isAdmin?'a-bilan-stats':'v-bilan-stats'}"></div>
+        <div id="${isAdmin?'a-bilan-thead':'v-bilan-thead'}"></div>
+        <div id="${isAdmin?'a-bilan-result':'v-bilan-result'}" style="${isAdmin?'overflow-y:auto;max-height:180px;':''}"></div>`;
     applyBilanResult(isAdmin?adminBilanFilters:bilanFilters,isAdmin);
 }
 
@@ -1222,7 +1207,6 @@ function applyBilanResult(filters,isAdmin){
         :'<div class="section-empty">Aucune commande ne correspond.</div>';
 
     if(isAdmin){
-        // Mode admin : stats + en-têtes figés, seules les lignes défilent
         const statsEl=document.getElementById('a-bilan-stats');
         const theadEl=document.getElementById('a-bilan-thead');
         const resEl=document.getElementById('a-bilan-result');
@@ -1234,18 +1218,19 @@ function applyBilanResult(filters,isAdmin){
             resEl.innerHTML=tbodyHtml;
         }
     } else {
-        // Mode vendeur : tout dans le même conteneur scrollable
-        const html=`${statsHtml}${rows?`<div style="overflow-x:auto;overflow-y:auto;max-height:380px;border:1px solid var(--lost-border);border-radius:6px;"><table class="order-table" style="margin-top:0;"><thead><tr>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Référence</th>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Client</th>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Vendeur</th>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Articles</th>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Total</th>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Date fin</th>
-            <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;text-align:center">Délai</th>
-        </tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="section-empty">Aucune commande ne correspond.</div>'}`;
+        const statsEl=document.getElementById('v-bilan-stats');
+        const theadEl=document.getElementById('v-bilan-thead');
         const resEl=document.getElementById('v-bilan-result');
-        if(resEl)resEl.innerHTML=html;
+        if(statsEl) statsEl.innerHTML=statsHtml;
+        if(theadEl) theadEl.innerHTML=rows?`<table class="order-table" style="width:100%;margin:0;"><thead><tr>
+            <th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th>
+            <th>Total</th><th>Date fin</th><th style="text-align:center">Délai</th>
+        </tr></thead></table>`:'';
+        if(resEl){
+            resEl.style.overflowY='auto';
+            resEl.style.maxHeight='300px';
+            resEl.innerHTML=tbodyHtml;
+        }
     }
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.filter-dropdown'))document.querySelectorAll('.filter-panel').forEach(p=>p.classList.add('hidden'));});
