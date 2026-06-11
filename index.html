@@ -339,9 +339,13 @@
             <div class="admin-section" id="admin-materiaux-section">
                 <div class="admin-section-title">🧱 Matériaux par Article</div>
                 <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
-                    <input type="text" id="new-mat-name" placeholder="Nom du nouveau matériau" style="margin-bottom:0;width:220px;padding:8px 12px;font-size:13px;">
-                    <button class="btn btn-small btn-success" onclick="addMateriau()">+ Ajouter matériau</button>
-                    <button class="btn btn-small btn-secondary" onclick="saveMateriauxQty()">💾 Sauvegarder les quantités</button>
+                    <input type="text" id="new-mat-name" placeholder="Nom de la colonne" style="margin-bottom:0;width:200px;padding:8px 12px;font-size:13px;">
+                    <select id="new-mat-type" style="margin-bottom:0;width:140px;padding:8px 10px;font-size:13px;">
+                        <option value="qty">Quantité (nb)</option>
+                        <option value="prix">Prix ($)</option>
+                    </select>
+                    <button class="btn btn-small btn-success" onclick="addMateriau()">+ Ajouter colonne</button>
+                    <button class="btn btn-small btn-secondary" onclick="saveMateriauxQty()">💾 Sauvegarder</button>
                 </div>
                 <div class="mat-table-wrap" id="mat-table-container"><div class="section-empty">Chargement...</div></div>
             </div>
@@ -1028,22 +1032,26 @@ function renderMateriauxTable(){
     const container=document.getElementById('mat-table-container');
     if(!container)return;
     if(!materiaux.length&&!catalog.length){container.innerHTML='<div class="section-empty">Aucun matériau ni article.</div>';return;}
-    if(!materiaux.length){container.innerHTML='<div class="section-empty">Aucun matériau. Ajoutez-en un ci-dessus.</div>';return;}
+    if(!materiaux.length){container.innerHTML='<div class="section-empty">Aucune colonne. Ajoutez-en une ci-dessus.</div>';return;}
     if(!catalog.length){container.innerHTML='<div class="section-empty">Aucun article dans le catalogue.</div>';return;}
 
     const nbMat=materiaux.length;
     let thead=`<tr><th class="art-col">Article</th>`;
     materiaux.forEach((m,idx)=>{
         const isFirst=idx===0,isLast=idx===nbMat-1;
+        const isPrix=m.col_type==='prix';
+        const typeLabel=isPrix
+            ?`<span style="font-size:9px;color:var(--s-done);font-weight:700;">💲 PRIX $</span>`
+            :`<span style="font-size:9px;color:var(--accent-gold);font-weight:700;">📦 QTÉ</span>`;
         thead+=`<th>
             <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
                 <div style="display:flex;align-items:center;gap:2px;">
-                    <button class="mat-col-move" ${isFirst?'disabled':''} onclick="moveMatCol(${m.id},'left')" title="Déplacer à gauche">◀</button>
+                    <button class="mat-col-move" ${isFirst?'disabled':''} onclick="moveMatCol(${m.id},'left')">◀</button>
                     <input class="mat-header-input" value="${m.nom}" id="mat-name-${m.id}" onblur="renameMateriau(${m.id},this.value)">
-                    <button class="mat-col-move" ${isLast?'disabled':''} onclick="moveMatCol(${m.id},'right')" title="Déplacer à droite">▶</button>
+                    <button class="mat-col-move" ${isLast?'disabled':''} onclick="moveMatCol(${m.id},'right')">▶</button>
                 </div>
-                <div style="font-size:9px;color:var(--s-done);font-weight:600;letter-spacing:.5px;">QTÉ &nbsp;|&nbsp; PRIX FAB $</div>
-                <button onclick="deleteMateriau(${m.id})" style="background:none;border:none;color:#b91c1c;cursor:pointer;font-size:10px;padding:0;" title="Supprimer">🗑️ suppr.</button>
+                ${typeLabel}
+                <button onclick="deleteMateriau(${m.id})" style="background:none;border:none;color:#b91c1c;cursor:pointer;font-size:10px;padding:0;">🗑️ suppr.</button>
             </div>
         </th>`;
     });
@@ -1053,12 +1061,13 @@ function renderMateriauxTable(){
     catalog.forEach(art=>{
         tbody+=`<tr><td class="art-name">${art.name}</td>`;
         materiaux.forEach(m=>{
-            const qty=(articleMateriaux[art.id]&&articleMateriaux[art.id][m.id])||0;
-            const prix=(articlePrix[art.id]&&articlePrix[art.id][m.id])||0;
-            tbody+=`<td style="white-space:nowrap;">
-                <input class="mat-qty" type="number" min="0" value="${qty}" id="mq-${art.id}-${m.id}" style="width:52px;">
-                <input class="mat-prix" type="number" min="0" value="${prix}" id="mp-${art.id}-${m.id}" style="width:62px;" placeholder="0 $">
-            </td>`;
+            const isPrix=m.col_type==='prix';
+            const val=isPrix
+                ?((articlePrix[art.id]&&articlePrix[art.id][m.id])||0)
+                :((articleMateriaux[art.id]&&articleMateriaux[art.id][m.id])||0);
+            const cls=isPrix?'mat-prix':'mat-qty';
+            const ph=isPrix?'0 $':'0';
+            tbody+=`<td><input class="${cls}" type="number" min="0" value="${val}" id="mv-${art.id}-${m.id}" placeholder="${ph}"></td>`;
         });
         tbody+=`</tr>`;
     });
@@ -1069,10 +1078,11 @@ function renderMateriauxTable(){
 async function addMateriau(){
     const input=document.getElementById('new-mat-name');
     const nom=input.value.trim();
+    const col_type=document.getElementById('new-mat-type').value;
     if(!nom){alert("Nom requis.");return;}
-    const{data,error}=await sb.from('materiaux').insert([{nom}]).select();
+    const maxOrder=materiaux.length?Math.max(...materiaux.map(m=>m.col_order||0))+1:0;
+    const{data,error}=await sb.from('materiaux').insert([{nom,col_type,col_order:maxOrder}]).select();
     if(error){alert("Erreur : "+error.message);return;}
-    // Init quantite 0 pour tous les articles existants
     if(catalog.length&&data&&data[0]){
         const newMatId=data[0].id;
         await sb.from('article_materiaux').insert(catalog.map(art=>({article_id:art.id,materiau_id:newMatId,quantite:0,prix_fabrication:0})));
@@ -1098,10 +1108,15 @@ async function saveMateriauxQty(){
     const upserts=[];
     catalog.forEach(art=>{
         materiaux.forEach(m=>{
-            const qInput=document.getElementById(`mq-${art.id}-${m.id}`);
-            const pInput=document.getElementById(`mp-${art.id}-${m.id}`);
-            if(!qInput)return;
-            upserts.push({article_id:art.id,materiau_id:m.id,quantite:parseInt(qInput.value)||0,prix_fabrication:parseInt(pInput?.value)||0});
+            const input=document.getElementById(`mv-${art.id}-${m.id}`);
+            if(!input)return;
+            const val=parseInt(input.value)||0;
+            const isPrix=m.col_type==='prix';
+            upserts.push({
+                article_id:art.id,materiau_id:m.id,
+                quantite:isPrix?(articleMateriaux[art.id]?.[m.id]||0):val,
+                prix_fabrication:isPrix?val:(articlePrix[art.id]?.[m.id]||0)
+            });
         });
     });
     if(!upserts.length){alert("Rien à sauvegarder.");return;}
@@ -1146,22 +1161,37 @@ async function showMateriauxCommande(orderId){
         const matLine=art?(articleMateriaux[art.id]||{}):{};
         const prixLine=art?(articlePrix[art.id]||{}):{};
         const matCols=materiaux.map(m=>{
-            const qUnit=matLine[m.id]||0;
-            const qTotal=qUnit*line.quantite;
-            const prixUnit=prixLine[m.id]||0;
-            const prixTotal=prixUnit*line.quantite;
-            totauxQty[m.id]=(totauxQty[m.id]||0)+qTotal;
-            totauxPrix[m.id]=(totauxPrix[m.id]||0)+prixTotal;
-            const qHtml=qUnit>0?`<span style="color:var(--text-main)">${qUnit}×${line.quantite}=<strong>${qTotal}</strong></span>`:'—';
-            const pHtml=prixUnit>0?`<span style="color:var(--s-done);font-size:11px;">${prixUnit.toLocaleString()} $</span>`:'';
-            return`<td style="text-align:center;font-size:12px;">${qHtml}${pHtml?`<br>${pHtml}`:''}</td>`;
+            const isPrix=m.col_type==='prix';
+            if(isPrix){
+                const prixUnit=prixLine[m.id]||0;
+                const prixTotal=prixUnit*line.quantite;
+                totauxPrix[m.id]=(totauxPrix[m.id]||0)+prixTotal;
+                return`<td style="text-align:center;font-size:12px;color:var(--s-done);">${prixUnit>0?`${prixUnit.toLocaleString()} $ × ${line.quantite} = <strong>${prixTotal.toLocaleString()} $</strong>`:'—'}</td>`;
+            } else {
+                const qUnit=matLine[m.id]||0;
+                const qTotal=qUnit*line.quantite;
+                totauxQty[m.id]=(totauxQty[m.id]||0)+qTotal;
+                return`<td style="text-align:center;font-size:12px;">${qUnit>0?`${qUnit} × ${line.quantite} = <strong>${qTotal}</strong>`:'—'}</td>`;
+            }
         }).join('');
         detailRows+=`<tr><td><strong>${line.nom_article}</strong></td><td style="text-align:center">${line.quantite}</td>${matCols}</tr>`;
     });
 
-    const totalQtyCols=materiaux.map(m=>`<td style="text-align:center;font-weight:800;color:var(--accent-gold)">${totauxQty[m.id]||0}</td>`).join('');
-    const totalPrixCols=materiaux.map(m=>`<td style="text-align:center;font-weight:800;color:var(--s-done)">${(totauxPrix[m.id]||0).toLocaleString()} $</td>`).join('');
-    const matHeaders=materiaux.map(m=>`<th style="text-align:center">${m.nom}</th>`).join('');
+    const totalCols=materiaux.map(m=>{
+        const isPrix=m.col_type==='prix';
+        if(isPrix){
+            const v=totauxPrix[m.id]||0;
+            return`<td style="text-align:center;font-weight:800;color:var(--s-done)">${v.toLocaleString()} $</td>`;
+        } else {
+            const v=totauxQty[m.id]||0;
+            return`<td style="text-align:center;font-weight:800;color:var(--accent-gold)">${v}</td>`;
+        }
+    }).join('');
+    const matHeaders=materiaux.map(m=>{
+        const isPrix=m.col_type==='prix';
+        const badge=isPrix?'💲':'📦';
+        return`<th style="text-align:center">${badge} ${m.nom}</th>`;
+    }).join('');
     const totalPrixGlobal=Object.values(totauxPrix).reduce((s,v)=>s+v,0);
 
     const ref=o.ref_commande||`LOST-${o.id}`;
@@ -1177,10 +1207,7 @@ async function showMateriauxCommande(orderId){
             <tbody>
                 ${detailRows}
                 <tr class="mat-total-row" style="border-top:2px solid var(--lost-border);">
-                    <td colspan="2">TOTAL QTÉ</td>${totalQtyCols}
-                </tr>
-                <tr class="mat-total-row">
-                    <td colspan="2">TOTAL COÛT FAB.</td>${totalPrixCols}
+                    <td colspan="2" style="font-weight:800;">TOTAUX</td>${totalCols}
                 </tr>
             </tbody>
         </table>
