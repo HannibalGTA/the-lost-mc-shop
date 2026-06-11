@@ -56,6 +56,8 @@
         .weapon-card{background:var(--bg-card);border:1px solid var(--lost-border);border-radius:6px;padding:15px;display:flex;flex-direction:column;justify-content:space-between;transition:border-color .2s;}
         .weapon-card:hover{border-color:#3d4256;}
         .weapon-card{position:relative;}
+        .weapon-card.highlighted{border:2px solid transparent;background-clip:padding-box;border-radius:8px;padding:14px;box-shadow:0 0 18px rgba(218,41,42,.35),0 4px 24px rgba(0,0,0,.5);background-image:linear-gradient(var(--bg-card),var(--bg-card)),linear-gradient(135deg,#da292a,#ff6b35,#da292a,#7c1a1a);background-origin:border-box;background-clip:padding-box,border-box;}
+        .weapon-card.highlighted:hover{box-shadow:0 0 26px rgba(218,41,42,.55),0 6px 30px rgba(0,0,0,.6);}
         .weapon-card img{width:100%;height:130px;object-fit:contain;object-position:center;border-radius:4px;background:var(--bg-input);margin-bottom:12px;display:block;}
         .card-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;border-radius:6px;background:rgba(0,0,0,.45);}
         .card-unavailable-text{color:#fff;font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:3px;transform:rotate(-30deg);text-shadow:0 2px 6px rgba(0,0,0,.8);border:3px solid rgba(255,255,255,.6);padding:4px 12px;border-radius:4px;opacity:.85;}
@@ -621,7 +623,7 @@ function renderCatalogueGrid(){
         const btnAdd=w.disponible===false
             ?`<button class="btn btn-small btn-secondary" style="width:100%;opacity:.5;cursor:not-allowed;" disabled>Indisponible</button>`
             :`<button class="btn btn-small" style="width:100%" onclick="addToCart(${w.id})">Ajouter au panier</button>`;
-        return`<div class="weapon-card">
+        return`<div class="weapon-card${w.badge_label?' highlighted':''}">
             ${unavailableOverlay}${badgeHtml}
             <div>
                 <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
