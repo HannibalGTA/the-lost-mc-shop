@@ -1569,7 +1569,33 @@ async function deleteRemise(id){if(!confirm("Supprimer ce code famille ?"))retur
 // CODES PROMO
 async function loadPromos(){
     await loadCodesPromo();
-    document.getElementById('promo-admin-list').innerHTML=codesPromo.length?codesPromo.map(p=>`<div class="promo-card"><div><div style="font-size:16px;font-weight:800;font-family:monospace;color:${p.actif?'var(--s-process)':'var(--s-cancel)'};">${p.code}${!p.actif?' <span style="font-size:10px;">(inactif)</span>':''}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.reutilisable?`Réutilisable — ${p.max_uses!=null?`max ${p.max_uses}x`:'illimité'}`:'Usage unique'} | Utilisé : ${p.uses_count}x</div></div><div style="display:flex;align-items:center;gap:10px;"><span style="color:var(--s-done);font-weight:700;">-${p.taux}%</span><button class="btn btn-small btn-secondary" onclick="openPromoModal(${p.id})">✏️</button><button class="btn btn-small btn-danger" onclick="deletePromo(${p.id})">🗑️</button></div></div>`).join(''):'<div class="section-empty">Aucun code promo.</div>';
+    document.getElementById('promo-admin-list').innerHTML=codesPromo.length?codesPromo.map(p=>{
+        const isExpired=!p.actif||(!p.reutilisable&&p.uses_count>=1)||(p.reutilisable&&p.max_uses!=null&&p.uses_count>=p.max_uses);
+        const usageBar=p.reutilisable&&p.max_uses!=null?`<div style="margin-top:6px;background:var(--lost-border);border-radius:4px;height:4px;width:120px;overflow:hidden;">
+            <div style="height:100%;border-radius:4px;width:${Math.min(100,Math.round(p.uses_count/p.max_uses*100))}%;background:${isExpired?'var(--s-cancel)':'var(--accent-red)'};transition:width .3s;"></div>
+        </div>`:'';
+        const statusBadge=isExpired
+            ?`<span class="badge" style="background:var(--s-cancel);font-size:10px;">🚫 EXPIRÉ</span>`
+            :`<span class="badge" style="background:var(--s-done);font-size:10px;">✅ ACTIF</span>`;
+        const usageText=p.reutilisable
+            ?(p.max_uses!=null?`${p.uses_count} / ${p.max_uses} utilisations`:'Illimité — '+p.uses_count+'x utilisé')
+            :(p.uses_count>=1?'Utilisé':'Non utilisé');
+        return`<div class="promo-card" style="${isExpired?'opacity:.65;border-color:#374151;':'border-color:'+( p.actif?'rgba(16,185,129,.3)':'var(--lost-border)')+''}">
+            <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <span style="font-size:16px;font-weight:800;font-family:monospace;color:${isExpired?'var(--s-cancel)':'var(--s-process)'};">${p.code}</span>
+                    ${statusBadge}
+                    <span style="font-weight:800;color:var(--s-done);">-${p.taux}%</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">${usageText}</div>
+                ${usageBar}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button class="btn btn-small btn-secondary" onclick="openPromoModal(${p.id})">✏️</button>
+                <button class="btn btn-small btn-danger" onclick="deletePromo(${p.id})">🗑️</button>
+            </div>
+        </div>`;
+    }).join(''):'<div class="section-empty">Aucun code promo.</div>';
 }
 function togglePromoMax(){document.getElementById('promo-max-wrap').classList.toggle('hidden',!document.getElementById('promo-reutilisable').checked);}
 function openPromoModal(id){
