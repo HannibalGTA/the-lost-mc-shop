@@ -767,8 +767,9 @@ function renderPromoSection(){
 }
 async function applyPromoCode(){
     const code=document.getElementById('promo-input').value.trim().toUpperCase();if(!code)return;
-    const promo=codesPromo.find(p=>p.code===code&&p.actif);
-    if(!promo){alert("Code promo invalide ou inactif.");return;}
+    // Toujours vérifier en base pour avoir uses_count à jour
+    const{data:promo,error}=await sb.from('codes_promo').select('*').eq('code',code).maybeSingle();
+    if(error||!promo||!promo.actif){alert("Code promo invalide ou inactif.");return;}
     if(!promo.reutilisable&&promo.uses_count>=1){alert("Ce code a déjà été utilisé.");return;}
     if(promo.reutilisable&&promo.max_uses!=null&&promo.uses_count>=promo.max_uses){alert("Ce code a atteint son nombre max d'utilisations.");return;}
     appliedPromo=promo;updateCart();renderPromoSection();
@@ -800,10 +801,17 @@ async function checkout(){
     const rawTotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
     let finalTotal=rawTotal,codePromoUsed=null,tauxPromoUsed=null;
     if(appliedPromo&&!currentUser.code_vip){
-        finalTotal=applyPromoTaux(rawTotal,appliedPromo.taux);
-        codePromoUsed=appliedPromo.code;tauxPromoUsed=appliedPromo.taux;
-        await sb.from('codes_promo').update({uses_count:appliedPromo.uses_count+1}).eq('id',appliedPromo.id);
-        if(!appliedPromo.reutilisable)await sb.from('codes_promo').update({actif:false}).eq('id',appliedPromo.id);
+        // Revérifier en base que le code est encore valide
+        const{data:freshPromo}=await sb.from('codes_promo').select('*').eq('id',appliedPromo.id).maybeSingle();
+        if(!freshPromo||!freshPromo.actif||(!freshPromo.reutilisable&&freshPromo.uses_count>=1)||(freshPromo.reutilisable&&freshPromo.max_uses!=null&&freshPromo.uses_count>=freshPromo.max_uses)){
+            alert("Ce code promo n'est plus valide ou a été épuisé. La commande sera passée sans réduction.");
+            appliedPromo=null;updateCart();renderPromoSection();return;
+        }
+        finalTotal=applyPromoTaux(rawTotal,freshPromo.taux);
+        codePromoUsed=freshPromo.code;tauxPromoUsed=freshPromo.taux;
+        await sb.from('codes_promo').update({uses_count:freshPromo.uses_count+1}).eq('id',freshPromo.id);
+        if(!freshPromo.reutilisable)await sb.from('codes_promo').update({actif:false}).eq('id',freshPromo.id);
+        appliedPromo=null;
     }
     const{data:od,error:oe}=await sb.from('commandes').insert([{client_id:currentUser.id_serveur,client_pseudo:currentUser.login_pure,statut:'En attente',ref_commande:null,montant_ajuste:codePromoUsed?finalTotal:null,code_promo:codePromoUsed,taux_promo:tauxPromoUsed}]).select();
     if(oe){alert("Erreur : "+oe.message);return;}
