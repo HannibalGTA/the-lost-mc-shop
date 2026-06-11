@@ -156,6 +156,11 @@
         .mat-header-input:focus{outline:none;border-bottom-color:var(--accent-red);}
         .mat-cmd-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
         .mat-cmd-table th{background:var(--bg-input);color:var(--text-muted);padding:8px;text-align:left;font-size:11px;text-transform:uppercase;}
+        .mat-prix{width:70px;padding:4px 6px;background:var(--bg-input);border:1px solid var(--lost-border);border-radius:3px;color:var(--s-done);font-size:12px;text-align:center;}
+        .mat-prix:focus{outline:none;border-color:var(--accent-gold);}
+        .mat-col-move{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:0 2px;}
+        .mat-col-move:hover{color:var(--text-main);}
+        .mat-col-move:disabled{opacity:.25;cursor:default;}
         .mat-cmd-table td{padding:8px;border-bottom:1px solid var(--lost-border);}
         .mat-total-row td{font-weight:800;color:var(--accent-gold);}
     </style>
@@ -492,7 +497,7 @@ let currentUser=null,cart=[],activeShopCat='weapons',catalog=[],allUsers=[],allO
 let codesRemise=[],codesPromo=[],itemImgBase64=null,profileAvatarBase64=null,appliedPromo=null,adminOrderSearch='';
 let userAvatarCache={};
 let bilanFilters={cats:['weapons','others'],articles:[],vendeurs:[],clients:[]};
-let materiaux=[],articleMateriaux={};// {article_id: {materiau_id: quantite}}
+let materiaux=[],articleMateriaux={},articlePrix={};// matériaux state
 let adminBilanFilters={cats:['weapons','others'],articles:[],vendeurs:[],clients:[]};
 
 // HELPERS
@@ -1004,14 +1009,17 @@ document.addEventListener('click',e=>{if(!e.target.closest('.filter-dropdown'))d
 // =============================================
 async function loadMateriaux(){
     const[{data:mats},{data:links}]=await Promise.all([
-        sb.from('materiaux').select('*').order('id'),
+        sb.from('materiaux').select('*').order('col_order').order('id'),
         sb.from('article_materiaux').select('*')
     ]);
     materiaux=mats||[];
     articleMateriaux={};
+    articlePrix={};// {article_id: {materiau_id: prix_fabrication}}
     (links||[]).forEach(l=>{
         if(!articleMateriaux[l.article_id])articleMateriaux[l.article_id]={};
         articleMateriaux[l.article_id][l.materiau_id]=l.quantite;
+        if(!articlePrix[l.article_id])articlePrix[l.article_id]={};
+        articlePrix[l.article_id][l.materiau_id]=l.prix_fabrication||0;
     });
     renderMateriauxTable();
 }
@@ -1019,16 +1027,23 @@ async function loadMateriaux(){
 function renderMateriauxTable(){
     const container=document.getElementById('mat-table-container');
     if(!container)return;
-    if(!materiaux.length&&!catalog.length){container.innerHTML='<div class="section-empty">Aucun matériau ni article. Ajoutez des matériaux et des articles au catalogue.</div>';return;}
+    if(!materiaux.length&&!catalog.length){container.innerHTML='<div class="section-empty">Aucun matériau ni article.</div>';return;}
     if(!materiaux.length){container.innerHTML='<div class="section-empty">Aucun matériau. Ajoutez-en un ci-dessus.</div>';return;}
     if(!catalog.length){container.innerHTML='<div class="section-empty">Aucun article dans le catalogue.</div>';return;}
 
+    const nbMat=materiaux.length;
     let thead=`<tr><th class="art-col">Article</th>`;
-    materiaux.forEach(m=>{
+    materiaux.forEach((m,idx)=>{
+        const isFirst=idx===0,isLast=idx===nbMat-1;
         thead+=`<th>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                <input class="mat-header-input" value="${m.nom}" id="mat-name-${m.id}" onblur="renameMateriau(${m.id},this.value)">
-                <button onclick="deleteMateriau(${m.id})" style="background:none;border:none;color:#b91c1c;cursor:pointer;font-size:11px;padding:0;" title="Supprimer">🗑️</button>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+                <div style="display:flex;align-items:center;gap:2px;">
+                    <button class="mat-col-move" ${isFirst?'disabled':''} onclick="moveMatCol(${m.id},'left')" title="Déplacer à gauche">◀</button>
+                    <input class="mat-header-input" value="${m.nom}" id="mat-name-${m.id}" onblur="renameMateriau(${m.id},this.value)">
+                    <button class="mat-col-move" ${isLast?'disabled':''} onclick="moveMatCol(${m.id},'right')" title="Déplacer à droite">▶</button>
+                </div>
+                <div style="font-size:9px;color:var(--s-done);font-weight:600;letter-spacing:.5px;">QTÉ &nbsp;|&nbsp; PRIX FAB $</div>
+                <button onclick="deleteMateriau(${m.id})" style="background:none;border:none;color:#b91c1c;cursor:pointer;font-size:10px;padding:0;" title="Supprimer">🗑️ suppr.</button>
             </div>
         </th>`;
     });
@@ -1039,7 +1054,11 @@ function renderMateriauxTable(){
         tbody+=`<tr><td class="art-name">${art.name}</td>`;
         materiaux.forEach(m=>{
             const qty=(articleMateriaux[art.id]&&articleMateriaux[art.id][m.id])||0;
-            tbody+=`<td><input class="mat-qty" type="number" min="0" value="${qty}" id="mq-${art.id}-${m.id}"></td>`;
+            const prix=(articlePrix[art.id]&&articlePrix[art.id][m.id])||0;
+            tbody+=`<td style="white-space:nowrap;">
+                <input class="mat-qty" type="number" min="0" value="${qty}" id="mq-${art.id}-${m.id}" style="width:52px;">
+                <input class="mat-prix" type="number" min="0" value="${prix}" id="mp-${art.id}-${m.id}" style="width:62px;" placeholder="0 $">
+            </td>`;
         });
         tbody+=`</tr>`;
     });
@@ -1056,7 +1075,7 @@ async function addMateriau(){
     // Init quantite 0 pour tous les articles existants
     if(catalog.length&&data&&data[0]){
         const newMatId=data[0].id;
-        await sb.from('article_materiaux').insert(catalog.map(art=>({article_id:art.id,materiau_id:newMatId,quantite:0})));
+        await sb.from('article_materiaux').insert(catalog.map(art=>({article_id:art.id,materiau_id:newMatId,quantite:0,prix_fabrication:0})));
     }
     input.value='';
     await loadMateriaux();
@@ -1079,16 +1098,27 @@ async function saveMateriauxQty(){
     const upserts=[];
     catalog.forEach(art=>{
         materiaux.forEach(m=>{
-            const input=document.getElementById(`mq-${art.id}-${m.id}`);
-            if(!input)return;
-            const qty=parseInt(input.value)||0;
-            upserts.push({article_id:art.id,materiau_id:m.id,quantite:qty});
+            const qInput=document.getElementById(`mq-${art.id}-${m.id}`);
+            const pInput=document.getElementById(`mp-${art.id}-${m.id}`);
+            if(!qInput)return;
+            upserts.push({article_id:art.id,materiau_id:m.id,quantite:parseInt(qInput.value)||0,prix_fabrication:parseInt(pInput?.value)||0});
         });
     });
     if(!upserts.length){alert("Rien à sauvegarder.");return;}
     const{error}=await sb.from('article_materiaux').upsert(upserts,{onConflict:'article_id,materiau_id'});
     if(error){alert("Erreur : "+error.message);return;}
-    alert("✅ Quantités sauvegardées !");
+    alert("✅ Sauvegardé !");
+    await loadMateriaux();
+}
+
+async function moveMatCol(id,dir){
+    const idx=materiaux.findIndex(m=>m.id===id);if(idx===-1)return;
+    const swapIdx=dir==='left'?idx-1:idx+1;
+    if(swapIdx<0||swapIdx>=materiaux.length)return;
+    const a=materiaux[idx],b=materiaux[swapIdx];
+    const tmpOrder=a.col_order??idx;
+    await sb.from('materiaux').update({col_order:b.col_order??swapIdx}).eq('id',a.id);
+    await sb.from('materiaux').update({col_order:tmpOrder}).eq('id',b.id);
     await loadMateriaux();
 }
 
@@ -1107,35 +1137,50 @@ async function showMateriauxCommande(orderId){
 
     if(!materiaux.length){alert("Aucun matériau configuré. Demandez à un admin d'en créer.");return;}
 
-    const totaux={};
+    const totauxQty={};// materiau_id -> total quantité
+    const totauxPrix={};// materiau_id -> total coût fab
     let detailRows='';
 
     o.details_commande.forEach(line=>{
-        // Chercher l'article par nom (insensible à la casse)
         const art=catalog.find(a=>a.name.toLowerCase()===line.nom_article.toLowerCase());
         const matLine=art?(articleMateriaux[art.id]||{}):{};
+        const prixLine=art?(articlePrix[art.id]||{}):{};
         const matCols=materiaux.map(m=>{
             const qUnit=matLine[m.id]||0;
             const qTotal=qUnit*line.quantite;
-            totaux[m.id]=(totaux[m.id]||0)+qTotal;
-            return`<td style="text-align:center">${qUnit>0?`${qUnit} × ${line.quantite} = <strong>${qTotal}</strong>`:'—'}</td>`;
+            const prixUnit=prixLine[m.id]||0;
+            const prixTotal=prixUnit*line.quantite;
+            totauxQty[m.id]=(totauxQty[m.id]||0)+qTotal;
+            totauxPrix[m.id]=(totauxPrix[m.id]||0)+prixTotal;
+            const qHtml=qUnit>0?`<span style="color:var(--text-main)">${qUnit}×${line.quantite}=<strong>${qTotal}</strong></span>`:'—';
+            const pHtml=prixUnit>0?`<span style="color:var(--s-done);font-size:11px;">${prixUnit.toLocaleString()} $</span>`:'';
+            return`<td style="text-align:center;font-size:12px;">${qHtml}${pHtml?`<br>${pHtml}`:''}</td>`;
         }).join('');
         detailRows+=`<tr><td><strong>${line.nom_article}</strong></td><td style="text-align:center">${line.quantite}</td>${matCols}</tr>`;
     });
 
-    const totalCols=materiaux.map(m=>`<td style="text-align:center;font-weight:800;color:var(--accent-gold)">${totaux[m.id]||0}</td>`).join('');
+    const totalQtyCols=materiaux.map(m=>`<td style="text-align:center;font-weight:800;color:var(--accent-gold)">${totauxQty[m.id]||0}</td>`).join('');
+    const totalPrixCols=materiaux.map(m=>`<td style="text-align:center;font-weight:800;color:var(--s-done)">${(totauxPrix[m.id]||0).toLocaleString()} $</td>`).join('');
     const matHeaders=materiaux.map(m=>`<th style="text-align:center">${m.nom}</th>`).join('');
+    const totalPrixGlobal=Object.values(totauxPrix).reduce((s,v)=>s+v,0);
 
     const ref=o.ref_commande||`LOST-${o.id}`;
     document.getElementById('modal-materiaux-cmd-content').innerHTML=`
         <p style="color:var(--text-muted);font-size:13px;margin-top:0;">Commande <strong style="color:var(--accent-red)">${ref}</strong></p>
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:10px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Coût de fabrication total</span>
+            <span style="font-size:20px;font-weight:800;color:var(--s-done);">${totalPrixGlobal.toLocaleString()} $</span>
+        </div>
         <div style="overflow-x:auto;">
         <table class="mat-cmd-table">
-            <thead><tr><th>Article</th><th style="text-align:center">Qté cmd</th>${matHeaders}</tr></thead>
+            <thead><tr><th>Article</th><th style="text-align:center">Qté</th>${matHeaders}</tr></thead>
             <tbody>
                 ${detailRows}
                 <tr class="mat-total-row" style="border-top:2px solid var(--lost-border);">
-                    <td colspan="2" style="font-weight:800;">TOTAL MATÉRIAUX</td>${totalCols}
+                    <td colspan="2">TOTAL QTÉ</td>${totalQtyCols}
+                </tr>
+                <tr class="mat-total-row">
+                    <td colspan="2">TOTAL COÛT FAB.</td>${totalPrixCols}
                 </tr>
             </tbody>
         </table>
@@ -1336,7 +1381,7 @@ async function saveItem(){
     if(!id&&materiaux.length){
         const{data:newArt}=await sb.from('articles').select('id').order('id',{ascending:false}).limit(1);
         if(newArt&&newArt[0]){
-            await sb.from('article_materiaux').insert(materiaux.map(m=>({article_id:newArt[0].id,materiau_id:m.id,quantite:0})));
+            await sb.from('article_materiaux').insert(materiaux.map(m=>({article_id:newArt[0].id,materiau_id:m.id,quantite:0,prix_fabrication:0})));
         }
     }
     closeModal('modal-item');await loadAdminCatalogue();await loadAdminStats();await loadMateriaux();
