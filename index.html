@@ -656,6 +656,10 @@ function toggleAuth(isReg){
 }
 async function handleLogin(e){
     e.preventDefault();
+    if(!RL.check('login',5,30000)){
+        showPromoInfo('🚫','Trop de tentatives','Vous avez effectué trop de tentatives de connexion.<br>Veuillez patienter <strong>30 secondes</strong> avant de réessayer.');
+        return false;
+    }
     const login=document.getElementById('login-pure-username').value.trim();
     const cityNum=parseInt(document.getElementById('login-city-number').value.trim());
     const pwd=document.getElementById('password').value;
@@ -673,6 +677,10 @@ async function handleLogin(e){
 }
 async function handleRegister(e){
     e.preventDefault();
+    if(!RL.check('register',3,600000)){
+        showPromoInfo('🚫','Limite atteinte','Vous avez créé trop de comptes récemment.<br>Veuillez patienter <strong>10 minutes</strong>.');
+        return false;
+    }
     const login=document.getElementById('reg-pure-username').value.trim();
     const cityNum=parseInt(document.getElementById('reg-city-number').value.trim());
     const pwd=document.getElementById('reg-password').value;
@@ -775,6 +783,19 @@ function renderPromoSection(){
             ${appliedPromo?`<button class="btn btn-small btn-secondary" onclick="removePromo()">✕</button>`:''}
         </div>${applied}</div>`;
 }
+// =============================================
+// RATE LIMITING (anti-bot / anti-flood)
+// =============================================
+const RL={
+    _s:{},
+    check(key,max,windowMs){
+        const now=Date.now(),e=this._s[key]||{c:0,t:now};
+        if(now-e.t>windowMs){e.c=0;e.t=now;}
+        e.c++;this._s[key]=e;return e.c<=max;
+    }
+};
+let _lastCheckout=0,_lastChat={};
+
 function showPromoInfo(icon, title, msg){
     document.getElementById('modal-promo-info-icon').textContent=icon;
     document.getElementById('modal-promo-info-title').textContent=title;
@@ -821,6 +842,10 @@ function updateCart(){
 }
 async function checkout(){
     if(!cart.length)return;
+    if(!RL.check('checkout',1,3000)){
+        showPromoInfo('⏳','Trop rapide','Veuillez patienter quelques secondes avant de passer une nouvelle commande.');
+        return;
+    }
     const rawTotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
     let finalTotal=rawTotal,codePromoUsed=null,tauxPromoUsed=null;
     if(appliedPromo&&!currentUser.code_vip){
@@ -970,7 +995,8 @@ function renderChat(orderId,messages){
 }
 async function sendChat(orderId){
     const input=document.getElementById('chat-input-'+orderId);
-    const msg=input.value.trim();if(!msg)return;input.value='';
+    const msg=input.value.trim();if(!msg)return;
+    if(!RL.check('chat-'+orderId,1,2000))return;// silencieux anti-floodinput.value='';
     await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
