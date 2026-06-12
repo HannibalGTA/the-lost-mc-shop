@@ -523,7 +523,6 @@
             <div class="full"><label>Description</label><textarea id="item-desc" rows="2"></textarea></div>
             <div><label>Chargeur / Infos</label><input type="text" id="item-mag"></div>
             <div><label>Catégorie</label><select id="item-cat"><option value="weapons">Armes à feu</option><option value="others">Équipement</option></select></div>
-            <div><label>Ordre d'affichage</label><input type="number" id="item-sort" min="0" placeholder="0"></div>
             <div><label>Badge surbrillance</label><input type="text" id="item-badge" placeholder="Ex : PROMO, NOUVEAUTÉ..."></div>
             <div class="full" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
                 <input type="checkbox" id="item-disponible" style="width:auto;margin-bottom:0;">
@@ -1763,7 +1762,6 @@ function openItemModal(id){
         document.getElementById('item-edit-id').value='';
         ['item-name','item-price','item-desc','item-mag','item-badge'].forEach(x=>document.getElementById(x).value='');
         document.getElementById('item-cat').value='weapons';
-        document.getElementById('item-sort').value=0;
         document.getElementById('item-disponible').checked=true;
     }else{
         const w=catalog.find(x=>x.id===id);if(!w)return;
@@ -1774,7 +1772,6 @@ function openItemModal(id){
         document.getElementById('item-desc').value=w.description||'';
         document.getElementById('item-mag').value=w.mag||'';
         document.getElementById('item-cat').value=w.cat;
-        document.getElementById('item-sort').value=w.sort_order||0;
         document.getElementById('item-badge').value=w.badge_label||'';
         document.getElementById('item-disponible').checked=w.disponible!==false;
         if(w.img_url){const p=document.getElementById('item-img-preview');p.src=w.img_url;p.classList.remove('hidden');}
@@ -1805,9 +1802,17 @@ async function saveItem(){
     } else if(id){
         const ex=catalog.find(x=>x.id===parseInt(id));img_url=ex?ex.img_url:null;
     }
-    const sort_order=parseInt(document.getElementById('item-sort').value)||0;
     const badge_label=document.getElementById('item-badge').value.trim()||null;
     const disponible=document.getElementById('item-disponible').checked;
+    // sort_order : en modification on garde l'existant, en création on met en fin de catégorie
+    let sort_order=0;
+    if(id){
+        const ex=catalog.find(x=>x.id===parseInt(id));
+        sort_order=ex?ex.sort_order||0:0;
+    } else {
+        const sameCat=catalog.filter(x=>x.cat===cat);
+        sort_order=sameCat.length?Math.max(...sameCat.map(x=>x.sort_order||0))+1:0;
+    }
     const payload={name,price,description,mag,cat,img_url,sort_order,badge_label,disponible};let error;
     if(id){({error}=await sb.from('articles').update(payload).eq('id',parseInt(id)));}else{({error}=await sb.from('articles').insert([payload]));}
     if(error){alert("Erreur : "+error.message);return;}
