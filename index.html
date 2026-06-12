@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lost MC Shop</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏍️</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -434,6 +435,23 @@
                 </div>
             </div>
             <div class="admin-section">
+                <div class="admin-section-title">📊 Rapport d'Activité</div>
+                <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+                    <span style="font-size:13px;color:var(--text-muted);">Afficher les inactifs depuis :</span>
+                    <button class="cat-btn" id="activ-7" onclick="filterActivite(7)">7 jours</button>
+                    <button class="cat-btn" id="activ-30" onclick="filterActivite(30)">30 jours</button>
+                    <button class="cat-btn" id="activ-60" onclick="filterActivite(60)">60 jours</button>
+                    <button class="cat-btn" id="activ-all" onclick="filterActivite(0)">Tous</button>
+                </div>
+                <div class="table-scroll-wrap" id="activite-table-wrap">
+                    <table class="users-table" id="activite-table">
+                        <thead><tr><th>Login</th><th>#Ville</th><th>Rôle</th><th>Dernière connexion</th><th>Inactivité</th><th>Statut</th></tr></thead>
+                        <tbody id="activite-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-section">
                 <div class="admin-section-title">💳 Codes Famille / Remise</div>
                 <button class="btn btn-small btn-success" style="margin-bottom:16px;" onclick="openRemiseModal(null)">+ Nouveau code famille</button>
                 <div id="remise-list"></div>
@@ -729,6 +747,8 @@ async function handleLogin(e){
         }
         if(valid){
             currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
+            // Mettre à jour la date de dernière connexion
+            await sb.from('utilisateurs').update({derniere_connexion:new Date().toISOString()}).eq('login',u.login).eq('id_serveur',u.id_serveur);
             await Promise.all([loadCodesRemise(),loadCodesPromo()]);
             await loadMateriaux();
             // Charger allUsers pour tout le monde (badges famille dans les commandes)
@@ -1579,7 +1599,9 @@ async function reloadCurrentView(){
 }
 
 // ADMIN
-async function loadAdminPanel(){await Promise.all([loadAdminStats(),loadAdminUsers(),loadAdminOrders(),loadAdminCatalogue(),loadRemises(),loadPromos(),loadMateriaux()]);}
+async function loadAdminPanel(){await Promise.all([loadAdminStats(),loadAdminUsers(),loadAdminOrders(),loadAdminCatalogue(),loadRemises(),loadPromos(),loadMateriaux()]);
+    loadActiviteRapport();
+}}
 async function loadAdminStats(){
     const[{count:cU},{count:cO},{count:cA}]=await Promise.all([sb.from('utilisateurs').select('*',{count:'exact',head:true}),sb.from('commandes').select('*',{count:'exact',head:true}),sb.from('articles').select('*',{count:'exact',head:true})]);
     document.getElementById('admin-stats').innerHTML=`<div class="stat-card"><div class="stat-number">${cU||0}</div><div class="stat-label">Utilisateurs</div></div><div class="stat-card"><div class="stat-number">${cO||0}</div><div class="stat-label">Commandes</div></div><div class="stat-card"><div class="stat-number">${cA||0}</div><div class="stat-label">Articles</div></div>`;
@@ -1684,6 +1706,70 @@ async function confirmReassign(){
 }
 
 // CODES REMISE
+// =============================================
+// RAPPORT D'ACTIVITÉ
+// =============================================
+let activiteFilter=0;
+
+function loadActiviteRapport(){
+    renderActivite(activiteFilter);
+}
+
+function filterActivite(jours){
+    activiteFilter=jours;
+    ['7','30','60','all'].forEach(k=>{
+        const btn=document.getElementById('activ-'+k);
+        if(btn) btn.classList.toggle('active',String(jours)===k||(jours===0&&k==='all'));
+    });
+    renderActivite(jours);
+}
+
+function renderActivite(jours){
+    const tbody=document.getElementById('activite-tbody');
+    if(!tbody||!allUsers.length){return;}
+    const now=new Date();
+    let users=[...allUsers];
+    // Filtrer par inactivité
+    if(jours>0){
+        users=users.filter(u=>{
+            if(!u.derniere_connexion) return true;// jamais connecté = inactif
+            const diff=(now-new Date(u.derniere_connexion))/86400000;
+            return diff>=jours;
+        });
+    }
+    // Trier : jamais connectés en premier, puis par inactivité décroissante
+    users.sort((a,b)=>{
+        if(!a.derniere_connexion&&!b.derniere_connexion) return 0;
+        if(!a.derniere_connexion) return -1;
+        if(!b.derniere_connexion) return 1;
+        return new Date(a.derniere_connexion)-new Date(b.derniere_connexion);
+    });
+    if(!users.length){tbody.innerHTML=`<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:20px;">Aucun utilisateur inactif pour cette période.</td></tr>`;return;}
+    tbody.innerHTML=users.map(u=>{
+        const role=u.role_admin?'Admin':u.role_vendeur?'Vendeur':'Client';
+        let dernCo='Jamais connecté',inactivite='—',statut='';
+        if(u.derniere_connexion){
+            const d=new Date(u.derniere_connexion);
+            dernCo=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+            const jInactif=Math.floor((now-d)/86400000);
+            inactivite=jInactif===0?'Aujourd'hui':jInactif===1?'1 jour':`${jInactif} jours`;
+            if(jInactif<7) statut='<span style="color:var(--s-done);">🟢 Actif</span>';
+            else if(jInactif<30) statut='<span style="color:var(--s-pending);">🟡 Peu actif</span>';
+            else statut='<span style="color:var(--accent-red);">🔴 Inactif</span>';
+        } else {
+            statut='<span style="color:var(--s-cancel);">⚫ Jamais connecté</span>';
+        }
+        return`<tr>
+            <td><strong>${u.login}</strong></td>
+            <td>#${u.id_serveur}</td>
+            <td>${role}</td>
+            <td style="font-size:12px;">${dernCo}</td>
+            <td style="font-size:12px;color:var(--text-muted);">${inactivite}</td>
+            <td>${statut}</td>
+        </tr>`;
+    }).join('');
+}
+
 async function loadRemises(){
     await loadCodesRemise();
     document.getElementById('remise-list').innerHTML=codesRemise.length?codesRemise.map(r=>`<div class="remise-card"><div><div class="remise-code">${r.code}</div><div style="font-size:12px;color:var(--text-muted)">${r.description||'—'}</div></div><div style="display:flex;align-items:center;gap:10px;"><span style="color:var(--s-done);font-weight:700;">-${r.taux}%</span><button class="btn btn-small btn-secondary" onclick="openRemiseModal(${r.id})">✏️</button><button class="btn btn-small btn-danger" onclick="deleteRemise(${r.id})">🗑️</button></div></div>`).join(''):'<div class="section-empty">Aucun.</div>';
@@ -1950,6 +2036,7 @@ function openArchiveModal(){
     document.getElementById('archive-date').value='';
     document.getElementById('archive-preview').innerHTML='';
     document.getElementById('btn-confirm-archive').classList.add('hidden');
+    document.getElementById('btn-export-only').classList.add('hidden');
     archiveCandidates=[];
     document.getElementById('modal-archive').classList.remove('hidden');
 }
