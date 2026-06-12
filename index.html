@@ -1776,7 +1776,8 @@ async function saveItem(){
     if(itemImgFile){
         try{
             const ext=itemImgFile.name.split('.').pop();
-            const filePath=`article_${Date.now()}.${ext}`;
+            // Nom stable basé sur l'id (ou timestamp pour nouveau) → écrase l'ancien fichier automatiquement
+            const filePath=`article_${id||Date.now()}.${ext}`;
             img_url=await uploadToStorage('catalogue',filePath,itemImgFile);
         }catch(err){alert("Erreur upload image : "+err.message);return;}
     } else if(id){
