@@ -1737,6 +1737,7 @@ function renderAdminCatalogueGrid(){
                 <div>
                     <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
                     <div style="font-weight:bold;font-size:14px;margin-bottom:3px;">${w.name}${badgePill}${unavailPill}</div>
+                    <div style="font-size:13px;font-weight:700;color:var(--s-done);">${w.price.toLocaleString()} $</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="display:flex;gap:4px;margin-bottom:6px;">
