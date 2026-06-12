@@ -705,6 +705,9 @@ async function handleLogin(e){
             currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
             await Promise.all([loadCodesRemise(),loadCodesPromo()]);
             await loadMateriaux();
+            // Charger allUsers pour tout le monde (badges famille dans les commandes)
+            const{data:usersData}=await sb.from('utilisateurs').select('*').order('login');
+            allUsers=usersData||[];
             loginSuccess();
         } else {
             alert("Accès refusé. Vérifiez votre pseudo, numéro de ville et mot de passe.");
@@ -1957,6 +1960,8 @@ function showTab(tabId){
             code_vip: data.code_vip||null, avatar_url: data.avatar_url||null, email: data.email||null
         };
         await Promise.all([loadCodesRemise(), loadCodesPromo(), loadMateriaux()]);
+        const{data:usersData}=await sb.from('utilisateurs').select('*').order('login');
+        allUsers=usersData||[];
         loginSuccess();
         // Restaurer l'onglet actif
         const lastTab = localStorage.getItem('lostmc_tab');
