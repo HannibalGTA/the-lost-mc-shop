@@ -1596,11 +1596,23 @@ async function saveUserEdit(){
 }
 async function deleteUser(login,idServeur){
     if(!confirm(`Supprimer ${login} (#${idServeur}) ?`))return;
+    const deleteOrders=confirm(`Voulez-vous aussi supprimer toutes les commandes de ${login} ?\n\nOK = Oui, supprimer les commandes\nAnnuler = Non, garder les commandes`);
     // Supprimer la photo de profil dans Storage si elle existe
     const u=allUsers.find(x=>x.login===login&&x.id_serveur===idServeur);
     if(u&&u.avatar_url&&u.avatar_url.includes('/avatars/')){
         const filePath=u.avatar_url.split('/avatars/').pop();
         await sb.storage.from('avatars').remove([filePath]);
+    }
+    // Supprimer les commandes si demandé
+    if(deleteOrders){
+        const{data:cmds}=await sb.from('commandes').select('id').eq('client_pseudo',login).eq('client_id',idServeur);
+        if(cmds&&cmds.length){
+            const ids=cmds.map(c=>c.id);
+            await sb.from('notifications').delete().in('id_commande',ids);
+            await sb.from('messages_chat').delete().in('id_commande',ids);
+            await sb.from('details_commande').delete().in('id_commande',ids);
+            await sb.from('commandes').delete().eq('client_pseudo',login).eq('client_id',idServeur);
+        }
     }
     await sb.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);
     await loadAdminUsers();await loadAdminStats();
