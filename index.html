@@ -1594,7 +1594,17 @@ async function saveUserEdit(){
     if(newPwd) alert(`✅ Mot de passe de ${login} réinitialisé. Communiquez-lui le nouveau mot de passe : "${newPwd}"`);
     await loadAdminUsers();
 }
-async function deleteUser(login,idServeur){if(!confirm(`Supprimer ${login} ?`))return;await sb.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);await loadAdminUsers();await loadAdminStats();}
+async function deleteUser(login,idServeur){
+    if(!confirm(`Supprimer ${login} (#${idServeur}) ?`))return;
+    // Supprimer la photo de profil dans Storage si elle existe
+    const u=allUsers.find(x=>x.login===login&&x.id_serveur===idServeur);
+    if(u&&u.avatar_url&&u.avatar_url.includes('/avatars/')){
+        const filePath=u.avatar_url.split('/avatars/').pop();
+        await sb.storage.from('avatars').remove([filePath]);
+    }
+    await sb.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);
+    await loadAdminUsers();await loadAdminStats();
+}
 
 // ADMIN COMMANDES
 const ATABS=['pending','process','ready','done','cancel','bilan'];
@@ -1813,7 +1823,17 @@ async function toggleDispo(id,disponible){
     await sb.from('articles').update({disponible}).eq('id',id);
     await loadAdminCatalogue();
 }
-async function deleteItem(id){if(!confirm("Supprimer ?"))return;await sb.from('articles').delete().eq('id',id);await loadAdminCatalogue();await loadAdminStats();}
+async function deleteItem(id){
+    if(!confirm("Supprimer ?"))return;
+    // Supprimer l'image dans Storage si elle existe
+    const art=catalog.find(x=>x.id===id);
+    if(art&&art.img_url&&art.img_url.includes('/catalogue/')){
+        const filePath=art.img_url.split('/catalogue/').pop();
+        await sb.storage.from('catalogue').remove([filePath]);
+    }
+    await sb.from('articles').delete().eq('id',id);
+    await loadAdminCatalogue();await loadAdminStats();
+}
 
 // PROFIL
 function loadProfile(){
