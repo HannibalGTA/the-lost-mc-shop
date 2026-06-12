@@ -620,7 +620,8 @@
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-archive')">Annuler</button>
             <button class="btn btn-small btn-warning" onclick="previewArchive()">🔍 Prévisualiser</button>
-            <button class="btn btn-small btn-danger hidden" id="btn-confirm-archive" onclick="confirmArchive()">📥 Exporter & Purger</button>
+            <button class="btn btn-small btn-info hidden" id="btn-export-only" onclick="confirmArchive(false)">📥 Exporter</button>
+            <button class="btn btn-small btn-danger hidden" id="btn-confirm-archive" onclick="confirmArchive(true)">📥 Exporter & Purger</button>
         </div>
     </div>
 </div>
@@ -1968,7 +1969,9 @@ async function previewArchive(){
     const btn=document.getElementById('btn-confirm-archive');
     if(!archiveCandidates.length){
         preview.innerHTML='<span style="color:var(--s-cancel);">Aucune commande à archiver pour cette date.</span>';
-        btn.classList.add('hidden');return;
+        btn.classList.add('hidden');
+        document.getElementById('btn-export-only').classList.add('hidden');
+        return;
     }
     const nbMsg=archiveCandidates.reduce((s,o)=>s+(o.messages_chat?.length||0),0);
     const nbLines=archiveCandidates.reduce((s,o)=>s+(o.details_commande?.length||0),0);
@@ -1979,9 +1982,10 @@ async function previewArchive(){
         <span style="font-size:11px;color:var(--text-muted);">Antérieures au ${new Date(dateStr).toLocaleDateString('fr-FR')}</span>
     </div>`;
     btn.classList.remove('hidden');
+    document.getElementById('btn-export-only').classList.remove('hidden');
 }
 
-async function confirmArchive(){
+async function confirmArchive(purge=false){
     if(!archiveCandidates.length) return;
     // ── 1. Générer le fichier Excel ──────────────────────────────────────
     const wb=XLSX.utils.book_new();
@@ -2013,17 +2017,23 @@ async function confirmArchive(){
     const dateLabel=document.getElementById('archive-date').value.replace(/-/g,'');
     XLSX.writeFile(wb,`archive_lostmc_${dateLabel}.xlsx`);
 
-    // ── 2. Purger Supabase ───────────────────────────────────────────────
-    const ids=archiveCandidates.map(o=>o.id);
-    await sb.from('notifications').delete().in('id_commande',ids);
-    await sb.from('messages_chat').delete().in('id_commande',ids);
-    await sb.from('details_commande').delete().in('id_commande',ids);
-    await sb.from('commandes').delete().in('id',ids);
+    // ── 2. Purger Supabase (seulement si demandé) ────────────────────────
+    if(purge){
+        const ids=archiveCandidates.map(o=>o.id);
+        await sb.from('notifications').delete().in('id_commande',ids);
+        await sb.from('messages_chat').delete().in('id_commande',ids);
+        await sb.from('details_commande').delete().in('id_commande',ids);
+        await sb.from('commandes').delete().in('id',ids);
+    }
 
     closeModal('modal-archive');
-    showPromoInfo('✅','Archivage terminé !',`<strong>${archiveCandidates.length} commandes</strong> exportées dans le fichier Excel et supprimées de Supabase.<br><br>Pensez à sauvegarder le fichier dans un endroit sûr.`);
+    showPromoInfo('✅',purge?'Export & Purge terminés !':'Export terminé !',
+        purge
+            ?`<strong>${archiveCandidates.length} commandes</strong> exportées et supprimées de Supabase.<br><br>Sauvegardez le fichier Excel dans un endroit sûr.`
+            :`<strong>${archiveCandidates.length} commandes</strong> exportées dans le fichier Excel.<br><br>La base Supabase n'a pas été modifiée.`
+    );
     archiveCandidates=[];
-    await loadAdminOrders();await loadAdminStats();
+    if(purge){await loadAdminOrders();await loadAdminStats();}
 }
 
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
