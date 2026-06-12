@@ -1747,7 +1747,14 @@ function openItemModal(id){
     }
     document.getElementById('modal-item').classList.remove('hidden');
 }
-function previewItemImage(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=(ev)=>{itemImgBase64=ev.target.result;const p=document.getElementById('item-img-preview');p.src=itemImgBase64;p.classList.remove('hidden');};r.readAsDataURL(file);}
+function previewItemImage(e){
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>500*1024){
+        showPromoInfo('⚠️','Image trop lourde',`L'image fait <strong>${(file.size/1024).toFixed(0)} Ko</strong>.<br>La taille maximum pour un article est de <strong>500 Ko</strong>.<br><br>Compressez sur <a href="https://squoosh.app" target="_blank" style="color:var(--accent-red);">squoosh.app</a>.`);
+        e.target.value='';return;
+    }
+    const r=new FileReader();r.onload=(ev)=>{itemImgBase64=ev.target.result;const p=document.getElementById('item-img-preview');p.src=itemImgBase64;p.classList.remove('hidden');};r.readAsDataURL(file);
+}
 async function saveItem(){
     const id=document.getElementById('item-edit-id').value,name=document.getElementById('item-name').value.trim(),price=parseInt(document.getElementById('item-price').value),description=document.getElementById('item-desc').value.trim(),mag=document.getElementById('item-mag').value.trim(),cat=document.getElementById('item-cat').value;
     if(!name||isNaN(price)){alert("Nom et prix requis.");return;}
@@ -1789,7 +1796,14 @@ function loadProfile(){
     const d=document.getElementById('profile-avatar-display');d.innerHTML=currentUser.avatar_url?`<img src="${currentUser.avatar_url}" class="profile-avatar">`:`<div class="profile-avatar-placeholder">👤</div>`;
     document.getElementById('profile-email').value=currentUser.email||'';
 }
-function previewProfileAvatar(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=(ev)=>{profileAvatarBase64=ev.target.result;document.getElementById('profile-avatar-display').innerHTML=`<img src="${profileAvatarBase64}" class="profile-avatar">`;};r.readAsDataURL(file);}
+function previewProfileAvatar(e){
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>300*1024){
+        showPromoInfo('⚠️','Image trop lourde',`Votre image fait <strong>${(file.size/1024).toFixed(0)} Ko</strong>.<br>La taille maximum autorisée est de <strong>300 Ko</strong>.<br><br>Compressez votre image sur <a href="https://squoosh.app" target="_blank" style="color:var(--accent-red);">squoosh.app</a> avant de la charger.`);
+        e.target.value='';return;
+    }
+    const r=new FileReader();r.onload=(ev)=>{profileAvatarBase64=ev.target.result;document.getElementById('profile-avatar-display').innerHTML=`<img src="${profileAvatarBase64}" class="profile-avatar">`;};r.readAsDataURL(file);
+}
 async function saveProfileInfo(){
     const email=document.getElementById('profile-email').value.trim();const updates={email:email||null};if(profileAvatarBase64)updates.avatar_url=profileAvatarBase64;
     const{error}=await sb.from('utilisateurs').update(updates).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
