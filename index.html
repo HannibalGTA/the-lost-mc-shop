@@ -6,6 +6,7 @@
     <title>The Lost MC Shop</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-main:#0c0d12; --bg-card:#14161d; --bg-input:#1a1d26;
@@ -411,7 +412,10 @@
             </div>
             <div class="admin-section">
                 <div class="admin-section-title">📦 Commandes</div>
-                <input class="search-bar" id="admin-order-search" placeholder="🔍 Réf. ou client..." oninput="filterAdminOrders()" style="width:100%;max-width:300px;">
+                <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+                    <input class="search-bar" id="admin-order-search" placeholder="🔍 Réf. ou client..." oninput="filterAdminOrders()" style="margin-bottom:0;width:100%;max-width:300px;">
+                    <button class="btn btn-small btn-warning" onclick="openArchiveModal()" style="white-space:nowrap;">📥 Exporter & Archiver</button>
+                </div>
                 <div class="sub-tabs" style="margin-bottom:15px;">
                     <button class="sub-tab active" id="stab-a-pending" onclick="switchAdminOrderTab('pending')">⏳ Attente</button>
                     <button class="sub-tab" id="stab-a-process" onclick="switchAdminOrderTab('process')">🔄 En cours</button>
@@ -596,6 +600,27 @@
         <div id="modal-materiaux-cmd-content"></div>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-small" onclick="closeModal('modal-materiaux-cmd')">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL : Archivage -->
+<div class="modal-overlay hidden" id="modal-archive">
+    <div class="modal-box" style="max-width:460px;">
+        <div class="modal-title">📥 Exporter & Archiver</div>
+        <p style="color:var(--text-muted);font-size:13px;line-height:1.6;margin-bottom:20px;">
+            Exporte les commandes <strong style="color:var(--text-main);">Terminées et Annulées</strong> antérieures à la date choisie vers un fichier Excel, puis les purge de Supabase.
+        </p>
+        <label>Date limite (les commandes AVANT cette date seront archivées)</label>
+        <input type="date" id="archive-date" style="margin-bottom:20px;">
+        <div style="background:rgba(218,41,42,.08);border:1px solid rgba(218,41,42,.2);border-radius:6px;padding:12px 14px;font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;">
+            ⚠️ <strong style="color:var(--text-main);">Action irréversible</strong> — les données seront supprimées de Supabase après l'export. Assurez-vous de sauvegarder le fichier Excel.
+        </div>
+        <div id="archive-preview" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-small" onclick="closeModal('modal-archive')">Annuler</button>
+            <button class="btn btn-small btn-warning" onclick="previewArchive()">🔍 Prévisualiser</button>
+            <button class="btn btn-small btn-danger hidden" id="btn-confirm-archive" onclick="confirmArchive()">📥 Exporter & Purger</button>
         </div>
     </div>
 </div>
@@ -1914,6 +1939,92 @@ document.addEventListener('wheel', function(e){
         e.target.blur();
     }
 }, {passive:false});
+
+// =============================================
+// ARCHIVAGE
+// =============================================
+let archiveCandidates=[];
+
+function openArchiveModal(){
+    document.getElementById('archive-date').value='';
+    document.getElementById('archive-preview').innerHTML='';
+    document.getElementById('btn-confirm-archive').classList.add('hidden');
+    archiveCandidates=[];
+    document.getElementById('modal-archive').classList.remove('hidden');
+}
+
+async function previewArchive(){
+    const dateStr=document.getElementById('archive-date').value;
+    if(!dateStr){alert("Choisissez une date.");return;}
+    const limitDate=new Date(dateStr);
+    // Charger toutes les commandes terminées/annulées avant la date
+    const{data,error}=await sb.from('commandes')
+        .select('*,details_commande(*),messages_chat(*)')
+        .in('statut',['Terminée','Annulée'])
+        .lt('date_commande',limitDate.toISOString());
+    if(error){alert("Erreur : "+error.message);return;}
+    archiveCandidates=data||[];
+    const preview=document.getElementById('archive-preview');
+    const btn=document.getElementById('btn-confirm-archive');
+    if(!archiveCandidates.length){
+        preview.innerHTML='<span style="color:var(--s-cancel);">Aucune commande à archiver pour cette date.</span>';
+        btn.classList.add('hidden');return;
+    }
+    const nbMsg=archiveCandidates.reduce((s,o)=>s+(o.messages_chat?.length||0),0);
+    const nbLines=archiveCandidates.reduce((s,o)=>s+(o.details_commande?.length||0),0);
+    preview.innerHTML=`<div style="background:var(--bg-input);border-radius:6px;padding:12px 14px;line-height:1.8;">
+        📦 <strong style="color:var(--text-main);">${archiveCandidates.length}</strong> commandes trouvées<br>
+        🛒 <strong style="color:var(--text-main);">${nbLines}</strong> lignes de détail<br>
+        💬 <strong style="color:var(--text-main);">${nbMsg}</strong> messages chat<br>
+        <span style="font-size:11px;color:var(--text-muted);">Antérieures au ${new Date(dateStr).toLocaleDateString('fr-FR')}</span>
+    </div>`;
+    btn.classList.remove('hidden');
+}
+
+async function confirmArchive(){
+    if(!archiveCandidates.length) return;
+    // ── 1. Générer le fichier Excel ──────────────────────────────────────
+    const wb=XLSX.utils.book_new();
+    // Onglet Commandes
+    const cmdRows=archiveCandidates.map(o=>({
+        'Référence':o.ref_commande||`LOST-${o.id}`,
+        'Client':o.client_pseudo,'#Ville':o.client_id,
+        'Vendeur':o.vendeur_affecte||'—','Statut':o.statut,
+        'Montant':o.montant_ajuste??o.details_commande?.reduce((s,i)=>s+i.prix_achat*i.quantite,0)??0,
+        'Code promo':o.code_promo||'—','Taux promo':o.taux_promo||0,
+        'Date commande':o.date_commande?new Date(o.date_commande).toLocaleDateString('fr-FR'):'—',
+        'Date fin':o.date_fin?new Date(o.date_fin).toLocaleDateString('fr-FR'):'—'
+    }));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cmdRows),'Commandes');
+    // Onglet Détails
+    const detailRows=archiveCandidates.flatMap(o=>(o.details_commande||[]).map(d=>({
+        'Référence':o.ref_commande||`LOST-${o.id}`,
+        'Article':d.nom_article,'Quantité':d.quantite,'Prix unitaire':d.prix_achat
+    })));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(detailRows),'Détails');
+    // Onglet Messages
+    const msgRows=archiveCandidates.flatMap(o=>(o.messages_chat||[]).map(m=>({
+        'Référence':o.ref_commande||`LOST-${o.id}`,
+        'Auteur':m.auteur,'Message':m.message,
+        'Date':m.created_at?new Date(m.created_at).toLocaleDateString('fr-FR'):'—'
+    })));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(msgRows),'Messages');
+    // Télécharger
+    const dateLabel=document.getElementById('archive-date').value.replace(/-/g,'');
+    XLSX.writeFile(wb,`archive_lostmc_${dateLabel}.xlsx`);
+
+    // ── 2. Purger Supabase ───────────────────────────────────────────────
+    const ids=archiveCandidates.map(o=>o.id);
+    await sb.from('notifications').delete().in('id_commande',ids);
+    await sb.from('messages_chat').delete().in('id_commande',ids);
+    await sb.from('details_commande').delete().in('id_commande',ids);
+    await sb.from('commandes').delete().in('id',ids);
+
+    closeModal('modal-archive');
+    showPromoInfo('✅','Archivage terminé !',`<strong>${archiveCandidates.length} commandes</strong> exportées dans le fichier Excel et supprimées de Supabase.<br><br>Pensez à sauvegarder le fichier dans un endroit sûr.`);
+    archiveCandidates=[];
+    await loadAdminOrders();await loadAdminStats();
+}
 
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
 document.querySelectorAll('.modal-overlay').forEach(el=>{
