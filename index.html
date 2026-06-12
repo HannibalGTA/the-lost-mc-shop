@@ -1601,7 +1601,7 @@ async function reloadCurrentView(){
 // ADMIN
 async function loadAdminPanel(){await Promise.all([loadAdminStats(),loadAdminUsers(),loadAdminOrders(),loadAdminCatalogue(),loadRemises(),loadPromos(),loadMateriaux()]);
     loadActiviteRapport();
-}}
+}
 async function loadAdminStats(){
     const[{count:cU},{count:cO},{count:cA}]=await Promise.all([sb.from('utilisateurs').select('*',{count:'exact',head:true}),sb.from('commandes').select('*',{count:'exact',head:true}),sb.from('articles').select('*',{count:'exact',head:true})]);
     document.getElementById('admin-stats').innerHTML=`<div class="stat-card"><div class="stat-number">${cU||0}</div><div class="stat-label">Utilisateurs</div></div><div class="stat-card"><div class="stat-number">${cO||0}</div><div class="stat-label">Commandes</div></div><div class="stat-card"><div class="stat-number">${cA||0}</div><div class="stat-label">Articles</div></div>`;
@@ -1752,7 +1752,7 @@ function renderActivite(jours){
             const d=new Date(u.derniere_connexion);
             dernCo=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
             const jInactif=Math.floor((now-d)/86400000);
-            inactivite=jInactif===0?'Aujourd'hui':jInactif===1?'1 jour':`${jInactif} jours`;
+            inactivite=jInactif===0?"Aujourd'hui":jInactif===1?'1 jour':`${jInactif} jours`;
             if(jInactif<7) statut='<span style="color:var(--s-done);">🟢 Actif</span>';
             else if(jInactif<30) statut='<span style="color:var(--s-pending);">🟡 Peu actif</span>';
             else statut='<span style="color:var(--accent-red);">🔴 Inactif</span>';
