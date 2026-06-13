@@ -1086,7 +1086,8 @@ function renderChat(orderId,messages){
 async function sendChat(orderId){
     const input=document.getElementById('chat-input-'+orderId);
     const msg=input.value.trim();if(!msg)return;
-    if(!RL.check('chat-'+orderId,1,2000))return;// silencieux anti-floodinput.value='';
+    if(!RL.check('chat-'+orderId,1,2000))return;// silencieux anti-flood
+    input.value='';
     await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
