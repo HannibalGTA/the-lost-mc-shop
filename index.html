@@ -2152,6 +2152,8 @@ function clearSession(){
 }
 
 // Sauvegarder l'onglet actif
+let _autoRefreshInterval=null;
+
 function showTab(tabId){
     document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
@@ -2163,6 +2165,19 @@ function showTab(tabId){
     if(tabId==='vendre')loadVendeurView();
     if(tabId==='admin')loadAdminPanel();
     if(tabId==='profile')loadProfile();
+    // Auto-refresh toutes les 30s sur orders et vendre
+    clearInterval(_autoRefreshInterval);
+    if(tabId==='orders'){
+        _autoRefreshInterval=setInterval(()=>{
+            if(!document.getElementById('tab-orders').classList.contains('hidden'))
+                loadMyOrders();
+        },60000);
+    } else if(tabId==='vendre'){
+        _autoRefreshInterval=setInterval(()=>{
+            if(!document.getElementById('tab-vendre').classList.contains('hidden'))
+                loadVendeurView();
+        },60000);
+    }
 }
 
 // Restauration automatique au chargement de la page
