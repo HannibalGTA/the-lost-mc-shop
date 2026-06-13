@@ -334,6 +334,9 @@
             </ul>
         </div>
         <div style="padding:20px;border-top:1px solid var(--lost-border);font-size:13px;">
+            <button class="btn btn-secondary btn-small" style="width:100%;margin-bottom:12px;" onclick="refreshCurrentTab()" id="btn-refresh">
+                🔄 Actualiser
+            </button>
             <div id="sidebar-avatar" style="margin-bottom:12px;text-align:center;"></div>
             <div id="user-display" style="margin-bottom:8px;text-align:center;"></div>
             <div id="user-badge-display" style="margin-bottom:12px;text-align:center;"></div>
@@ -2153,6 +2156,18 @@ function clearSession(){
 
 // Sauvegarder l'onglet actif
 let _autoRefreshInterval=null;
+let _currentTab='shop';
+
+function refreshCurrentTab(){
+    const btn=document.getElementById('btn-refresh');
+    if(btn){btn.textContent='⏳ Chargement...';btn.disabled=true;}
+    const restore=()=>{setTimeout(()=>{if(btn){btn.textContent='🔄 Actualiser';btn.disabled=false;}},500);};
+    if(_currentTab==='shop'){loadCatalogue();restore();}
+    else if(_currentTab==='orders'){loadMyOrders().then(restore);}
+    else if(_currentTab==='vendre'){loadVendeurView().then(restore);}
+    else if(_currentTab==='admin'){loadAdminPanel().then(restore);}
+    else if(_currentTab==='profile'){loadProfile();restore();}
+}
 
 function showTab(tabId){
     document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
@@ -2160,6 +2175,7 @@ function showTab(tabId){
     document.getElementById('tab-'+tabId).classList.remove('hidden');
     const m=document.getElementById('menu-'+tabId);if(m)m.classList.add('active');
     sessionStorage.setItem('lostmc_tab', tabId);
+    _currentTab=tabId;
     if(tabId==='shop')loadCatalogue();
     if(tabId==='orders')loadMyOrders();
     if(tabId==='vendre')loadVendeurView();
