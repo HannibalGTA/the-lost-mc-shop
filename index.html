@@ -2128,13 +2128,13 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
     el.addEventListener('click',(e)=>{if(e.target===el)el.classList.add('hidden');});
 });
 
-// Sauvegarder la session dans localStorage
+// Sauvegarder la session dans sessionStorage (expire à la fermeture du navigateur)
 function saveSession(){
-    if(currentUser) localStorage.setItem('lostmc_session', JSON.stringify(currentUser));
+    if(currentUser) sessionStorage.setItem('lostmc_session', JSON.stringify(currentUser));
 }
 function clearSession(){
-    localStorage.removeItem('lostmc_session');
-    localStorage.removeItem('lostmc_tab');
+    sessionStorage.removeItem('lostmc_session');
+    sessionStorage.removeItem('lostmc_tab');
 }
 
 // Sauvegarder l'onglet actif
@@ -2143,7 +2143,7 @@ function showTab(tabId){
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
     document.getElementById('tab-'+tabId).classList.remove('hidden');
     const m=document.getElementById('menu-'+tabId);if(m)m.classList.add('active');
-    localStorage.setItem('lostmc_tab', tabId);
+    sessionStorage.setItem('lostmc_tab', tabId);
     if(tabId==='shop')loadCatalogue();
     if(tabId==='orders')loadMyOrders();
     if(tabId==='vendre')loadVendeurView();
@@ -2153,7 +2153,7 @@ function showTab(tabId){
 
 // Restauration automatique au chargement de la page
 (async function autoRestore(){
-    const saved = localStorage.getItem('lostmc_session');
+    const saved = sessionStorage.getItem('lostmc_session');
     if(!saved) return;
     try {
         const u = JSON.parse(saved);
@@ -2172,7 +2172,7 @@ function showTab(tabId){
         allUsers=usersData||[];
         loginSuccess();
         // Restaurer l'onglet actif
-        const lastTab = localStorage.getItem('lostmc_tab');
+        const lastTab = sessionStorage.getItem('lostmc_tab');
         if(lastTab) showTab(lastTab);
     } catch(e){ clearSession(); }
 })();
