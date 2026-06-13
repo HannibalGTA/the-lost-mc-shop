@@ -1048,9 +1048,22 @@ async function toggleOrder(headerEl,orderId){
         await markMsgsRead(orderId);
         card.classList.remove('has-notif');
         const mb=card.querySelector('.notif-badge.msg');if(mb)mb.remove();
-        // Marquer notif statut comme lue pour cette commande
         await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('id_commande',orderId).eq('lu',false);
         pollNotifs();
+        // Recharger les messages et scroller en bas
+        const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
+        const cont=document.getElementById('chat-msgs-'+orderId);
+        if(cont&&data){
+            cont.innerHTML=data.length?data.map(m=>{
+                const mine=m.auteur===currentUser.login_pure;
+                const isSystem=m.auteur==='🤖 Système';
+                if(isSystem)return`<div style="text-align:center;margin:4px 0;"><span style="display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:6px;padding:6px 12px;font-size:11px;color:#a78bfa;max-width:90%;">${m.message}</span></div>`;
+                const av=userAvatarCache[m.auteur]||null;
+                const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
+                return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${m.auteur}</span></div><div>${m.message}</div></div>`;
+            }).join(''):'<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Aucun message.</div>';
+            cont.scrollTop=cont.scrollHeight;
+        }
     }
 }
 
