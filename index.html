@@ -1065,7 +1065,7 @@ async function toggleOrder(headerEl,orderId){
             cont.innerHTML=data.length?data.map(m=>{
                 const mine=m.auteur===currentUser.login_pure;
                 const isSystem=m.auteur==='🤖 Système';
-                if(isSystem)return`<div style="text-align:center;margin:4px 0;"><span style="display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:6px;padding:6px 12px;font-size:11px;color:#a78bfa;max-width:90%;">${m.message}</span></div>`;
+                if(isSystem)return`<div style="text-align:center;margin:6px 0;"><span style="display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:6px;padding:10px 14px;font-size:13px;color:#a78bfa;max-width:95%;line-height:1.6;">${m.message}</span></div>`;
                 const av=userAvatarCache[m.auteur]||null;
                 const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
                 return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${m.auteur}</span></div><div>${m.message}</div></div>`;
@@ -1242,7 +1242,8 @@ async function setOrderStatut(id,statut){
     const o=allOrdersCache.find(x=>x.id===id);
     if(o) await pushNotif(o.client_pseudo,id,'statut',`Votre commande : ${statut}`);
     if(statut==='En cours'||statut==='Préparée'){
-        const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC en indiquant le numéro de commande ${o?.ref_commande||'LOST-'+id}, afin d'organiser la transaction.`}[statut];
+        const discordLink='https://discord.com/channels/1259332285208068179/1515258319919513750';
+        const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC <a href="${discordLink}" target="_blank" style="color:#da292a;font-weight:800;text-decoration:underline;">ICI</a> en indiquant le numéro de commande <strong>${o?.ref_commande||'LOST-'+id}</strong>, afin d'organiser la transaction.`}[statut];
         if(autoMsg) await sb.from('messages_chat').insert([{id_commande:id,auteur:'🤖 Système',message:autoMsg,lu_par:[]}]);
     }
     await reloadCurrentView();
