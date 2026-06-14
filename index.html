@@ -824,6 +824,11 @@ async function markNotifsRead(type){await sb.from('notifications').update({lu:tr
 // CATALOGUE
 async function loadCatalogue(){
     document.getElementById('weapon-catalogue').innerHTML='<div class="section-empty">Chargement...</div>';
+    // Recharger les codes et le profil user pour avoir les taux à jour
+    await Promise.all([loadCodesRemise(),loadCodesPromo()]);
+    // Rafraîchir le code_vip du user courant depuis la base
+    const{data:freshUser}=await sb.from('utilisateurs').select('code_vip').eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur).maybeSingle();
+    if(freshUser) currentUser.code_vip=freshUser.code_vip||null;
     const{data}=await sb.from('articles').select('*').order('id');
     catalog=data||[];renderCatalogueGrid();renderPromoSection();
 }
@@ -2162,11 +2167,14 @@ function refreshCurrentTab(){
     const btn=document.getElementById('btn-refresh');
     if(btn){btn.textContent='⏳ Chargement...';btn.disabled=true;}
     const restore=()=>{setTimeout(()=>{if(btn){btn.textContent='🔄 Actualiser';btn.disabled=false;}},500);};
-    if(_currentTab==='shop'){loadCatalogue();restore();}
-    else if(_currentTab==='orders'){loadMyOrders().then(restore);}
-    else if(_currentTab==='vendre'){loadVendeurView().then(restore);}
-    else if(_currentTab==='admin'){loadAdminPanel().then(restore);}
-    else if(_currentTab==='profile'){loadProfile();restore();}
+    // Recharger les codes remise dans tous les cas
+    Promise.all([loadCodesRemise(),loadCodesPromo()]).then(()=>{
+        if(_currentTab==='shop'){loadCatalogue();restore();}
+        else if(_currentTab==='orders'){loadMyOrders().then(restore);}
+        else if(_currentTab==='vendre'){loadVendeurView().then(restore);}
+        else if(_currentTab==='admin'){loadAdminPanel().then(restore);}
+        else if(_currentTab==='profile'){loadProfile();restore();}
+    });
 }
 
 function showTab(tabId){
