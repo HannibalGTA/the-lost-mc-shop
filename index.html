@@ -356,6 +356,7 @@
                     <div class="cat-nav">
                         <button class="cat-btn active" id="cat-btn-weapons" onclick="switchShopCat('weapons')">Armes à feu</button>
                         <button class="cat-btn" id="cat-btn-others" onclick="switchShopCat('others')">Équipement & autres</button>
+                        <button class="cat-btn" id="cat-btn-munitions" onclick="switchShopCat('munitions')">Munitions</button>
                     </div>
                     <div class="catalogue-grid" id="weapon-catalogue"></div>
                 </div>
@@ -547,7 +548,7 @@
             <div><label>Prix ($)</label><input type="number" id="item-price" min="0"></div>
             <div class="full"><label>Description</label><textarea id="item-desc" rows="2"></textarea></div>
             <div><label>Chargeur / Infos</label><input type="text" id="item-mag"></div>
-            <div><label>Catégorie</label><select id="item-cat"><option value="weapons">Armes à feu</option><option value="others">Équipement</option></select></div>
+            <div><label>Catégorie</label><select id="item-cat"><option value="weapons">Armes à feu</option><option value="others">Équipement</option><option value="munitions">Munitions</option></select></div>
             <div><label>Badge surbrillance</label><input type="text" id="item-badge" placeholder="Ex : PROMO, NOUVEAUTÉ..."></div>
             <div class="full" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
                 <input type="checkbox" id="item-disponible" style="width:auto;margin-bottom:0;">
@@ -682,9 +683,9 @@ async function uploadToStorage(bucket, filePath, file){
 let currentUser=null,cart=[],activeShopCat='weapons',catalog=[],allUsers=[],allOrdersCache=[];
 let codesRemise=[],codesPromo=[],itemImgFile=null,profileAvatarFile=null,appliedPromo=null,adminOrderSearch='';
 let userAvatarCache={};
-let bilanFilters={cats:['weapons','others'],articles:[],vendeurs:[],clients:[]};
+let bilanFilters={cats:['weapons','others','munitions'],articles:[],vendeurs:[],clients:[]};
 let materiaux=[],articleMateriaux={},articlePrix={};// matériaux state
-let adminBilanFilters={cats:['weapons','others'],articles:[],vendeurs:[],clients:[]};
+let adminBilanFilters={cats:['weapons','others','munitions'],articles:[],vendeurs:[],clients:[]};
 
 // HELPERS
 function getUserRemiseTaux(){if(!currentUser||!currentUser.code_vip)return 0;const c=codesRemise.find(x=>x.code===currentUser.code_vip);return c?c.taux:0;}
@@ -694,7 +695,8 @@ function statusColor(s){if(s==='Terminée')return'var(--s-done)';if(s==='En cour
 function generateRef(items, dbId){
     const hasW=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='weapons';});
     const hasO=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='others';});
-    const type=hasW&&hasO?'MX':hasW?'WP':'EQ';
+    const hasM=cartItems.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='munitions';});
+    const type=hasW&&hasO&&hasM?'MX':hasW&&hasO?'MX':hasW&&hasM?'MX':hasO&&hasM?'MX':hasW?'WP':hasM?'MN':'EQ';
     const now=new Date(),yy=String(now.getFullYear()).slice(-2);
     const day=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
     const dayPart=String(day%100).padStart(2,'0');
@@ -867,7 +869,7 @@ function renderCatalogueGrid(){
         </div>`;
     }).join('');
 }
-function switchShopCat(cat){activeShopCat=cat;document.getElementById('cat-btn-weapons').classList.toggle('active',cat==='weapons');document.getElementById('cat-btn-others').classList.toggle('active',cat==='others');renderCatalogueGrid();}
+function switchShopCat(cat){activeShopCat=cat;document.getElementById('cat-btn-weapons').classList.toggle('active',cat==='weapons');document.getElementById('cat-btn-others').classList.toggle('active',cat==='others');document.getElementById('cat-btn-munitions').classList.toggle('active',cat==='munitions');renderCatalogueGrid();}
 
 // PANIER + PROMO
 function renderPromoSection(){
@@ -1263,7 +1265,7 @@ function renderBilanUI(containerId,filters){
     const isAdmin=containerId.startsWith('a-');
     document.getElementById(containerId).innerHTML=`
         <div class="filter-bar" style="margin-bottom:12px;">
-            ${mkDropdown('cats','Type',['weapons','others'],filters.cats,v=>v==='weapons'?'🔫 Armes':'🎒 Équipement',isAdmin)}
+            ${mkDropdown('cats','Type',['weapons','others','munitions'],filters.cats,v=>v==='weapons'?'🔫 Armes':v==='others'?'🎒 Équipement':'💥 Munitions',isAdmin)}
             ${mkDropdown('articles','Articles',allArticles,filters.articles,v=>v,isAdmin)}
             ${mkDropdown('vendeurs','Vendeurs',allVendeurs,filters.vendeurs,v=>v,isAdmin)}
             ${mkDropdown('clients','Clients',allClients,filters.clients,v=>v,isAdmin)}
@@ -1334,7 +1336,7 @@ function applyBilanResult(filters,isAdmin){
         if(!o.details_commande)return;
         const lines=o.details_commande.filter(d=>{
             const art=catalog.find(a=>a.name===d.nom_article);
-            const catOk=art?filters.cats.includes(art.cat):filters.cats.length===2;
+            const catOk=art?filters.cats.includes(art.cat):filters.cats.length===3;
             const artOk=!filters.articles.length||filters.articles.includes(d.nom_article);
             return catOk&&artOk;
         });
@@ -1859,7 +1861,7 @@ async function loadAdminCatalogue(){const{data}=await sb.from('articles').select
 function renderAdminCatalogueGrid(){
     const grid=document.getElementById('admin-catalogue-grid');if(!catalog.length){grid.innerHTML='<div class="section-empty">Aucun article.</div>';return;}
     // Grouper par catégorie et trier par sort_order
-    const cats=[{key:'weapons',label:'⚙️ Armes à feu'},{key:'others',label:'🎒 Équipement & autres'}];
+    const cats=[{key:'weapons',label:'⚙️ Armes à feu'},{key:'others',label:'🎒 Équipement & autres'},{key:'munitions',label:'🔫 Munitions'}];
     grid.innerHTML=cats.map(c=>{
         const items=catalog.filter(w=>w.cat===c.key).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
         if(!items.length)return'';
