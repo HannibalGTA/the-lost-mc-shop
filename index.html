@@ -695,7 +695,7 @@ function statusColor(s){if(s==='Terminée')return'var(--s-done)';if(s==='En cour
 function generateRef(items, dbId){
     const hasW=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='weapons';});
     const hasO=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='others';});
-    const hasM=cartItems.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='munitions';});
+    const hasM=items.some(i=>{const a=catalog.find(x=>x.id===i.id);return a&&a.cat==='munitions';});
     const type=hasW&&hasO&&hasM?'MX':hasW&&hasO?'MX':hasW&&hasM?'MX':hasO&&hasM?'MX':hasW?'WP':hasM?'MN':'EQ';
     const now=new Date(),yy=String(now.getFullYear()).slice(-2);
     const day=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
