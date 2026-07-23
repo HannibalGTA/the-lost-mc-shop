@@ -1371,38 +1371,35 @@ function applyBilanResult(filters,isAdmin){
         <div class="bilan-stat"><div class="bilan-stat-val" style="color:var(--accent-gold)">${totalArticles}</div><div class="bilan-stat-lbl">Articles vendus</div></div>
         <div class="bilan-stat"><div class="bilan-stat-val" style="color:var(--s-process)">${moyenneHtml}</div><div class="bilan-stat-lbl">Délai moyen</div></div>
     </div>`;
-    const theadHtml=rows?`<table class="order-table" style="width:100%;margin:0;table-layout:fixed;"><thead><tr>
-        <th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th>
-        <th>Total</th><th>Date fin</th><th style="text-align:center">Délai</th>
-    </tr></thead></table>`:'';
-    const tbodyHtml=rows?`<table class="order-table" style="width:100%;margin:0;table-layout:fixed;"><tbody>${rows}</tbody></table>`
-        :'<div class="section-empty">Aucune commande ne correspond.</div>';
+    const tableHtml=rows?`<div style="overflow-x:auto;overflow-y:auto;max-height:280px;border:1px solid var(--lost-border);border-radius:6px;">
+        <table class="order-table" style="width:100%;margin:0;">
+            <thead><tr>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Référence</th>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Client</th>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Vendeur</th>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Articles</th>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Total</th>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;">Date fin</th>
+                <th style="position:sticky;top:0;background:var(--bg-input);z-index:1;text-align:center">Délai</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </div>`:'<div class="section-empty">Aucune commande ne correspond.</div>';
 
     if(isAdmin){
         const statsEl=document.getElementById('a-bilan-stats');
         const theadEl=document.getElementById('a-bilan-thead');
         const resEl=document.getElementById('a-bilan-result');
         if(statsEl) statsEl.innerHTML=statsHtml;
-        if(theadEl) theadEl.innerHTML=theadHtml;
-        if(resEl){
-            resEl.style.overflowY='auto';
-            resEl.style.maxHeight='180px';
-            resEl.innerHTML=tbodyHtml;
-        }
+        if(theadEl) theadEl.innerHTML='';// plus besoin du thead séparé
+        if(resEl){resEl.style.overflowY='';resEl.style.maxHeight='';resEl.innerHTML=tableHtml;}
     } else {
         const statsEl=document.getElementById('v-bilan-stats');
         const theadEl=document.getElementById('v-bilan-thead');
         const resEl=document.getElementById('v-bilan-result');
         if(statsEl) statsEl.innerHTML=statsHtml;
-        if(theadEl) theadEl.innerHTML=rows?`<table class="order-table" style="width:100%;margin:0;"><thead><tr>
-            <th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th>
-            <th>Total</th><th>Date fin</th><th style="text-align:center">Délai</th>
-        </tr></thead></table>`:'';
-        if(resEl){
-            resEl.style.overflowY='auto';
-            resEl.style.maxHeight='300px';
-            resEl.innerHTML=tbodyHtml;
-        }
+        if(theadEl) theadEl.innerHTML='';
+        if(resEl){resEl.style.overflowY='';resEl.style.maxHeight='';resEl.innerHTML=tableHtml;}
     }
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.filter-dropdown'))document.querySelectorAll('.filter-panel').forEach(p=>p.classList.add('hidden'));});
