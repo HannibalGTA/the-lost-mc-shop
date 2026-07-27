@@ -1113,7 +1113,7 @@ async function toggleOrder(headerEl,orderId){
             cont.innerHTML=data.length?data.map(m=>{
                 const mine=m.auteur===currentUser.login_pure;
                 const isSystem=m.auteur==='🤖 Système';
-                if(isSystem)return`<div style="text-align:center;margin:6px 0;"><span style="display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:6px;padding:10px 14px;font-size:13px;color:#a78bfa;max-width:95%;line-height:1.6;">${m.message}</span></div>`;
+                if(isSystem)return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
                 const av=userAvatarCache[m.auteur]||null;
                 const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
                 return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${m.auteur}</span></div><div>${m.message}</div></div>`;
@@ -1138,7 +1138,7 @@ async function resetMontant(orderId){await sb.from('commandes').update({montant_
 function renderChat(orderId,messages){
     const msgs=messages.map(m=>{
         const isSystem=m.auteur==='🤖 Système';
-        if(isSystem) return`<div style="text-align:center;margin:4px 0;"><span style="display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:6px;padding:6px 12px;font-size:11px;color:#a78bfa;max-width:90%;">${m.message}</span></div>`;
+        if(isSystem) return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
         const mine=m.auteur===currentUser.login_pure;
         const av=userAvatarCache[m.auteur]||null;
         const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
