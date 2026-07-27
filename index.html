@@ -47,6 +47,8 @@
         .view-title{font-size:22px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-top:0;margin-bottom:25px;border-bottom:2px solid var(--lost-border);padding-bottom:15px;}
         .notif-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent-red);color:#fff;border-radius:10px;font-size:10px;font-weight:800;min-width:18px;height:18px;padding:0 4px;}
         .notif-badge.msg{background:#3b82f6;}
+        .notif-badge.dispo{background:#10b981;}
+        @keyframes pulse-red{0%,100%{background:transparent;}50%{background:rgba(218,41,42,.2);}}
         .sub-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
         .sub-tab{padding:8px 18px;border-radius:20px;border:1px solid var(--lost-border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
         .sub-tab.active{background:var(--accent-red);border-color:var(--accent-red);color:#fff;}
@@ -327,7 +329,10 @@
                 </li>
                 <li class="menu-item hidden" id="menu-vendre" onclick="showTab('vendre')">
                     <span class="menu-label">🎯 Gestion Ventes</span>
-                    <span id="badge-vendre" class="notif-badge msg hidden">0</span>
+                    <div style="display:flex;gap:4px;align-items:center;">
+                        <span id="badge-vendre-dispo" class="notif-badge dispo hidden">0</span>
+                        <span id="badge-vendre" class="notif-badge msg hidden">0</span>
+                    </div>
                 </li>
                 <li class="menu-item admin-item hidden" id="menu-admin" onclick="showTab('admin')"><span class="menu-label">⚙️ Administration</span></li>
                 <li class="menu-item profile-item" id="menu-profile" onclick="showTab('profile')"><span class="menu-label">👤 Mon Profil</span></li>
@@ -812,6 +817,25 @@ async function loadCodesRemise(){const{data}=await sb.from('codes_remise').selec
 async function loadCodesPromo(){const{data}=await sb.from('codes_promo').select('*').order('code');codesPromo=data||[];}
 
 // NOTIFS
+// Son de notification nouvelle commande (Web Audio API)
+function playNewOrderSound(){
+    try{
+        const ctx=new(window.AudioContext||window.webkitAudioContext)();
+        const playBeep=(freq,start,dur)=>{
+            const o=ctx.createOscillator(),g=ctx.createGain();
+            o.connect(g);g.connect(ctx.destination);
+            o.frequency.value=freq;o.type='sine';
+            g.gain.setValueAtTime(0,ctx.currentTime+start);
+            g.gain.linearRampToValueAtTime(0.3,ctx.currentTime+start+0.01);
+            g.gain.linearRampToValueAtTime(0,ctx.currentTime+start+dur);
+            o.start(ctx.currentTime+start);o.stop(ctx.currentTime+start+dur+0.05);
+        };
+        playBeep(880,0,0.12);playBeep(1100,0.15,0.12);playBeep(1320,0.30,0.18);
+    }catch(e){}
+}
+
+let _lastPendingCount=null;
+
 function startNotifPoll(){pollNotifs();setInterval(pollNotifs,15000);}
 async function pollNotifs(){
     const{data}=await sb.from('notifications').select('*').eq('login',currentUser.login_pure).eq('lu',false);
@@ -819,6 +843,28 @@ async function pollNotifs(){
     const bo=document.getElementById('badge-orders'),bv=document.getElementById('badge-vendre');
     if(nS>0){bo.textContent=nS;bo.classList.remove('hidden');}else bo.classList.add('hidden');
     if(nM>0&&(currentUser.role_vendeur||currentUser.role_admin)){bv.textContent=nM;bv.classList.remove('hidden');}else bv.classList.add('hidden');
+
+    // Vérifier les nouvelles commandes en attente pour vendeur/admin
+    if(currentUser.role_vendeur||currentUser.role_admin){
+        const{data:pending}=await sb.from('commandes').select('id',{count:'exact'}).eq('statut','En attente').is('vendeur_affecte',null);
+        const count=(pending||[]).length;
+        if(_lastPendingCount!==null&&count>_lastPendingCount){
+            // Nouvelle commande ! Son + badge clignotant
+            playNewOrderSound();
+            const mi=document.getElementById('menu-vendre');
+            if(mi){
+                mi.style.animation='pulse-red 1s ease-in-out 5';
+                setTimeout(()=>mi.style.animation='',5000);
+            }
+        }
+        _lastPendingCount=count;
+        // Badge commandes dispo sur le menu vendre
+        const bvDispo=document.getElementById('badge-vendre-dispo');
+        if(bvDispo){
+            if(count>0){bvDispo.textContent=count;bvDispo.classList.remove('hidden');}
+            else bvDispo.classList.add('hidden');
+        }
+    }
 }
 async function pushNotif(login,id_commande,type,contenu){if(login)await sb.from('notifications').insert([{login,id_commande,type,contenu}]);}
 async function markNotifsRead(type){await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('type',type).eq('lu',false);pollNotifs();}
