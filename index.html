@@ -1155,7 +1155,11 @@ function renderChat(orderId,messages){
 async function sendChat(orderId){
     const input=document.getElementById('chat-input-'+orderId);
     const msg=input.value.trim();if(!msg)return;
-    if(!RL.check('chat-'+orderId,1,2000))return;// silencieux anti-flood
+    if(!RL.check('chat-'+orderId,1,1000)){
+        input.style.borderColor='var(--accent-red)';
+        setTimeout(()=>input.style.borderColor='',1000);
+        return;
+    }
     input.value='';
     await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
     const o=allOrdersCache.find(x=>x.id===orderId);
