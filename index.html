@@ -1161,7 +1161,11 @@ async function sendChat(orderId){
         return;
     }
     input.value='';
-    await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
+    const{error:chatError}=await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
+    if(chatError){
+        input.value=msg;// remettre le message si erreur
+        alert("Erreur envoi : "+chatError.message);return;
+    }
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
