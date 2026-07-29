@@ -670,6 +670,18 @@ const APP_SECRET="lostmc_2026_k9x7q";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
     global:{headers:{'x-app-secret':APP_SECRET}}
 });
+// Sanitize HTML — empêche les injections XSS
+function esc(str){
+    if(!str) return '';
+    return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#x27;')
+        .replace(/`/g,'&#x60;');
+}
+
 // Bcrypt helpers
 async function hashPassword(pwd){ return await dcodeIO.bcrypt.hash(pwd,10); }
 async function checkPassword(pwd,hash){ return await dcodeIO.bcrypt.compare(pwd,hash); }
@@ -723,7 +735,7 @@ function renderUserInline(login,id_serveur,code_vip,avatarUrl){
     const cObj=codesRemise.find(c=>c.code===code_vip);
     const codeBadge=cObj?`<span class="badge" style="background:var(--accent-gold);color:#000;font-size:9px;">${cObj.code}</span>`:'';
     const idLabel=id_serveur!=null?`<span style="color:var(--text-muted);font-size:11px;"> | ${id_serveur}</span>`:'';
-    return`<span class="user-inline">${img}<strong>${login}</strong>${idLabel}${codeBadge}</span>`;
+    return`<span class="user-inline">${img}<strong>${esc(login)}</strong>${idLabel}${codeBadge}</span>`;
 }
 
 // AUTH
@@ -903,8 +915,8 @@ function renderCatalogueGrid(){
             ${unavailableOverlay}${badgeHtml}
             <div>
                 <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
-                <div style="font-weight:bold;font-size:16px;margin-bottom:5px;">${w.name}</div>
-                <div style="color:var(--text-muted);font-size:12px;line-height:1.4;margin-bottom:8px;">${w.description||''}</div>
+                <div style="font-weight:bold;font-size:16px;margin-bottom:5px;">${esc(w.name)}</div>
+                <div style="color:var(--text-muted);font-size:12px;line-height:1.4;margin-bottom:8px;">${esc(w.description||'')||''}</div>
                 <div style="font-size:11px;color:var(--accent-red);font-weight:600;margin-bottom:12px;">📊 ${w.mag||''}</div>
             </div><div>
                 <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
@@ -1044,7 +1056,7 @@ async function renderOrderHTMLAsync(o,ctx){
     if(ctx!=='client')actions+=`<button class="btn btn-small" style="background:#0f766e;" onclick="showMateriauxCommande(${o.id})">🧱 Matériaux</button>`;
     let rows='';
     if(o.details_commande&&o.details_commande.length)
-        rows=o.details_commande.map(i=>`<tr><td>${i.nom_article}</td><td>x${i.quantite}</td><td>${(i.prix_achat*i.quantite).toLocaleString()} $</td></tr>`).join('');
+        rows=o.details_commande.map(i=>`<tr><td>${esc(i.nom_article)}</td><td>x${i.quantite}</td><td>${(i.prix_achat*i.quantite).toLocaleString()} $</td></tr>`).join('');
     else rows=`<tr><td colspan="3" style="color:var(--text-muted);text-align:center;">Aucun article</td></tr>`;
     // Base avant ajustement = rawTotal après éventuelle remise promo
     const baseAvantAjust = o.code_promo&&o.taux_promo
@@ -1116,7 +1128,7 @@ async function toggleOrder(headerEl,orderId){
                 if(isSystem)return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
                 const av=userAvatarCache[m.auteur]||null;
                 const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
-                return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${m.auteur}</span></div><div>${m.message}</div></div>`;
+                return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;
             }).join(''):'<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Aucun message.</div>';
             cont.scrollTop=cont.scrollHeight;
         }
@@ -1142,7 +1154,7 @@ function renderChat(orderId,messages){
         const mine=m.auteur===currentUser.login_pure;
         const av=userAvatarCache[m.auteur]||null;
         const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
-        return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${m.auteur}</span></div><div>${m.message}</div></div>`;
+        return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;
     }).join('');
     return`<div class="chat-box">
         <div class="chat-messages" id="chat-msgs-${orderId}">${msgs||'<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Aucun message.</div>'}</div>
@@ -1171,7 +1183,7 @@ async function sendChat(orderId){
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
     const cont=document.getElementById('chat-msgs-'+orderId);
     if(cont&&data){
-        cont.innerHTML=data.map(m=>{const mine=m.auteur===currentUser.login_pure;const av=userAvatarCache[m.auteur]||null;const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${m.auteur}</span></div><div>${m.message}</div></div>`;}).join('');
+        cont.innerHTML=data.map(m=>{const mine=m.auteur===currentUser.login_pure;const av=userAvatarCache[m.auteur]||null;const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;}).join('');
         cont.scrollTop=cont.scrollHeight;
     }
     pollNotifs();
@@ -1409,7 +1421,7 @@ function applyBilanResult(filters,isAdmin){
             <td style="font-family:monospace;color:var(--accent-red)">${ref}</td>
             <td>${o.client_pseudo}</td>
             <td>${o.vendeur_affecte||'—'}</td>
-            <td>${lines.map(l=>`${l.nom_article} x${l.quantite}`).join(', ')}</td>
+            <td>${lines.map(l=>`${esc(l.nom_article)} x${l.quantite}`).join(', ')}</td>
             <td style="font-weight:bold;color:var(--s-done)">${ot.toLocaleString()} $</td>
             <td style="color:var(--text-muted);font-size:12px;">${fmtDate(o.date_fin)}</td>
             <td style="text-align:center;color:var(--s-process);font-weight:600;">${delaiHtml}</td>
@@ -1692,7 +1704,7 @@ function renderUsersTable(users){
         let roles=[];if(u.role_admin)roles.push('<span class="badge badge-admin">Admin</span>');if(u.role_vendeur)roles.push('<span class="badge badge-vendeur">Vendeur</span>');roles.push('<span class="badge badge-client">Client</span>');
         const c=codesRemise.find(x=>x.code===u.code_vip);const vb=c?`<span class="badge" style="background:var(--accent-gold);color:#000">${c.code}</span>`:'—';
         const isSelf=u.login===currentUser.login_pure&&u.id_serveur===currentUser.id_serveur;
-        return`<tr><td><strong>${u.login}</strong></td><td>#${u.id_serveur}</td><td>${roles.join(' ')}</td><td>${vb}</td><td style="white-space:nowrap;"><button class="btn btn-small btn-secondary" style="margin-right:4px;" onclick="openUserModal('${u.login}',${u.id_serveur})">✏️</button>${!isSelf?`<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>`:''}</td></tr>`;
+        return`<tr><td><strong>${esc(u.login)}</strong></td><td>#${u.id_serveur}</td><td>${roles.join(' ')}</td><td>${vb}</td><td style="white-space:nowrap;"><button class="btn btn-small btn-secondary" style="margin-right:4px;" onclick="openUserModal('${u.login}',${u.id_serveur})">✏️</button>${!isSelf?`<button class="btn btn-small btn-danger" onclick="deleteUser('${u.login}',${u.id_serveur})">🗑️</button>`:''}</td></tr>`;
     }).join('');
 }
 function openUserModal(login,idServeur){
@@ -1836,7 +1848,7 @@ function renderActivite(jours){
             statut='<span style="color:var(--s-cancel);">⚫ Jamais connecté</span>';
         }
         return`<tr>
-            <td><strong>${u.login}</strong></td>
+            <td><strong>${esc(u.login)}</strong></td>
             <td>#${u.id_serveur}</td>
             <td>${role}</td>
             <td style="font-size:12px;">${dernCo}</td>
@@ -1927,7 +1939,7 @@ function renderAdminCatalogueGrid(){
             return`<div class="weapon-card" style="${w.disponible===false?'opacity:.6;':''}">
                 <div>
                     <img src="${w.img_url||ph}" onerror="this.src='${ph}'">
-                    <div style="font-weight:bold;font-size:14px;margin-bottom:3px;">${w.name}${badgePill}${unavailPill}</div>
+                    <div style="font-weight:bold;font-size:14px;margin-bottom:3px;">${esc(w.name)}${badgePill}${unavailPill}</div>
                     <div style="font-size:13px;font-weight:700;color:var(--s-done);">${w.price.toLocaleString()} $</div>
                 </div>
                 <div style="margin-top:10px;">
