@@ -699,7 +699,6 @@ async function callApi(action, payload){
         body:JSON.stringify({action,payload})
     });
     const text=await res.text();
-    console.log('callApi',action,'status:',res.status,'response:',text);
     let data;
     try{data=JSON.parse(text);}catch(e){throw new Error('Réponse invalide: '+text.substring(0,100));}
     if(data.error) throw new Error(data.error);
