@@ -1157,7 +1157,7 @@ async function toggleOrder(headerEl,orderId){
         await markMsgsRead(orderId);
         card.classList.remove('has-notif');
         const mb=card.querySelector('.notif-badge.msg');if(mb)mb.remove();
-        await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('id_commande',orderId).eq('lu',false);
+        try{await callApi('mark_notifs_read',{id_commande:orderId});}catch(e){}
         pollNotifs();
         // Recharger les messages et scroller en bas
         const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
@@ -1217,20 +1217,27 @@ async function sendChat(orderId){
     try{
         await callApi('send_message',{id_commande:orderId,message:msg});
     }catch(err){input.value=msg;alert("Erreur envoi : "+err.message);return;}
+    // Notifier les autres participants
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
+    // Recharger les messages depuis la base
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
     const cont=document.getElementById('chat-msgs-'+orderId);
     if(cont&&data){
-        cont.innerHTML=data.map(m=>{const mine=m.auteur===currentUser.login_pure;const av=userAvatarCache[m.auteur]||null;const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;}).join('');
+        cont.innerHTML=data.map(m=>{
+            const isSystem=m.auteur==='🤖 Système';
+            if(isSystem)return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
+            const mine=m.auteur===currentUser.login_pure;
+            const av=userAvatarCache[m.auteur]||null;
+            const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
+            return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;
+        }).join('');
         cont.scrollTop=cont.scrollHeight;
     }
     pollNotifs();
 }
 async function markMsgsRead(orderId){
-    const{data:msgs}=await sb.from('messages_chat').select('id,lu_par').eq('id_commande',orderId);if(!msgs)return;
-    for(const m of msgs)if(!(m.lu_par||[]).includes(currentUser.login_pure))await sb.from('messages_chat').update({lu_par:[...(m.lu_par||[]),currentUser.login_pure]}).eq('id',m.id);
-    await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('id_commande',orderId).eq('type','message');
+    try{await callApi('mark_notifs_read',{id_commande:orderId,type:'message'});}catch(e){}
     pollNotifs();
 }
 
