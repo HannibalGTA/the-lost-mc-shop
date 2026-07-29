@@ -667,6 +667,22 @@
 const SUPABASE_URL="https://mvmngahkjvfpcwrstlns.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
 const APP_SECRET="lostmcshop_2026_x9r4m7p";
+const EDGE_URL="https://mvmngahkjvfpcwrstlns.supabase.co/functions/v1/lostmc-admin";
+
+// Appel Edge Function pour les actions admin sensibles
+async function callEdge(action, payload){
+    const res=await fetch(EDGE_URL,{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json',
+            'x-front-secret':APP_SECRET
+        },
+        body:JSON.stringify({action,payload})
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    return data;
+}
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
     global:{headers:{'x-app-secret':APP_SECRET}}
 });
@@ -1720,40 +1736,45 @@ async function saveUserEdit(){
     const role_vendeur=document.getElementById('role-vendeur').checked,role_admin=document.getElementById('role-admin').checked;
     const vip=document.getElementById('edit-user-vip').value;
     const newPwd=document.getElementById('reset-pwd-input').value.trim();
-    const updates={role_admin,role_vendeur,code_vip:vip||null};
-    // Réinitialisation mot de passe si renseigné
-    if(newPwd){
-        if(newPwd.length<4){alert("Le mot de passe doit faire au moins 4 caractères.");return;}
-        updates.mot_de_pass=await hashPassword(newPwd);
-    }
-    const{error}=await sb.from('utilisateurs').update(updates).eq('login',login).eq('id_serveur',idServeur);
-    if(error){alert("Erreur : "+error.message);return;}
-    closeModal('modal-user');
-    if(newPwd) alert(`✅ Mot de passe de ${login} réinitialisé. Communiquez-lui le nouveau mot de passe : "${newPwd}"`);
-    await loadAdminUsers();
+    try{
+        // Modification des rôles via Edge Function (secret jamais exposé côté serveur)
+        await callEdge('update_user_role',{login,id_serveur:idServeur,role_admin,role_vendeur,code_vip:vip||null});
+        // Reset mot de passe si renseigné
+        if(newPwd){
+            if(newPwd.length<4){alert("Le mot de passe doit faire au moins 4 caractères.");return;}
+            const hashed=await hashPassword(newPwd);
+            await callEdge('reset_password',{login,id_serveur:idServeur,mot_de_pass:hashed});
+        }
+        closeModal('modal-user');
+        if(newPwd) alert(`✅ Mot de passe de ${login} réinitialisé. Communiquez-lui le nouveau mot de passe : "${newPwd}"`);
+        await loadAdminUsers();
+    }catch(err){alert("Erreur : "+err.message);}
 }
 async function deleteUser(login,idServeur){
     if(!confirm(`Supprimer ${login} (#${idServeur}) ?`))return;
     const deleteOrders=confirm(`Voulez-vous aussi supprimer toutes les commandes de ${login} ?\n\nOK = Oui, supprimer les commandes\nAnnuler = Non, garder les commandes`);
-    // Supprimer la photo de profil dans Storage si elle existe
-    const u=allUsers.find(x=>x.login===login&&x.id_serveur===idServeur);
-    if(u&&u.avatar_url&&u.avatar_url.includes('/avatars/')){
-        const filePath=u.avatar_url.split('/avatars/').pop();
-        await sb.storage.from('avatars').remove([filePath]);
-    }
-    // Supprimer les commandes si demandé
-    if(deleteOrders){
-        const{data:cmds}=await sb.from('commandes').select('id').eq('client_pseudo',login).eq('client_id',idServeur);
-        if(cmds&&cmds.length){
-            const ids=cmds.map(c=>c.id);
-            await sb.from('notifications').delete().in('id_commande',ids);
-            await sb.from('messages_chat').delete().in('id_commande',ids);
-            await sb.from('details_commande').delete().in('id_commande',ids);
-            await sb.from('commandes').delete().eq('client_pseudo',login).eq('client_id',idServeur);
+    try{
+        // Supprimer la photo de profil dans Storage si elle existe
+        const u=allUsers.find(x=>x.login===login&&x.id_serveur===idServeur);
+        if(u&&u.avatar_url&&u.avatar_url.includes('/avatars/')){
+            const filePath=u.avatar_url.split('/avatars/').pop();
+            await sb.storage.from('avatars').remove([filePath]);
         }
-    }
-    await sb.from('utilisateurs').delete().eq('login',login).eq('id_serveur',idServeur);
-    await loadAdminUsers();await loadAdminStats();
+        // Supprimer les commandes si demandé (via API normale — protégé par secret)
+        if(deleteOrders){
+            const{data:cmds}=await sb.from('commandes').select('id').eq('client_pseudo',login).eq('client_id',idServeur);
+            if(cmds&&cmds.length){
+                const ids=cmds.map(c=>c.id);
+                await sb.from('notifications').delete().in('id_commande',ids);
+                await sb.from('messages_chat').delete().in('id_commande',ids);
+                await sb.from('details_commande').delete().in('id_commande',ids);
+                await sb.from('commandes').delete().eq('client_pseudo',login).eq('client_id',idServeur);
+            }
+        }
+        // Suppression user via Edge Function
+        await callEdge('delete_user',{login,id_serveur:idServeur});
+        await loadAdminUsers();await loadAdminStats();
+    }catch(err){alert("Erreur : "+err.message);}
 }
 
 // ADMIN COMMANDES
