@@ -1208,7 +1208,7 @@ function renderChat(orderId,messages){
 async function sendChat(orderId){
     const input=document.getElementById('chat-input-'+orderId);
     const msg=input.value.trim();if(!msg)return;
-    if(!RL.check('chat-'+orderId,1,1000)){
+    if(!RL.check('chat-'+orderId,1,500)){
         input.style.borderColor='var(--accent-red)';
         setTimeout(()=>input.style.borderColor='',1000);
         return;
@@ -1217,23 +1217,11 @@ async function sendChat(orderId){
     try{
         await callApi('send_message',{id_commande:orderId,message:msg});
     }catch(err){input.value=msg;alert("Erreur envoi : "+err.message);return;}
-    // Notifier les autres participants
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
-    // Recharger les messages depuis la base
-    const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
-    const cont=document.getElementById('chat-msgs-'+orderId);
-    if(cont&&data){
-        cont.innerHTML=data.map(m=>{
-            const isSystem=m.auteur==='🤖 Système';
-            if(isSystem)return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
-            const mine=m.auteur===currentUser.login_pure;
-            const av=userAvatarCache[m.auteur]||null;
-            const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
-            return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;
-        }).join('');
-        cont.scrollTop=cont.scrollHeight;
-    }
+    await reloadCurrentView();
+    // Scroll bas sur le chat concerné
+    setTimeout(()=>{const cont=document.getElementById('chat-msgs-'+orderId);if(cont)cont.scrollTop=cont.scrollHeight;},300);
     pollNotifs();
 }
 async function markMsgsRead(orderId){
