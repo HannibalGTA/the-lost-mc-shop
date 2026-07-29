@@ -668,14 +668,31 @@ const SUPABASE_URL="https://mvmngahkjvfpcwrstlns.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bW5nYWhranZmcGN3cnN0bG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA5MTYsImV4cCI6MjA5NjE4NjkxNn0.zE5oesTLgVZhBof8qx16Y2LN_FBxEqwseI4qPIkuIaE";
 const APP_SECRET="lostmcshop_2026_x9r4m7p";
 const EDGE_URL="https://mvmngahkjvfpcwrstlns.supabase.co/functions/v1/lostmc-admin";
+const API_URL="https://mvmngahkjvfpcwrstlns.supabase.co/functions/v1/lostmc-api";
 
-// Appel Edge Function pour les actions admin sensibles
+// Appel Edge Function admin (rôles, delete user, reset pwd)
 async function callEdge(action, payload){
     const res=await fetch(EDGE_URL,{
         method:'POST',
+        headers:{'Content-Type':'application/json','x-front-secret':APP_SECRET},
+        body:JSON.stringify({action,payload})
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    return data;
+}
+
+// Appel Edge Function API universelle (toutes les écritures)
+async function callApi(action, payload){
+    if(!currentUser) throw new Error('Non connecté');
+    const res=await fetch(API_URL,{
+        method:'POST',
         headers:{
             'Content-Type':'application/json',
-            'x-front-secret':APP_SECRET
+            'x-front-secret':APP_SECRET,
+            'x-user-login':currentUser.login_pure,
+            'x-user-id':String(currentUser.id_serveur),
+            'x-user-role':currentUser.role_admin?'admin':currentUser.role_vendeur?'vendeur':'client'
         },
         body:JSON.stringify({action,payload})
     });
@@ -894,8 +911,8 @@ async function pollNotifs(){
         }
     }
 }
-async function pushNotif(login,id_commande,type,contenu){if(login)await sb.from('notifications').insert([{login,id_commande,type,contenu}]);}
-async function markNotifsRead(type){await sb.from('notifications').update({lu:true}).eq('login',currentUser.login_pure).eq('type',type).eq('lu',false);pollNotifs();}
+async function pushNotif(login,id_commande,type,contenu){if(login)try{await callApi('push_notif',{login,id_commande,type,contenu});}catch(e){}}
+async function markNotifsRead(type){try{await callApi('mark_notifs_read',{type});}catch(e){}pollNotifs();}
 
 // CATALOGUE
 async function loadCatalogue(){
@@ -1031,16 +1048,19 @@ async function checkout(){
         }
         finalTotal=applyPromoTaux(rawTotal,freshPromo.taux);
         codePromoUsed=freshPromo.code;tauxPromoUsed=freshPromo.taux;
-        await sb.from('codes_promo').update({uses_count:freshPromo.uses_count+1}).eq('id',freshPromo.id);
-        if(!freshPromo.reutilisable)await sb.from('codes_promo').update({actif:false}).eq('id',freshPromo.id);
+        await callApi('update_promo_uses',{id:freshPromo.id,uses_count:freshPromo.uses_count+1,actif:freshPromo.reutilisable?true:false});
         appliedPromo=null;
     }
-    const{data:od,error:oe}=await sb.from('commandes').insert([{client_id:currentUser.id_serveur,client_pseudo:currentUser.login_pure,statut:'En attente',ref_commande:null,montant_ajuste:codePromoUsed?finalTotal:null,code_promo:codePromoUsed,taux_promo:tauxPromoUsed}]).select();
-    if(oe){alert("Erreur : "+oe.message);return;}
-    // Générer la ref APRÈS insertion pour utiliser l'id DB (unicité garantie)
+    let od, oeMsg;
+    try{
+        const cmdData={statut:'En attente',ref_commande:null,montant_ajuste:codePromoUsed?finalTotal:null,code_promo:codePromoUsed,taux_promo:tauxPromoUsed};
+        const lines=cart.map(i=>({nom_article:i.name,quantite:i.qty,prix_achat:i.price}));
+        const res=await callApi('create_commande',{commande:cmdData,details:lines});
+        od=[res.data];
+    }catch(err){alert("Erreur commande : "+err.message);return;}
     const ref=generateRef(cart, od[0].id);
-    await sb.from('commandes').update({ref_commande:ref}).eq('id',od[0].id);
-    await sb.from('details_commande').insert(cart.map(i=>({id_commande:od[0].id,nom_article:i.name,quantite:i.qty,prix_achat:i.price})));
+    await callApi('update_commande',{id:od[0].id,updates:{ref_commande:ref}});
+    // details insérés via callApi create_commande
     cart=[];appliedPromo=null;updateCart();renderPromoSection();
     alert(`Commande ${ref} transmise !`);showTab('orders');
 }
@@ -1155,7 +1175,7 @@ async function toggleOrder(headerEl,orderId){
 async function saveMontant(orderId){
     const val=parseInt(document.getElementById('montant-input-'+orderId).value);
     if(isNaN(val)||val<0){alert("Montant invalide.");return;}
-    await sb.from('commandes').update({montant_ajuste:val}).eq('id',orderId);
+    await callApi('update_commande',{id:orderId,updates:{montant_ajuste:val}});
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o)await pushNotif(o.client_pseudo,orderId,'statut',`Montant ajusté à ${val.toLocaleString()} $`);
     await reloadCurrentView();
@@ -1189,11 +1209,9 @@ async function sendChat(orderId){
         return;
     }
     input.value='';
-    const{error:chatError}=await sb.from('messages_chat').insert([{id_commande:orderId,auteur:currentUser.login_pure,message:msg,lu_par:[currentUser.login_pure]}]);
-    if(chatError){
-        input.value=msg;// remettre le message si erreur
-        alert("Erreur envoi : "+chatError.message);return;
-    }
+    try{
+        await callApi('send_message',{id_commande:orderId,message:msg});
+    }catch(err){input.value=msg;alert("Erreur envoi : "+err.message);return;}
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at');
@@ -1226,7 +1244,7 @@ async function loadMyOrders(){
 async function cancelOrder(id){
     if(!confirm("Annuler cette commande ?"))return;
     const o=allOrdersCache.find(x=>x.id===id);
-    await sb.from('commandes').update({statut:'Annulée',date_fin:new Date().toISOString()}).eq('id',id);
+    await callApi('update_commande',{id,updates:{statut:'Annulée',date_fin:new Date().toISOString()}});
     if(o&&o.client_pseudo!==currentUser.login_pure)await pushNotif(o.client_pseudo,id,'statut','Votre commande a été annulée.');
     await reloadCurrentView();
 }
@@ -1314,7 +1332,7 @@ async function applyHistoriqueFilters(){
 }
 async function claimOrder(id){
     if(!confirm("Prendre en charge ?"))return;
-    await sb.from('commandes').update({statut:'En cours',vendeur_affecte:currentUser.login_pure}).eq('id',id);
+    await callApi('update_commande',{id,updates:{statut:'En cours',vendeur_affecte:currentUser.login_pure}});
     const o=allOrdersCache.find(x=>x.id===id);if(o)await pushNotif(o.client_pseudo,id,'statut','Votre commande est En cours.');
     await reloadCurrentView();
 }
@@ -1322,7 +1340,7 @@ async function setOrderStatut(id,statut){
     if(!confirm(`Marquer comme "${statut}" ?`))return;
     const updates={statut};
     if(['Terminée','Annulée'].includes(statut)) updates.date_fin=new Date().toISOString();
-    await sb.from('commandes').update(updates).eq('id',id);
+    await callApi('update_commande',{id,updates});
     const o=allOrdersCache.find(x=>x.id===id);
     if(o) await pushNotif(o.client_pseudo,id,'statut',`Votre commande : ${statut}`);
     if(statut==='En cours'||statut==='Préparée'){
@@ -1598,8 +1616,8 @@ async function saveMateriauxQty(){
         });
     });
     if(!upserts.length){alert("Rien à sauvegarder.");return;}
-    const{error}=await sb.from('article_materiaux').upsert(upserts,{onConflict:'article_id,materiau_id'});
-    if(error){alert("Erreur : "+error.message);return;}
+    try{await callApi('upsert_materiaux_qty',{upserts});}
+    catch(err){alert("Erreur : "+err.message);return;}
     alert("✅ Sauvegardé !");
     await loadMateriaux();
 }
@@ -1888,8 +1906,8 @@ function openRemiseModal(id){const r=codesRemise.find(x=>x.id===id);document.get
 async function saveRemise(){
     const id=document.getElementById('remise-edit-id').value,code=document.getElementById('remise-code').value.trim().toUpperCase(),taux=parseInt(document.getElementById('remise-taux').value),description=document.getElementById('remise-desc').value.trim();
     if(!code||isNaN(taux)){alert("Code et taux requis.");return;}
-    let error;if(id){({error}=await sb.from('codes_remise').update({code,taux,description}).eq('id',parseInt(id)));}else{({error}=await sb.from('codes_remise').insert([{code,taux,description}]));}
-    if(error){alert("Erreur : "+error.message);return;}closeModal('modal-remise');await loadRemises();
+    try{await callApi('upsert_code_remise',{id:id?parseInt(id):null,data:{code,taux,description}});}
+    catch(err){alert("Erreur : "+err.message);return;}closeModal('modal-remise');await loadRemises();
 }
 async function deleteRemise(id){if(!confirm("Supprimer ce code famille ?"))return;await sb.from('codes_remise').delete().eq('id',id);await loadRemises();}
 
@@ -1935,8 +1953,8 @@ async function savePromo(){
     const reutilisable=document.getElementById('promo-reutilisable').checked,maxVal=document.getElementById('promo-max-uses').value;
     const max_uses=reutilisable&&maxVal?parseInt(maxVal):null;
     if(!code||isNaN(taux)){alert("Code et taux requis.");return;}
-    let error;if(id){({error}=await sb.from('codes_promo').update({code,taux,reutilisable,max_uses,actif:true}).eq('id',parseInt(id)));}else{({error}=await sb.from('codes_promo').insert([{code,taux,reutilisable,max_uses,uses_count:0,actif:true}]));}
-    if(error){alert("Erreur : "+error.message);return;}closeModal('modal-promo');await loadPromos();
+    try{await callApi('upsert_code_promo',{id:id?parseInt(id):null,data:{code,taux,reutilisable,max_uses,uses_count:id?undefined:0,actif:true}});}
+    catch(err){alert("Erreur : "+err.message);return;}closeModal('modal-promo');await loadPromos();
 }
 async function deletePromo(id){if(!confirm("Supprimer ce code promo ?"))return;await sb.from('codes_promo').delete().eq('id',id);await loadPromos();}
 
@@ -2045,9 +2063,9 @@ async function saveItem(){
         const sameCat=catalog.filter(x=>x.cat===cat);
         sort_order=sameCat.length?Math.max(...sameCat.map(x=>x.sort_order||0))+1:0;
     }
-    const payload={name,price,description,mag,cat,img_url,sort_order,badge_label,disponible};let error;
-    if(id){({error}=await sb.from('articles').update(payload).eq('id',parseInt(id)));}else{({error}=await sb.from('articles').insert([payload]));}
-    if(error){alert("Erreur : "+error.message);return;}
+    const payload={name,price,description,mag,cat,img_url,sort_order,badge_label,disponible};
+    try{await callApi('upsert_article',{id:id?parseInt(id):null,data:payload});}
+    catch(err){alert("Erreur : "+err.message);return;}
     // Si nouvel article, initialiser les matériaux à 0
     if(!id&&materiaux.length){
         const{data:newArt}=await sb.from('articles').select('id').order('id',{ascending:false}).limit(1);
@@ -2080,7 +2098,7 @@ async function deleteItem(id){
         const filePath=art.img_url.split('/catalogue/').pop();
         await sb.storage.from('catalogue').remove([filePath]);
     }
-    await sb.from('articles').delete().eq('id',id);
+    await callApi('delete_article',{id});
     await loadAdminCatalogue();await loadAdminStats();
 }
 
@@ -2110,8 +2128,8 @@ async function saveProfileInfo(){
             updates.avatar_url=publicUrl;
         }catch(err){alert("Erreur upload avatar : "+err.message);return;}
     }
-    const{error}=await sb.from('utilisateurs').update(updates).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
-    if(error){alert("Erreur : "+error.message);return;}
+    try{await callApi('update_profile',{updates});}
+    catch(err){alert("Erreur : "+err.message);return;}
     currentUser.email=email;
     if(profileAvatarFile){
         currentUser.avatar_url=updates.avatar_url;
