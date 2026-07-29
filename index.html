@@ -1056,6 +1056,7 @@ async function checkout(){
         const cmdData={statut:'En attente',ref_commande:null,montant_ajuste:codePromoUsed?finalTotal:null,code_promo:codePromoUsed,taux_promo:tauxPromoUsed};
         const lines=cart.map(i=>({nom_article:i.name,quantite:i.qty,prix_achat:i.price}));
         const res=await callApi('create_commande',{commande:cmdData,details:lines});
+        if(!res.data){throw new Error('Pas de données retournées par la Edge Function');}
         od=[res.data];
     }catch(err){alert("Erreur commande : "+err.message);return;}
     const ref=generateRef(cart, od[0].id);
