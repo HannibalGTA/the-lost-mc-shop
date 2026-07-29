@@ -2019,24 +2019,17 @@ async function saveItem(){
     if(itemImgFile){
         try{
             const ext=itemImgFile.name.split('.').pop().toLowerCase();
-            const artId=id||Date.now();
-            console.log('Upload image:', itemImgFile.name, 'pour article ID:', artId);
-            // Supprimer l'ancienne image si elle existe
+            const artId=id||Date.now();            // Supprimer l'ancienne image si elle existe
             if(id){
                 const exArt=catalog.find(x=>x.id===parseInt(id));
                 if(exArt&&exArt.img_url&&exArt.img_url.includes('/catalogue/')){
-                    const oldPath=decodeURIComponent(exArt.img_url.split('/catalogue/').pop().split('?')[0]);
-                    console.log('Suppression ancien fichier:', oldPath);
-                    await sb.storage.from('catalogue').remove([oldPath]);
+                    const oldPath=decodeURIComponent(exArt.img_url.split('/catalogue/').pop().split('?')[0]);                    await sb.storage.from('catalogue').remove([oldPath]);
                 }
             }
-            const filePath=`article_${artId}.${ext}`;
-            console.log('Nouveau fichier:', filePath);
-            img_url=await uploadToStorage('catalogue',filePath,itemImgFile);
-            console.log('URL obtenue:', img_url);
-        }catch(err){
-            console.error('Erreur upload:', err);
-            alert("Erreur upload image : "+err.message);return;
+            const filePath=`article_${artId}.${ext}`;            img_url=await uploadToStorage('catalogue',filePath,itemImgFile);
+            // Ajouter un timestamp pour forcer le rechargement du cache navigateur
+            if(img_url) img_url=img_url.split('?')[0]+'?t='+Date.now();
+        }catch(err){            alert("Erreur upload image : "+err.message);return;
         }
     } else if(id){
         const ex=catalog.find(x=>x.id===parseInt(id));img_url=ex?ex.img_url:null;
