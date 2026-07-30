@@ -1192,16 +1192,15 @@ async function toggleOrder(headerEl,orderId){
     }
 }
 
-async function reloadChatMessages(orderId){
+async function reloadChatMessages(orderId, inputEl){
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at',{ascending:true});
-    const card=document.getElementById('order-card-'+orderId);
-    const conts=document.querySelectorAll('#chat-msgs-'+orderId);
-    // Prendre le conteneur dans la carte dépliée
+    // Remonter depuis l'input pour trouver le bon conteneur chat-messages
     let cont=null;
-    if(card&&card.classList.contains('expanded')){
-        cont=card.querySelector('[id="chat-msgs-'+orderId+'"]');
+    if(inputEl){
+        const chatBox=inputEl.closest('.chat-box');
+        if(chatBox) cont=chatBox.querySelector('.chat-messages');
     }
-    if(!cont) cont=conts[conts.length-1];
+    if(!cont) cont=document.getElementById('chat-msgs-'+orderId);
     if(!cont||!data) return;
     cont.innerHTML=data.map(m=>{
         const isSystem=m.auteur==='🤖 Système';
@@ -1242,21 +1241,14 @@ function renderChat(orderId,messages){
     return`<div class="chat-box">
         <div class="chat-messages" id="chat-msgs-${orderId}">${msgs||'<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Aucun message.</div>'}</div>
         <div class="chat-input-row">
-            <input type="text" id="chat-input-${orderId}" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendChat(${orderId})">
-            <button class="btn btn-small btn-info" onclick="sendChat(${orderId})">Envoyer</button>
+            <input type="text" id="chat-input-${orderId}" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendChat(${orderId},this)">
+            <button class="btn btn-small btn-info" onclick="sendChat(${orderId},this.previousElementSibling)">Envoyer</button>
         </div>
     </div>`;
 }
-async function sendChat(orderId){
-    // Trouver l'input dans la carte dépliée (expanded) pour éviter les doublons d'ID
-    const card=document.getElementById('order-card-'+orderId);
-    const inputs=document.querySelectorAll('#chat-input-'+orderId);
-    // Prendre l'input visible (dans la commande dépliée)
-    let input=null;
-    if(card&&card.classList.contains('expanded')){
-        input=card.querySelector('[id="chat-input-'+orderId+'"]');
-    }
-    if(!input) input=inputs[inputs.length-1]||document.getElementById('chat-input-'+orderId);
+async function sendChat(orderId, inputEl){
+    // inputEl passé directement depuis le bouton/onkeydown — pas de recherche par ID
+    const input = inputEl || document.getElementById('chat-input-'+orderId);
     if(!input)return;
     const msg=input.value.trim();if(!msg)return;
     // Anti-flood : 500ms entre deux envois
@@ -1276,7 +1268,7 @@ async function sendChat(orderId){
     const o=allOrdersCache.find(x=>x.id===orderId);
     if(o){const dest=[o.client_pseudo,o.vendeur_affecte].filter(p=>p&&p!==currentUser.login_pure);for(const d of dest)await pushNotif(d,orderId,'message',`Message de ${currentUser.login_pure}`);}
     // Recharger uniquement les messages de ce chat
-    await reloadChatMessages(orderId);
+    await reloadChatMessages(orderId, input);
     pollNotifs();
 }
 async function markMsgsRead(orderId){
