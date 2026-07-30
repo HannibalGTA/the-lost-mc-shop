@@ -674,7 +674,12 @@ const API_URL="https://mvmngahkjvfpcwrstlns.supabase.co/functions/v1/lostmc-api"
 async function callEdge(action, payload){
     const res=await fetch(EDGE_URL,{
         method:'POST',
-        headers:{'Content-Type':'application/json','x-front-secret':APP_SECRET},
+        headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+SUPABASE_ANON_KEY,
+            'apikey':SUPABASE_ANON_KEY,
+            'x-front-secret':APP_SECRET
+        },
         body:JSON.stringify({action,payload})
     });
     const data=await res.json();
