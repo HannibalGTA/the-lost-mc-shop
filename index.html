@@ -1834,7 +1834,8 @@ async function loadAdminOrders(){
 }
 async function deleteOrder(id){
     if(!confirm("Supprimer ?"))return;
-    await sb.from('notifications').delete().eq('id_commande',id);await sb.from('messages_chat').delete().eq('id_commande',id);await sb.from('details_commande').delete().eq('id_commande',id);await sb.from('commandes').delete().eq('id',id);
+    try{await callApi('delete_commande',{id});}
+    catch(err){alert("Erreur : "+err.message);return;}
     await loadAdminOrders();await loadAdminStats();
 }
 async function openReassign(orderId){
@@ -1844,7 +1845,8 @@ async function openReassign(orderId){
 }
 async function confirmReassign(){
     const orderId=parseInt(document.getElementById('reassign-order-id').value),vendeur=document.getElementById('reassign-vendeur-select').value;
-    await sb.from('commandes').update({vendeur_affecte:vendeur,statut:'En cours'}).eq('id',orderId);
+    try{await callApi('update_commande',{id:orderId,updates:{vendeur_affecte:vendeur,statut:'En cours'}});}
+    catch(err){alert("Erreur : "+err.message);return;}
     const o=allOrdersCache.find(x=>x.id===orderId);if(o)await pushNotif(o.client_pseudo,orderId,'statut',`Commande réaffectée à ${vendeur}`);
     closeModal('modal-reassign');await loadAdminOrders();
 }
@@ -2259,10 +2261,8 @@ async function confirmArchive(purge=false){
     // ── 2. Purger Supabase (seulement si demandé) ────────────────────────
     if(purge){
         const ids=archiveCandidates.map(o=>o.id);
-        await sb.from('notifications').delete().in('id_commande',ids);
-        await sb.from('messages_chat').delete().in('id_commande',ids);
-        await sb.from('details_commande').delete().in('id_commande',ids);
-        await sb.from('commandes').delete().in('id',ids);
+        try{await callApi('delete_commandes_bulk',{ids});}
+        catch(err){alert("Erreur purge : "+err.message);return;}
     }
 
     closeModal('modal-archive');
