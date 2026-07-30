@@ -1239,12 +1239,15 @@ function renderChat(orderId,messages){
 async function sendChat(orderId){
     const input=document.getElementById('chat-input-'+orderId);
     const msg=input.value.trim();if(!msg)return;
-    // Reset rate limit si nouveau contexte (onglet différent)
-    if(!RL.check('chat-'+orderId,2,1000)){
+    // Anti-flood simple : 500ms entre deux envois sur la même commande
+    const rlKey='chat-'+orderId;
+    const now=Date.now();
+    if(RL._s[rlKey]&&now-RL._s[rlKey].last<500){
         input.style.borderColor='var(--accent-red)';
-        setTimeout(()=>input.style.borderColor='',1000);
+        setTimeout(()=>input.style.borderColor='',500);
         return;
     }
+    RL._s[rlKey]={last:now};
     input.value='';
     try{
         await callApi('send_message',{id_commande:orderId,message:msg});
