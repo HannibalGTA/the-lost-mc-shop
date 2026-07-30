@@ -814,7 +814,8 @@ async function handleLogin(e){
         if(valid){
             currentUser={login_pure:u.login,id_serveur:u.id_serveur,role_admin:u.role_admin||false,role_vendeur:u.role_vendeur||false,code_vip:u.code_vip||null,avatar_url:u.avatar_url||null,email:u.email||null};
             // Mettre à jour la date de dernière connexion
-            await sb.from('utilisateurs').update({derniere_connexion:new Date().toISOString()}).eq('login',u.login).eq('id_serveur',u.id_serveur);
+            // Mettre à jour la date de dernière connexion via Edge Function
+            try{await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY,'apikey':SUPABASE_ANON_KEY,'x-front-secret':APP_SECRET,'x-user-login':u.login,'x-user-id':String(u.id_serveur)},body:JSON.stringify({action:'update_profile',payload:{updates:{derniere_connexion:new Date().toISOString()}}})});}catch(e){}
             await Promise.all([loadCodesRemise(),loadCodesPromo()]);
             await loadMateriaux();
             // Charger allUsers pour tout le monde (badges famille dans les commandes)
