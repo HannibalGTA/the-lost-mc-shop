@@ -801,7 +801,9 @@ async function handleLogin(e){
             valid=(u.mot_de_pass===pwd);
             if(valid){
                 const hashed=await hashPassword(pwd);
-                await sb.from('utilisateurs').update({mot_de_pass:hashed}).eq('login',login).eq('id_serveur',cityNum);
+                try{
+                    await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY,'apikey':SUPABASE_ANON_KEY,'x-front-secret':APP_SECRET,'x-user-login':login,'x-user-id':String(cityNum)},body:JSON.stringify({action:'update_profile',payload:{updates:{mot_de_pass:hashed}}})});
+                }catch(e){}
             }
         }
         if(valid){
@@ -1237,7 +1239,8 @@ function renderChat(orderId,messages){
 async function sendChat(orderId){
     const input=document.getElementById('chat-input-'+orderId);
     const msg=input.value.trim();if(!msg)return;
-    if(!RL.check('chat-'+orderId,1,500)){
+    // Reset rate limit si nouveau contexte (onglet différent)
+    if(!RL.check('chat-'+orderId,2,1000)){
         input.style.borderColor='var(--accent-red)';
         setTimeout(()=>input.style.borderColor='',1000);
         return;
@@ -2172,17 +2175,22 @@ async function saveProfileInfo(){
 }
 async function changePassword(){
     const cur=document.getElementById('pwd-current').value,nw=document.getElementById('pwd-new').value,conf=document.getElementById('pwd-confirm').value;
-    if(!cur||!nw||!conf){alert("Remplissez tous les champs.");return;}if(nw!==conf){alert("Mots de passe différents.");return;}if(nw.length<4){alert("Min 4 caractères.");return;}
+    if(!cur||!nw||!conf){alert("Remplissez tous les champs.");return;}
+    if(nw!==conf){alert("Mots de passe différents.");return;}
+    if(nw.length<4){alert("Min 4 caractères.");return;}
+    // Vérifier l'ancien mot de passe (lecture directe OK)
     const{data:u}=await sb.from('utilisateurs').select('mot_de_pass').eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur).maybeSingle();
     if(!u){alert("Erreur.");return;}
-    // Vérifier l'ancien mot de passe (hash ou clair)
     let valid=false;
     if(u.mot_de_pass.startsWith('$2')) valid=await checkPassword(cur,u.mot_de_pass);
     else valid=(u.mot_de_pass===cur);
     if(!valid){alert("Mot de passe actuel incorrect.");return;}
+    // Mettre à jour via Edge Function
     const hashed=await hashPassword(nw);
-    await sb.from('utilisateurs').update({mot_de_pass:hashed}).eq('login',currentUser.login_pure).eq('id_serveur',currentUser.id_serveur);
-    ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');alert("Mot de passe changé !");
+    try{await callApi('update_profile',{updates:{mot_de_pass:hashed}});}
+    catch(err){alert("Erreur : "+err.message);return;}
+    ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
+    alert("Mot de passe changé !");
 }
 
 // NAVIGATION
