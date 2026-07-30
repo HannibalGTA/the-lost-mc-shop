@@ -1194,9 +1194,14 @@ async function toggleOrder(headerEl,orderId){
 
 async function reloadChatMessages(orderId){
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at',{ascending:true});
-    // Chercher dans la carte spécifique pour éviter les doublons d'ID
     const card=document.getElementById('order-card-'+orderId);
-    const cont=card?card.querySelector('.chat-messages'):document.getElementById('chat-msgs-'+orderId);
+    const conts=document.querySelectorAll('#chat-msgs-'+orderId);
+    // Prendre le conteneur dans la carte dépliée
+    let cont=null;
+    if(card&&card.classList.contains('expanded')){
+        cont=card.querySelector('[id="chat-msgs-'+orderId+'"]');
+    }
+    if(!cont) cont=conts[conts.length-1];
     if(!cont||!data) return;
     cont.innerHTML=data.map(m=>{
         const isSystem=m.auteur==='🤖 Système';
@@ -1239,9 +1244,15 @@ function renderChat(orderId,messages){
     </div>`;
 }
 async function sendChat(orderId){
-    // Chercher dans la carte spécifique pour éviter les doublons d'ID
+    // Trouver l'input dans la carte dépliée (expanded) pour éviter les doublons d'ID
     const card=document.getElementById('order-card-'+orderId);
-    const input=card?card.querySelector('input[id^="chat-input-"]'):document.getElementById('chat-input-'+orderId);
+    const inputs=document.querySelectorAll('#chat-input-'+orderId);
+    // Prendre l'input visible (dans la commande dépliée)
+    let input=null;
+    if(card&&card.classList.contains('expanded')){
+        input=card.querySelector('[id="chat-input-'+orderId+'"]');
+    }
+    if(!input) input=inputs[inputs.length-1]||document.getElementById('chat-input-'+orderId);
     if(!input)return;
     const msg=input.value.trim();if(!msg)return;
     // Anti-flood : 500ms entre deux envois
@@ -1386,7 +1397,7 @@ async function setOrderStatut(id,statut){
     if(statut==='En cours'||statut==='Préparée'){
         const discordLink='https://discord.com/channels/1259332285208068179/1515258319919513750';
         const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC <a href="${discordLink}" target="_blank" style="color:#da292a;font-weight:800;text-decoration:underline;">ICI</a> en indiquant le numéro de commande <strong>${o?.ref_commande||'LOST-'+id}</strong>, afin d'organiser la transaction.`}[statut];
-        if(autoMsg) await sb.from('messages_chat').insert([{id_commande:id,auteur:'🤖 Système',message:autoMsg,lu_par:[]}]);
+        if(autoMsg) await callApi('send_message',{id_commande:id,message:autoMsg});
     }
     await reloadCurrentView();
 }
