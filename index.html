@@ -1194,7 +1194,9 @@ async function toggleOrder(headerEl,orderId){
 
 async function reloadChatMessages(orderId){
     const{data}=await sb.from('messages_chat').select('*').eq('id_commande',orderId).order('created_at',{ascending:true});
-    const cont=document.getElementById('chat-msgs-'+orderId);
+    // Chercher dans la carte spécifique pour éviter les doublons d'ID
+    const card=document.getElementById('order-card-'+orderId);
+    const cont=card?card.querySelector('.chat-messages'):document.getElementById('chat-msgs-'+orderId);
     if(!cont||!data) return;
     cont.innerHTML=data.map(m=>{
         const isSystem=m.auteur==='🤖 Système';
@@ -1237,9 +1239,12 @@ function renderChat(orderId,messages){
     </div>`;
 }
 async function sendChat(orderId){
-    const input=document.getElementById('chat-input-'+orderId);
+    // Chercher dans la carte spécifique pour éviter les doublons d'ID
+    const card=document.getElementById('order-card-'+orderId);
+    const input=card?card.querySelector('input[id^="chat-input-"]'):document.getElementById('chat-input-'+orderId);
+    if(!input)return;
     const msg=input.value.trim();if(!msg)return;
-    // Anti-flood simple : 500ms entre deux envois sur la même commande
+    // Anti-flood : 500ms entre deux envois
     const rlKey='chat-'+orderId;
     const now=Date.now();
     if(RL._s[rlKey]&&now-RL._s[rlKey].last<500){
