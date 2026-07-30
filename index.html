@@ -831,14 +831,26 @@ async function handleRegister(e){
     const login=document.getElementById('reg-pure-username').value.trim();
     const cityNum=parseInt(document.getElementById('reg-city-number').value.trim());
     const pwd=document.getElementById('reg-password').value;
-    const{data:ex}=await sb.from('utilisateurs').select('login').eq('login',login).eq('id_serveur',cityNum).maybeSingle();
-    if(ex){alert("Ce compte existe déjà.");return false;}
-    // Hasher le mot de passe avant stockage
+    if(!login||!cityNum||!pwd){alert("Remplissez tous les champs.");return false;}
     const hashedPwd=await hashPassword(pwd);
-    const{error}=await sb.from('utilisateurs').insert([{id_serveur:cityNum,login,mot_de_pass:hashedPwd,role_admin:false,role_vendeur:false,code_vip:null}]);
-    if(error){alert("Erreur : "+error.message);return false;}
-    alert(`Compte créé pour ${login} ! Vous pouvez vous connecter.`);
-    toggleAuth(false);
+    try{
+        const res=await fetch(API_URL,{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                'Authorization':'Bearer '+SUPABASE_ANON_KEY,
+                'apikey':SUPABASE_ANON_KEY,
+                'x-front-secret':APP_SECRET,
+                'x-user-login':'guest',
+                'x-user-id':'0'
+            },
+            body:JSON.stringify({action:'register',payload:{login,id_serveur:cityNum,mot_de_pass:hashedPwd}})
+        });
+        const data=await res.json();
+        if(data.error){alert("Erreur : "+data.error);return false;}
+        alert(`Compte créé pour ${login} ! Vous pouvez vous connecter.`);
+        toggleAuth(false);
+    }catch(err){alert("Erreur : "+err.message);}
     return false;
 }
 function loginSuccess(){
