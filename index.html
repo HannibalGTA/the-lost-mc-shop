@@ -1182,7 +1182,7 @@ async function toggleOrder(headerEl,orderId){
             cont.innerHTML=data.length?data.map(m=>{
                 const mine=m.auteur===currentUser.login_pure;
                 const isSystem=m.auteur==='🤖 Système';
-                if(isSystem)return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
+                if(isSystem){const _dUrl='https://discord.com/channels/1259332285208068179/1515258319919513750';const _mHtml=esc(m.message).replace(_dUrl,`<a href="${_dUrl}" target="_blank" style="color:#da292a;font-weight:800;text-decoration:underline;">Ouvrir Discord</a>`);return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${_mHtml}</span></div>`;};
                 const av=userAvatarCache[m.auteur]||null;
                 const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
                 return`<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-msg-header">${avHtml}<span class="chat-msg-author">${esc(m.auteur)}</span></div><div>${esc(m.message)}</div></div>`;
@@ -1205,7 +1205,11 @@ async function reloadChatMessages(orderId){
     if(!cont||!data) return;
     cont.innerHTML=data.map(m=>{
         const isSystem=m.auteur==='🤖 Système';
-        if(isSystem)return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${m.message}</span></div>`;
+        if(isSystem){
+            const discordUrl='https://discord.com/channels/1259332285208068179/1515258319919513750';
+            const msgHtml=esc(m.message).replace(discordUrl,`<a href="${discordUrl}" target="_blank" style="color:#da292a;font-weight:800;text-decoration:underline;">Ouvrir Discord</a>`);
+            return`<div style="text-align:center;margin:10px 4px;"><span style="display:inline-block;background:rgba(139,92,246,.2);border:2px solid rgba(139,92,246,.5);border-radius:8px;padding:14px 20px;font-size:15px;font-weight:600;color:#c4b5fd;max-width:100%;line-height:1.7;">${msgHtml}</span></div>`;
+        }
         const mine=m.auteur===currentUser.login_pure;
         const av=userAvatarCache[m.auteur]||null;
         const avHtml=av?`<img src="${av}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">`:`<span class="avatar-ph" style="width:18px;height:18px;font-size:9px;">👤</span>`;
@@ -1396,7 +1400,7 @@ async function setOrderStatut(id,statut){
     if(o) await pushNotif(o.client_pseudo,id,'statut',`Votre commande : ${statut}`);
     if(statut==='En cours'||statut==='Préparée'){
         const discordLink='https://discord.com/channels/1259332285208068179/1515258319919513750';
-        const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC <a href="${discordLink}" target="_blank" style="color:#da292a;font-weight:800;text-decoration:underline;">ICI</a> en indiquant le numéro de commande <strong>${o?.ref_commande||'LOST-'+id}</strong>, afin d'organiser la transaction.`}[statut];
+        const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC afin d'organiser la transaction. Numéro de commande : ${o?.ref_commande||'LOST-'+id} — Lien Discord : ${discordLink}`}[statut];
         if(autoMsg) await callApi('send_message',{id_commande:id,message:autoMsg});
     }
     await reloadCurrentView();
