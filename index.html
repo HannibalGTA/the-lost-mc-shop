@@ -1393,7 +1393,7 @@ async function setOrderStatut(id,statut){
     if(statut==='En cours'||statut==='Préparée'){
         const discordLink='https://discord.com/channels/1259332285208068179/1515258319919513750';
         const autoMsg={'En cours':'🔄 La commande est en cours de préparation par un vendeur.','Préparée':`📦 Votre commande est prête ! Merci d'ouvrir un ticket sur le Discord du MC afin d'organiser la transaction. Numéro de commande : ${o?.ref_commande||'LOST-'+id} — Lien Discord : ${discordLink}`}[statut];
-        if(autoMsg) await callApi('send_message',{id_commande:id,message:autoMsg});
+        if(autoMsg) await callApi('send_system_message',{id_commande:id,message:autoMsg});
     }
     await reloadCurrentView();
 }
