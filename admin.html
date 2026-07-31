@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — The Lost MC Shop</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏍️</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --black:#080A0E;--dark:#0D1117;--dark2:#141922;--dark3:#1C2333;
+            --border:#2A3347;--red:#C8152A;--gold:#C9A84C;
+            --text:#E8EDF5;--text-muted:#6B7A99;--text-dim:#3D4F6E;
+            --green:#22c55e;--blue:#3b82f6;--purple:#a78bfa;
+            --sidebar-w:260px;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{background:var(--black);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;}
+        .sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--dark2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;}
+        .sidebar-logo{padding:24px 20px;border-bottom:1px solid var(--border);text-align:center;}
+        .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--text);margin-top:8px;}
+        .sidebar-title span{color:var(--red);}
+        .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px;}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;transition:all 0.15s;text-decoration:none;}
+        .nav-item:hover{background:var(--dark3);color:var(--text);}
+        .nav-item.active{background:rgba(200,21,42,0.15);color:var(--text);border-left:2px solid var(--red);}
+        .nav-item .icon{font-size:16px;width:20px;text-align:center;}
+        .sidebar-bottom{padding:16px 12px;border-top:1px solid var(--border);}
+        .user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--dark3);border-radius:6px;margin-bottom:8px;}
+        .user-avatar{width:36px;height:36px;border-radius:50%;border:2px solid var(--red);object-fit:cover;}
+        .user-name{font-size:13px;font-weight:600;}
+        .user-role{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:1px;}
+        .btn-logout{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:12px;cursor:pointer;transition:all 0.15s;}
+        .btn-logout:hover{border-color:var(--red);color:var(--red);}
+        .hidden{display:none!important;}
+        .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+        .topbar{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--dark);position:sticky;top:0;z-index:50;}
+        .page-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;}
+
+        /* ADMIN TABS */
+        .admin-tabs{display:flex;gap:4px;padding:24px 32px 0;flex-wrap:wrap;}
+        .admin-tab{padding:10px 18px;border-radius:6px 6px 0 0;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;border:1px solid transparent;border-bottom:none;transition:all 0.15s;background:transparent;}
+        .admin-tab:hover{color:var(--text);background:var(--dark2);}
+        .admin-tab.active{color:var(--text);background:var(--dark2);border-color:var(--border);border-bottom:2px solid var(--red);}
+        .admin-content{background:var(--dark2);border:1px solid var(--border);border-radius:0 8px 8px 8px;margin:0 32px 32px;padding:24px;min-height:400px;}
+
+        /* SECTION */
+        .section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--text);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+        /* STATS */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+        .stat-card{background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:16px;}
+        .stat-label{font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+        .stat-value{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;}
+        .red{color:var(--red);}
+        .gold{color:var(--gold);}
+        .green{color:var(--green);}
+        .blue{color:var(--blue);}
+
+        /* TABLE */
+        .data-table{width:100%;border-collapse:collapse;}
+        .data-table th{text-align:left;font-size:11px;font-weight:600;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;padding:10px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;}
+        .data-table td{padding:12px;font-size:13px;border-bottom:1px solid rgba(42,51,71,0.5);}
+        .data-table tr:last-child td{border-bottom:none;}
+        .data-table tr:hover td{background:rgba(28,35,51,0.5);}
+
+        /* BUTTONS */
+        .btn{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;border:none;}
+        .btn-primary{background:var(--red);color:#fff;}
+        .btn-primary:hover{background:#a01020;}
+        .btn-secondary{background:var(--dark3);border:1px solid var(--border);color:var(--text);}
+        .btn-secondary:hover{border-color:var(--red);}
+        .btn-danger{background:transparent;border:1px solid rgba(200,21,42,0.3);color:#ff6b7a;}
+        .btn-danger:hover{background:rgba(200,21,42,0.1);}
+        .btn-gold{background:var(--gold);color:var(--black);font-weight:800;}
+        .btn-gold:hover{opacity:0.85;}
+        .btn-sm{padding:5px 10px;font-size:11px;}
+
+        /* CATALOGUE ADMIN */
+        .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:16px;}
+        .cat-card{background:var(--dark3);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+        .cat-card img{width:100%;height:120px;object-fit:cover;background:var(--dark);}
+        .cat-card-body{padding:12px;}
+        .cat-card-name{font-size:13px;font-weight:700;margin-bottom:4px;}
+        .cat-card-price{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--green);}
+        .cat-card-actions{display:flex;gap:6px;margin-top:10px;}
+        .cat-tabs{display:flex;gap:8px;margin-bottom:16px;}
+        .cat-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;border:1px solid var(--border);background:transparent;transition:all 0.15s;}
+        .cat-tab.active{background:rgba(200,21,42,0.15);color:var(--text);border-color:rgba(200,21,42,0.4);}
+
+        /* FORM */
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        .form-group{display:flex;flex-direction:column;gap:6px;}
+        .form-group.full{grid-column:1/-1;}
+        .form-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;}
+        .form-input,.form-select,.form-textarea{padding:10px 12px;background:var(--dark3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;width:100%;}
+        .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--red);}
+        .form-textarea{resize:vertical;min-height:80px;}
+        .form-select option{background:var(--dark3);}
+
+        /* MODAL */
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;align-items:center;justify-content:center;}
+        .modal-overlay.active{display:flex;}
+        .modal{background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:28px;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;}
+        .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);}
+        .modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:20px;}
+        .modal-actions{display:flex;gap:12px;margin-top:24px;justify-content:flex-end;}
+
+        /* RAPPORT */
+        .rapport-table{width:100%;border-collapse:collapse;font-size:12px;}
+        .rapport-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+        .rapport-table td{padding:10px;border-bottom:1px solid rgba(42,51,71,0.3);}
+        .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;}
+        .dot-green{background:var(--green);}
+        .dot-gold{background:var(--gold);}
+        .dot-red{background:var(--red);}
+        .dot-dim{background:var(--text-dim);}
+
+        /* CODES */
+        .codes-list{display:flex;flex-direction:column;gap:8px;}
+        .code-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--dark3);border:1px solid var(--border);border-radius:6px;}
+        .code-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--gold);}
+        .code-info{font-size:12px;color:var(--text-muted);}
+
+        /* ARCHIVE */
+        .archive-info{background:rgba(200,21,42,0.08);border:1px solid rgba(200,21,42,0.2);border-radius:6px;padding:12px 16px;font-size:12px;color:var(--text-muted);margin-bottom:16px;}
+
+        /* TOAST */
+        .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:12px 20px;font-size:13px;color:var(--text);z-index:500;transition:transform 0.3s ease;white-space:nowrap;}
+        .toast.show{transform:translateX(-50%) translateY(0);}
+        .toast.success{border-color:var(--green);}
+        .toast.error{border-color:var(--red);color:#ff6b7a;}
+
+        .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin 0.8s linear infinite;}
+        .loading{display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--text-muted);font-size:13px;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div style="font-size:28px">🏍️</div>
+        <div class="sidebar-title">THE <span>LOST</span> MC SHOP</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a class="nav-item" href="catalogue.html"><span class="icon">🔫</span> Catalogue</a>
+        <a class="nav-item" href="commandes.html"><span class="icon">📦</span> Mes Commandes</a>
+        <a class="nav-item" href="ventes.html"><span class="icon">🎯</span> Gestion Ventes</a>
+        <a class="nav-item active" href="admin.html"><span class="icon">⚙️</span> Administration</a>
+    </nav>
+    <div class="sidebar-bottom">
+        <div class="user-card">
+            <img class="user-avatar" id="user-avatar" src="" alt="">
+            <div><div class="user-name" id="user-name">—</div><div class="user-role">ADMIN</div></div>
+        </div>
+        <button class="btn-logout" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div class="page-title">⚙️ ADMINISTRATION</div>
+        <button onclick="loadAll()" class="btn btn-secondary btn-sm">🔄 Actualiser</button>
+    </div>
+
+    <div class="admin-tabs">
+        <button class="admin-tab active" id="atab-dashboard" onclick="switchAdminTab('dashboard')">📊 Dashboard</button>
+        <button class="admin-tab" id="atab-catalogue" onclick="switchAdminTab('catalogue')">🔫 Catalogue</button>
+        <button class="admin-tab" id="atab-membres" onclick="switchAdminTab('membres')">👥 Membres</button>
+        <button class="admin-tab" id="atab-promos" onclick="switchAdminTab('promos')">🏷️ Codes Promo</button>
+        <button class="admin-tab" id="atab-materiaux" onclick="switchAdminTab('materiaux')">🧱 Matériaux</button>
+        <button class="admin-tab" id="atab-archive" onclick="switchAdminTab('archive')">📥 Archivage</button>
+    </div>
+
+    <div class="admin-content" id="admin-content">
+        <div class="loading"><div class="spinner"></div> Chargement...</div>
+    </div>
+</main>
+
+<!-- MODAL ARTICLE -->
+<div class="modal-overlay" id="modal-article">
+    <div class="modal">
+        <div class="modal-title" id="modal-article-title">➕ NOUVEL ARTICLE</div>
+        <input type="hidden" id="article-id">
+        <div class="form-grid">
+            <div class="form-group full"><label class="form-label">Nom</label><input class="form-input" id="article-name" placeholder="Fusil à pompe..."></div>
+            <div class="form-group"><label class="form-label">Prix ($)</label><input class="form-input" id="article-price" type="number" placeholder="50000"></div>
+            <div class="form-group"><label class="form-label">Catégorie</label>
+                <select class="form-select" id="article-cat">
+                    <option value="weapons">Armes à feu</option>
+                    <option value="others">Équipement</option>
+                    <option value="munitions">Munitions</option>
+                </select>
+            </div>
+            <div class="form-group full"><label class="form-label">Description</label><textarea class="form-textarea" id="article-desc" placeholder="Description..."></textarea></div>
+            <div class="form-group"><label class="form-label">Chargeur / Infos</label><input class="form-input" id="article-mag" placeholder="x8 balles..."></div>
+            <div class="form-group"><label class="form-label">Badge</label><input class="form-input" id="article-badge" placeholder="NOUVEAUTÉ, PROMO..."></div>
+            <div class="form-group full"><label class="form-label">Image URL</label><input class="form-input" id="article-img" placeholder="https://..."></div>
+            <div class="form-group"><label class="form-label">Disponible</label>
+                <select class="form-select" id="article-dispo">
+                    <option value="true">✅ Oui</option>
+                    <option value="false">❌ Non</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('modal-article')">Annuler</button>
+            <button class="btn btn-primary" onclick="saveArticle()">💾 SAUVEGARDER</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PROMO -->
+<div class="modal-overlay" id="modal-promo">
+    <div class="modal">
+        <div class="modal-title" id="modal-promo-title">➕ NOUVEAU CODE PROMO</div>
+        <input type="hidden" id="promo-id">
+        <div class="form-grid">
+            <div class="form-group"><label class="form-label">Code</label><input class="form-input" id="promo-code" placeholder="LOST2026" style="text-transform:uppercase"></div>
+            <div class="form-group"><label class="form-label">Réduction (%)</label><input class="form-input" id="promo-taux" type="number" min="1" max="99" placeholder="10"></div>
+            <div class="form-group"><label class="form-label">Réutilisable</label>
+                <select class="form-select" id="promo-reutil">
+                    <option value="false">❌ Non (usage unique)</option>
+                    <option value="true">✅ Oui</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Utilisations max</label><input class="form-input" id="promo-maxuses" type="number" placeholder="Illimité"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('modal-promo')">Annuler</button>
+            <button class="btn btn-primary" onclick="savePromo()">💾 SAUVEGARDER</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ARCHIVE -->
+<div class="modal-overlay" id="modal-archive">
+    <div class="modal">
+        <div class="modal-title">📥 EXPORTER & ARCHIVER</div>
+        <div class="archive-info">⚠️ Exporte les commandes <strong>Terminées et Annulées</strong> antérieures à la date choisie vers Excel, puis les purge de la base.</div>
+        <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Date limite</label>
+            <input class="form-input" id="archive-date" type="date">
+        </div>
+        <div id="archive-preview" style="margin-bottom:16px;font-size:13px;color:var(--text-muted);"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('modal-archive')">Annuler</button>
+            <button class="btn btn-secondary" onclick="previewArchive()">🔍 Prévisualiser</button>
+            <button class="btn btn-secondary hidden" id="btn-export-only" onclick="confirmArchive(false)">📥 Exporter</button>
+            <button class="btn btn-danger hidden" id="btn-export-purge" onclick="confirmArchive(true)">📥 Exporter & Purger</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://dosjkcwitjskydrcmbhj.supabase.co'
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvc2prY3dpdGpza3lkcmNtYmhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MjM1NTAsImV4cCI6MjEwMDk5OTU1MH0.1QcwS98HHeGjR0bwmBBLb-MpRxS-gO8mZDh0eSDZ740'
+const API_URL='https://dosjkcwitjskydrcmbhj.supabase.co/functions/v1/lostmc-api'
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON)
+
+let currentUser=null,accessToken=null,profile=null
+let catalog=[],promos=[],membres=[],commandes=[],materiaux=[],articleMateriaux=[]
+let activeAdminTab='dashboard',activeCatTab='weapons'
+let archiveCandidates=[]
+
+async function init(){
+    const{data:{session}}=await sb.auth.getSession()
+    if(!session){window.location.href='index.html';return}
+    currentUser=session.user;accessToken=session.access_token
+    document.getElementById('user-name').textContent=currentUser.user_metadata?.full_name||'—'
+    const avatar=currentUser.user_metadata?.avatar_url
+    if(avatar)document.getElementById('user-avatar').src=avatar
+    await loadProfile()
+    await loadAll()
+}
+
+async function callApi(action,payload={}){
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken,'apikey':SUPABASE_ANON},body:JSON.stringify({action,payload})})
+    const data=await res.json()
+    if(data.error)throw new Error(data.error)
+    return data
+}
+
+async function loadProfile(){
+    try{
+        const data=await callApi('get_profile')
+        profile=data.profile
+        if(!profile?.role_admin){window.location.href='catalogue.html';return}
+    }catch(e){await sb.auth.signOut();window.location.href='index.html'}
+}
+
+async function loadAll(){
+    const[{data:c},{data:p},{data:m},{data:cmd},{data:mat},{data:am}]=await Promise.all([
+        sb.from('articles').select('*').order('cat').order('sort_order'),
+        sb.from('codes_promo').select('*').order('created_at',{ascending:false}),
+        sb.from('profiles').select('*').order('discord_username'),
+        sb.from('commandes').select('*,details_commande(*)').order('date_commande',{ascending:false}),
+        sb.from('materiaux').select('*').order('col_order'),
+        sb.from('article_materiaux').select('*')
+    ])
+    catalog=c||[];promos=p||[];membres=m||[];commandes=cmd||[];materiaux=mat||[];articleMateriaux=am||[]
+    renderAdminTab()
+}
+
+function switchAdminTab(tab){
+    activeAdminTab=tab
+    document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'))
+    document.getElementById('atab-'+tab).classList.add('active')
+    renderAdminTab()
+}
+
+function renderAdminTab(){
+    const el=document.getElementById('admin-content')
+    if(activeAdminTab==='dashboard')renderDashboard(el)
+    else if(activeAdminTab==='catalogue')renderCatalogue(el)
+    else if(activeAdminTab==='membres')renderMembres(el)
+    else if(activeAdminTab==='promos')renderPromos(el)
+    else if(activeAdminTab==='materiaux')renderMateriaux(el)
+    else if(activeAdminTab==='archive')renderArchive(el)
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────
+function renderDashboard(el){
+    const totalCA=commandes.filter(o=>o.statut==='Terminée').reduce((s,o)=>{
+        const details=o.details_commande||[]
+        return s+(o.montant_ajuste??details.reduce((a,d)=>a+d.prix_achat*d.quantite,0))
+    },0)
+    el.innerHTML=`
+    <div class="section-title">📊 TABLEAU DE BORD</div>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Membres</div><div class="stat-value blue">${membres.length}</div></div>
+        <div class="stat-card"><div class="stat-label">Articles</div><div class="stat-value">${catalog.length}</div></div>
+        <div class="stat-card"><div class="stat-label">En attente</div><div class="stat-value red">${commandes.filter(o=>o.statut==='En attente').length}</div></div>
+        <div class="stat-card"><div class="stat-label">En cours</div><div class="stat-value blue">${commandes.filter(o=>o.statut==='En cours').length}</div></div>
+        <div class="stat-card"><div class="stat-label">Terminées</div><div class="stat-value green">${commandes.filter(o=>o.statut==='Terminée').length}</div></div>
+        <div class="stat-card"><div class="stat-label">CA Total</div><div class="stat-value gold">${(totalCA/1000).toFixed(0)}k$</div></div>
+    </div>
+    <div class="section-title" style="margin-top:24px">📋 DERNIÈRES COMMANDES</div>
+    <table class="data-table">
+        <thead><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Total</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>${commandes.slice(0,10).map(o=>{
+            const details=o.details_commande||[]
+            const total=(o.montant_ajuste??details.reduce((s,d)=>s+d.prix_achat*d.quantite,0)).toLocaleString()
+            const statusColors={'En attente':'gold','En cours':'blue','Préparée':'purple','Terminée':'green','Annulée':'red'}
+            const sc=statusColors[o.statut]||'text-muted'
+            return`<tr>
+                <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--red)">${esc(o.ref_commande||'CMD-'+o.id)}</span></td>
+                <td>${esc(o.client_pseudo)}</td>
+                <td>${esc(o.vendeur_affecte||'—')}</td>
+                <td style="font-family:'Bebas Neue',sans-serif;color:var(--green)">${total} $</td>
+                <td><span style="color:var(--${sc});font-size:11px;font-family:'JetBrains Mono',monospace">${esc(o.statut)}</span></td>
+                <td style="color:var(--text-dim);font-size:11px">${new Date(o.date_commande).toLocaleDateString('fr-FR')}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteCommande(${o.id})">🗑️</button></td>
+            </tr>`
+        }).join('')}</tbody>
+    </table>`
+}
+
+// ── CATALOGUE ─────────────────────────────────────────────────────────
+function renderCatalogue(el){
+    const cats=[{k:'weapons',l:'⚙️ Armes à feu'},{k:'others',l:'🎒 Équipement'},{k:'munitions',l:'💥 Munitions'}]
+    const items=catalog.filter(a=>a.cat===activeCatTab)
+    el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:0">🔫 CATALOGUE</div>
+        <button class="btn btn-primary" onclick="openArticleModal()">➕ AJOUTER</button>
+    </div>
+    <div class="cat-tabs">${cats.map(c=>`<button class="cat-tab ${c.k===activeCatTab?'active':''}" onclick="switchCatTab('${c.k}')">${c.l}</button>`).join('')}</div>
+    <div class="cat-grid">${items.map(a=>`
+        <div class="cat-card">
+            ${a.img_url?`<img src="${esc(a.img_url)}" onerror="this.style.display='none'" alt="">`:'<div style="height:120px;background:var(--dark);display:flex;align-items:center;justify-content:center;font-size:32px">🔫</div>'}
+            <div class="cat-card-body">
+                <div class="cat-card-name">${esc(a.name)}${a.badge_label?` <span style="font-size:9px;background:var(--red);color:#fff;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace">${esc(a.badge_label)}</span>`:''}</div>
+                <div class="cat-card-price">${a.price.toLocaleString()} $</div>
+                <div style="font-size:11px;color:${a.disponible?'var(--green)':'var(--red)'};margin-top:4px">${a.disponible?'✅ Disponible':'❌ Indisponible'}</div>
+                <div class="cat-card-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="openArticleModal(${a.id})" style="flex:1">✏️ Modifier</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteArticle(${a.id})">🗑️</button>
+                </div>
+            </div>
+        </div>`).join('')||'<div style="color:var(--text-dim);padding:40px;text-align:center">Aucun article</div>'}</div>`
+}
+
+function switchCatTab(cat){activeCatTab=cat;renderCatalogue(document.getElementById('admin-content'))}
+
+// ── MEMBRES ───────────────────────────────────────────────────────────
+function renderMembres(el){
+    el.innerHTML=`
+    <div class="section-title">👥 MEMBRES</div>
+    <table class="data-table">
+        <thead><tr><th>Membre</th><th>Discord ID</th><th>Rôle</th><th>Dernière connexion</th><th>Statut</th></tr></thead>
+        <tbody>${membres.map(m=>{
+            const role=m.role_admin?'ADMIN':m.role_vendeur?'VENDEUR':'CLIENT'
+            const roleColor=m.role_admin?'red':m.role_vendeur?'gold':'blue'
+            const now=new Date()
+            let statut='⚫ Jamais connecté',dotClass='dot-dim'
+            if(m.derniere_connexion){
+                const jours=Math.floor((now-new Date(m.derniere_connexion))/86400000)
+                if(jours<7){statut='🟢 Actif';dotClass='dot-green'}
+                else if(jours<30){statut='🟡 Peu actif';dotClass='dot-gold'}
+                else{statut='🔴 Inactif';dotClass='dot-red'}
+            }
+            return`<tr>
+                <td style="display:flex;align-items:center;gap:10px">
+                    ${m.discord_avatar?`<img src="${esc(m.discord_avatar)}" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border)">`:'<div style="width:28px;height:28px;border-radius:50%;background:var(--dark3);border:2px solid var(--border)"></div>'}
+                    <span style="font-weight:600">${esc(m.discord_username||'—')}</span>
+                </td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim)">${esc(m.discord_id||'—')}</td>
+                <td><span style="color:var(--${roleColor});font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700">${role}</span></td>
+                <td style="font-size:12px;color:var(--text-muted)">${m.derniere_connexion?new Date(m.derniere_connexion).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}</td>
+                <td style="font-size:12px">${statut}</td>
+            </tr>`
+        }).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:40px">Aucun membre</td></tr>'}</tbody>
+    </table>`
+}
+
+// ── CODES PROMO ───────────────────────────────────────────────────────
+function renderPromos(el){
+    el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div class="section-title" style="margin-bottom:0">🏷️ CODES PROMO</div>
+        <button class="btn btn-primary" onclick="openPromoModal()">➕ AJOUTER</button>
+    </div>
+    <div class="codes-list">${promos.map(p=>`
+        <div class="code-item">
+            <div>
+                <div class="code-name">${esc(p.code)} <span style="color:var(--green);font-size:14px">-${p.taux}%</span></div>
+                <div class="code-info">${p.reutilisable?'Réutilisable':'Usage unique'} • ${p.uses_count}/${p.max_uses||'∞'} utilisations • <span style="color:${p.actif?'var(--green)':'var(--red)'}">${p.actif?'Actif':'Inactif'}</span></div>
+            </div>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm" onclick="openPromoModal(${p.id})">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deletePromo(${p.id})">🗑️</button>
+            </div>
+        </div>`).join('')||'<div style="color:var(--text-dim);text-align:center;padding:40px">Aucun code promo</div>'}</div>`
+}
+
+// ── MATERIAUX ─────────────────────────────────────────────────────────
+function renderMateriaux(el){
+    el.innerHTML=`
+    <div class="section-title">🧱 MATÉRIAUX PAR ARTICLE</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Sélectionnez un article pour configurer ses matériaux de fabrication.</div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+        <div>
+            <div style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Articles</div>
+            <div style="display:flex;flex-direction:column;gap:4px">${catalog.map(a=>`
+                <button onclick="selectArticleForMat(${a.id})" id="matbtn-${a.id}" style="text-align:left;padding:8px 12px;background:var(--dark3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">${esc(a.name)}</button>
+            `).join('')}</div>
+        </div>
+        <div id="mat-editor"><div style="color:var(--text-dim);text-align:center;padding:40px">Sélectionnez un article</div></div>
+    </div>`
+}
+
+let selectedArticleId=null
+function selectArticleForMat(id){
+    selectedArticleId=id
+    document.querySelectorAll('[id^="matbtn-"]').forEach(b=>b.style.background='var(--dark3)')
+    document.getElementById('matbtn-'+id).style.background='rgba(200,21,42,0.15)'
+    const am=articleMateriaux.filter(x=>x.article_id===id)
+    const el=document.getElementById('mat-editor')
+    el.innerHTML=`<div style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Matériaux</div>
+    ${materiaux.map(m=>{
+        const existing=am.find(x=>x.materiau_id===m.id)
+        return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:10px 12px;background:var(--dark3);border:1px solid var(--border);border-radius:6px">
+            <span style="flex:1;font-size:13px">${esc(m.nom)}</span>
+            <input id="mat-${m.id}-qty" type="number" value="${existing?.quantite||0}" min="0" placeholder="Qté" style="width:80px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
+            ${m.col_type==='prix'?`<input id="mat-${m.id}-prix" type="number" value="${existing?.prix_fabrication||0}" min="0" placeholder="Prix $" style="width:100px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">`:''}
+        </div>`
+    }).join('')}
+    <button class="btn btn-primary" onclick="saveMateriaux()" style="margin-top:8px">💾 SAUVEGARDER</button>`
+}
+
+async function saveMateriaux(){
+    if(!selectedArticleId){showToast('Sélectionnez un article','error');return}
+    const upserts=materiaux.map(m=>({
+        article_id:selectedArticleId,
+        materiau_id:m.id,
+        quantite:parseInt(document.getElementById('mat-'+m.id+'-qty')?.value)||0,
+        prix_fabrication:parseInt(document.getElementById('mat-'+m.id+'-prix')?.value)||0
+    })).filter(u=>u.quantite>0||u.prix_fabrication>0)
+    try{
+        await callApi('upsert_materiaux_qty',{upserts})
+        const{data:am}=await sb.from('article_materiaux').select('*')
+        articleMateriaux=am||[]
+        showToast('✅ Matériaux sauvegardés','success')
+    }catch(e){showToast('❌ '+e.message,'error')}
+}
+
+// ── ARCHIVAGE ─────────────────────────────────────────────────────────
+function renderArchive(el){
+    el.innerHTML=`
+    <div class="section-title">📥 ARCHIVAGE</div>
+    <div class="archive-info">Exportez et purgez les commandes terminées/annulées pour libérer de l'espace en base.</div>
+    <button class="btn btn-gold" onclick="document.getElementById('modal-archive').classList.add('active');document.getElementById('archive-date').value='';document.getElementById('archive-preview').innerHTML='';document.getElementById('btn-export-only').classList.add('hidden');document.getElementById('btn-export-purge').classList.add('hidden')">📥 Ouvrir l'outil d'archivage</button>`
+}
+
+async function previewArchive(){
+    const dateStr=document.getElementById('archive-date').value
+    if(!dateStr){showToast('Choisissez une date','error');return}
+    const{data}=await sb.from('commandes').select('*,details_commande(*)').in('statut',['Terminée','Annulée']).lt('date_commande',new Date(dateStr).toISOString())
+    archiveCandidates=data||[]
+    const preview=document.getElementById('archive-preview')
+    if(!archiveCandidates.length){preview.innerHTML='<span style="color:var(--text-muted)">Aucune commande à archiver pour cette date.</span>';document.getElementById('btn-export-only').classList.add('hidden');document.getElementById('btn-export-purge').classList.add('hidden');return}
+    preview.innerHTML=`<div style="background:var(--dark3);border-radius:6px;padding:12px 16px;line-height:1.8">
+        📦 <strong>${archiveCandidates.length}</strong> commandes trouvées<br>
+        🛒 <strong>${archiveCandidates.reduce((s,o)=>s+(o.details_commande?.length||0),0)}</strong> lignes de détail
+    </div>`
+    document.getElementById('btn-export-only').classList.remove('hidden')
+    document.getElementById('btn-export-purge').classList.remove('hidden')
+}
+
+async function confirmArchive(purge){
+    if(!archiveCandidates.length)return
+    const wb=XLSX.utils.book_new()
+    const cmdRows=archiveCandidates.map(o=>({'Référence':o.ref_commande,'Client':o.client_pseudo,'Vendeur':o.vendeur_affecte||'—','Statut':o.statut,'Total':o.montant_ajuste??o.details_commande?.reduce((s,d)=>s+d.prix_achat*d.quantite,0),'Date':new Date(o.date_commande).toLocaleDateString('fr-FR')}))
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cmdRows),'Commandes')
+    const detailRows=archiveCandidates.flatMap(o=>(o.details_commande||[]).map(d=>({'Référence':o.ref_commande,'Article':d.nom_article,'Quantité':d.quantite,'Prix':d.prix_achat})))
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(detailRows),'Détails')
+    XLSX.writeFile(wb,`archive_lostmc_${document.getElementById('archive-date').value.replace(/-/g,'')}.xlsx`)
+    if(purge){
+        const ids=archiveCandidates.map(o=>o.id)
+        try{await callApi('delete_commandes_bulk',{ids});await loadAll();showToast('✅ Archivage terminé !','success')}
+        catch(e){showToast('❌ '+e.message,'error')}
+    }else{showToast('✅ Export terminé !','success')}
+    closeModal('modal-archive')
+    archiveCandidates=[]
+}
+
+// ── ARTICLE MODAL ─────────────────────────────────────────────────────
+function openArticleModal(id=null){
+    document.getElementById('modal-article-title').textContent=id?'✏️ MODIFIER L\'ARTICLE':'➕ NOUVEL ARTICLE'
+    document.getElementById('article-id').value=id||''
+    if(id){
+        const a=catalog.find(x=>x.id===id)
+        if(!a)return
+        document.getElementById('article-name').value=a.name||''
+        document.getElementById('article-price').value=a.price||''
+        document.getElementById('article-cat').value=a.cat||'weapons'
+        document.getElementById('article-desc').value=a.description||''
+        document.getElementById('article-mag').value=a.mag||''
+        document.getElementById('article-badge').value=a.badge_label||''
+        document.getElementById('article-img').value=a.img_url||''
+        document.getElementById('article-dispo').value=String(a.disponible!==false)
+    }else{
+        ['article-name','article-price','article-desc','article-mag','article-badge','article-img'].forEach(i=>document.getElementById(i).value='')
+        document.getElementById('article-cat').value='weapons'
+        document.getElementById('article-dispo').value='true'
+    }
+    document.getElementById('modal-article').classList.add('active')
+}
+
+async function saveArticle(){
+    const id=document.getElementById('article-id').value
+    const name=document.getElementById('article-name').value.trim()
+    const price=parseInt(document.getElementById('article-price').value)
+    if(!name||!price){showToast('Nom et prix requis','error');return}
+    const articleData={name,price,description:document.getElementById('article-desc').value.trim()||null,mag:document.getElementById('article-mag').value.trim()||null,cat:document.getElementById('article-cat').value,badge_label:document.getElementById('article-badge').value.trim()||null,img_url:document.getElementById('article-img').value.trim()||null,disponible:document.getElementById('article-dispo').value==='true',sort_order:id?catalog.find(x=>x.id===parseInt(id))?.sort_order||0:Math.max(0,...catalog.filter(x=>x.cat===document.getElementById('article-cat').value).map(x=>x.sort_order||0))+1}
+    try{
+        await callApi('upsert_article',{id:id?parseInt(id):null,data:articleData})
+        closeModal('modal-article')
+        await loadAll()
+        showToast('✅ Article sauvegardé','success')
+    }catch(e){showToast('❌ '+e.message,'error')}
+}
+
+async function deleteArticle(id){
+    if(!confirm('Supprimer cet article ?'))return
+    try{await callApi('delete_article',{id});await loadAll();showToast('✅ Article supprimé','success')}
+    catch(e){showToast('❌ '+e.message,'error')}
+}
+
+// ── PROMO MODAL ───────────────────────────────────────────────────────
+function openPromoModal(id=null){
+    document.getElementById('modal-promo-title').textContent=id?'✏️ MODIFIER CODE PROMO':'➕ NOUVEAU CODE PROMO'
+    document.getElementById('promo-id').value=id||''
+    if(id){
+        const p=promos.find(x=>x.id===id)
+        if(!p)return
+        document.getElementById('promo-code').value=p.code||''
+        document.getElementById('promo-taux').value=p.taux||''
+        document.getElementById('promo-reutil').value=String(p.reutilisable)
+        document.getElementById('promo-maxuses').value=p.max_uses||''
+    }else{
+        ['promo-code','promo-taux','promo-maxuses'].forEach(i=>document.getElementById(i).value='')
+        document.getElementById('promo-reutil').value='false'
+    }
+    document.getElementById('modal-promo').classList.add('active')
+}
+
+async function savePromo(){
+    const id=document.getElementById('promo-id').value
+    const code=document.getElementById('promo-code').value.trim().toUpperCase()
+    const taux=parseInt(document.getElementById('promo-taux').value)
+    if(!code||!taux){showToast('Code et taux requis','error');return}
+    const promoData={code,taux,reutilisable:document.getElementById('promo-reutil').value==='true',max_uses:parseInt(document.getElementById('promo-maxuses').value)||null,actif:true}
+    if(!id)promoData.uses_count=0
+    try{
+        await callApi('upsert_code_promo',{id:id?parseInt(id):null,data:promoData})
+        closeModal('modal-promo')
+        await loadAll()
+        showToast('✅ Code promo sauvegardé','success')
+    }catch(e){showToast('❌ '+e.message,'error')}
+}
+
+async function deletePromo(id){
+    if(!confirm('Supprimer ce code promo ?'))return
+    try{await callApi('delete_code_promo',{id});await loadAll();showToast('✅ Code supprimé','success')}
+    catch(e){showToast('❌ '+e.message,'error')}
+}
+
+async function deleteCommande(id){
+    if(!confirm('Supprimer cette commande ?'))return
+    try{await callApi('delete_commande',{id});await loadAll();showToast('✅ Commande supprimée','success')}
+    catch(e){showToast('❌ '+e.message,'error')}
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+
+function esc(str){if(!str)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;')}
+
+function showToast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+type;setTimeout(()=>el.className='toast',3000)}
+
+async function logout(){await sb.auth.signOut();window.location.href='index.html'}
+
+init()
+</script>
+</body>
+</html>
