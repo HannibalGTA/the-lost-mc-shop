@@ -161,7 +161,7 @@
 <main class="main">
     <div class="topbar">
         <div class="page-title">⚙️ ADMINISTRATION</div>
-        <button onclick="loadAll()" class="btn btn-secondary btn-sm">🔄 Actualiser</button>
+        <button onclick="reloadCurrentTab()" class="btn btn-secondary btn-sm">🔄 Actualiser</button>
     </div>
 
     <div class="admin-tabs">
@@ -297,7 +297,7 @@ async function init(){
     const avatar=currentUser.user_metadata?.avatar_url
     if(avatar)document.getElementById('user-avatar').src=avatar
     await loadProfile()
-    await loadAll()
+    ;await reloadCurrentTab()
 }
 
 async function callApi(action,payload={}){
@@ -315,23 +315,63 @@ async function loadProfile(){
     }catch(e){await sb.auth.signOut();window.location.href='index.html'}
 }
 
-async function loadAll(){
-    const[{data:c},{data:p},{data:m},{data:cmd},{data:mat},{data:am}]=await Promise.all([
-        sb.from('articles').select('*').order('cat').order('sort_order'),
-        sb.from('codes_promo').select('*').order('created_at',{ascending:false}),
-        sb.from('profiles').select('*').order('discord_username'),
-        sb.from('commandes').select('*,details_commande(*)').order('date_commande',{ascending:false}),
-        sb.from('materiaux').select('*').order('col_order'),
-        sb.from('article_materiaux').select('*')
-    ])
-    catalog=c||[];promos=p||[];membres=m||[];commandes=cmd||[];materiaux=mat||[];articleMateriaux=am||[]
+// Cache par onglet pour éviter de recharger inutilement
+const tabLoaded = { dashboard: false, catalogue: false, membres: false, promos: false, materiaux: false, archive: false }
+
+async function loadAll() {
+    // Charge seulement ce dont on a besoin pour l'onglet actif
+    await loadForTab(activeAdminTab)
     renderAdminTab()
 }
 
-function switchAdminTab(tab){
+async function loadForTab(tab) {
+    const el = document.getElementById('admin-content')
+    el.innerHTML = '<div class="loading"><div class="spinner"></div> Chargement...</div>'
+
+    if (tab === 'dashboard') {
+        const [{ data: cmd }, { data: cat }] = await Promise.all([
+            sb.from('commandes').select('*, details_commande(*)').order('date_commande', { ascending: false }),
+            sb.from('articles').select('*').order('cat').order('sort_order')
+        ])
+        commandes = cmd || []; catalog = cat || []
+        tabLoaded.dashboard = true
+    }
+    else if (tab === 'catalogue') {
+        const { data: cat } = await sb.from('articles').select('*').order('cat').order('sort_order')
+        catalog = cat || []
+        tabLoaded.catalogue = true
+    }
+    else if (tab === 'membres') {
+        const { data: m } = await sb.from('profiles').select('*').order('discord_username')
+        membres = m || []
+        tabLoaded.membres = true
+    }
+    else if (tab === 'promos') {
+        const { data: p } = await sb.from('codes_promo').select('*').order('created_at', { ascending: false })
+        promos = p || []
+        tabLoaded.promos = true
+    }
+    else if (tab === 'materiaux') {
+        const [{ data: mat }, { data: am }, { data: cat }] = await Promise.all([
+            sb.from('materiaux').select('*').order('col_order'),
+            sb.from('article_materiaux').select('*'),
+            sb.from('articles').select('*').order('cat').order('sort_order')
+        ])
+        materiaux = mat || []; articleMateriaux = am || []; catalog = cat || []
+        tabLoaded.materiaux = true
+    }
+    else if (tab === 'archive') {
+        const { data: cmd } = await sb.from('commandes').select('*, details_commande(*)').order('date_commande', { ascending: false })
+        commandes = cmd || []
+        tabLoaded.archive = true
+    }
+}
+
+async function switchAdminTab(tab){
     activeAdminTab=tab
     document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'))
     document.getElementById('atab-'+tab).classList.add('active')
+    await loadForTab(tab)
     renderAdminTab()
 }
 
@@ -343,6 +383,13 @@ function renderAdminTab(){
     else if(activeAdminTab==='promos')renderPromos(el)
     else if(activeAdminTab==='materiaux')renderMateriaux(el)
     else if(activeAdminTab==='archive')renderArchive(el)
+}
+
+// Reload current tab data (after save/delete)
+async function reloadCurrentTab(){
+    tabLoaded[activeAdminTab]=false
+    await loadForTab(activeAdminTab)
+    renderAdminTab()
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────
@@ -653,7 +700,7 @@ async function confirmArchive(purge){
     XLSX.writeFile(wb,`archive_lostmc_${document.getElementById('archive-date').value.replace(/-/g,'')}.xlsx`)
     if(purge){
         const ids=archiveCandidates.map(o=>o.id)
-        try{await callApi('delete_commandes_bulk',{ids});await loadAll();showToast('✅ Archivage terminé !','success')}
+        try{await callApi('delete_commandes_bulk',{ids});await reloadCurrentTab();showToast('✅ Archivage terminé !','success')}
         catch(e){showToast('❌ '+e.message,'error')}
     }else{showToast('✅ Export terminé !','success')}
     closeModal('modal-archive')
@@ -692,7 +739,7 @@ async function saveArticle(){
     try{
         await callApi('upsert_article',{id:id?parseInt(id):null,data:articleData})
         closeModal('modal-article')
-        await loadAll()
+        await reloadCurrentTab()
         showToast('✅ Article sauvegardé','success')
     }catch(e){showToast('❌ '+e.message,'error')}
 }
@@ -710,13 +757,13 @@ async function moveArticle(id, direction, cat) {
             callApi('upsert_article', { id: a.id, data: { sort_order: bOrder } }),
             callApi('upsert_article', { id: b.id, data: { sort_order: aOrder } })
         ])
-        await loadAll()
+        ;await reloadCurrentTab()
     } catch(e) { showToast('❌ ' + e.message, 'error') }
 }
 
 async function deleteArticle(id){
     if(!confirm('Supprimer cet article ?'))return
-    try{await callApi('delete_article',{id});await loadAll();showToast('✅ Article supprimé','success')}
+    try{await callApi('delete_article',{id});await reloadCurrentTab();showToast('✅ Article supprimé','success')}
     catch(e){showToast('❌ '+e.message,'error')}
 }
 
@@ -748,7 +795,7 @@ async function savePromo(){
     try{
         await callApi('upsert_code_promo',{id:id?parseInt(id):null,data:promoData})
         closeModal('modal-promo')
-        await loadAll()
+        await reloadCurrentTab()
         showToast('✅ Code promo sauvegardé','success')
     }catch(e){showToast('❌ '+e.message,'error')}
 }
@@ -757,20 +804,20 @@ async function deleteCommande(id) {
     if (!confirm('Supprimer cette commande ?')) return
     try {
         await callApi('delete_commande', { id })
-        await loadAll()
+        await reloadCurrentTab()
         showToast('✅ Commande supprimée', 'success')
     } catch(e) { showToast('❌ ' + e.message, 'error') }
 }
 
 async function deletePromo(id){
     if(!confirm('Supprimer ce code promo ?'))return
-    try{await callApi('delete_code_promo',{id});await loadAll();showToast('✅ Code supprimé','success')}
+    try{await callApi('delete_code_promo',{id});await reloadCurrentTab();showToast('✅ Code supprimé','success')}
     catch(e){showToast('❌ '+e.message,'error')}
 }
 
 async function deleteCommande(id){
     if(!confirm('Supprimer cette commande ?'))return
-    try{await callApi('delete_commande',{id});await loadAll();showToast('✅ Commande supprimée','success')}
+    try{await callApi('delete_commande',{id});await reloadCurrentTab();showToast('✅ Commande supprimée','success')}
     catch(e){showToast('❌ '+e.message,'error')}
 }
 
@@ -807,7 +854,7 @@ async function saveMateriau() {
             if (error) throw new Error(error.message)
         }
         closeModal('modal-materiau')
-        await loadAll()
+        await reloadCurrentTab()
         showToast('✅ Matériau sauvegardé', 'success')
     } catch(e) { showToast('❌ ' + e.message, 'error') }
 }
@@ -817,7 +864,7 @@ async function deleteMateriau(id) {
     try {
         const { error } = await sb.from('materiaux').delete().eq('id', id)
         if (error) throw new Error(error.message)
-        await loadAll()
+        await reloadCurrentTab()
         showToast('✅ Matériau supprimé', 'success')
     } catch(e) { showToast('❌ ' + e.message, 'error') }
 }
