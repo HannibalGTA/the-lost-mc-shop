@@ -407,7 +407,7 @@ async function reloadCurrentTab(){
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────
-let dashFilters = { statut: [], cat: [], client: '', vendeur: '', article: '' }
+let dashFilters = { statut: [], cat: [], client: '', vendeur: '', articles: [] }
 
 function renderDashboard(el) {
     const totalCA = commandes.filter(o=>o.statut==='Terminée').reduce((s,o)=>{
@@ -446,10 +446,19 @@ function renderDashboard(el) {
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:14px;background:var(--dark3);border:1px solid var(--border);border-radius:8px">
         <input placeholder="🔍 Client..." value="${dashFilters.client}" oninput="dashFilters.client=this.value;renderDashboard(document.getElementById('admin-content'))" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:140px">
         <input placeholder="🎯 Vendeur..." value="${dashFilters.vendeur}" oninput="dashFilters.vendeur=this.value;renderDashboard(document.getElementById('admin-content'))" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:140px">
-        <input placeholder="🔍 Article..." value="${dashFilters.article}" oninput="dashFilters.article=this.value;renderDashboard(document.getElementById('admin-content'))" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:140px">
+        <div style="position:relative;display:inline-block">
+            <button onclick="toggleArticleDropdown()" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;min-width:140px;text-align:left">
+                🔫 ${dashFilters.articles.length?dashFilters.articles.length+' article(s)':'Tous les articles'} ▾
+            </button>
+            <div id="article-dropdown" style="display:none;position:absolute;top:100%;left:0;z-index:100;background:var(--dark2);border:1px solid var(--border);border-radius:6px;padding:8px;min-width:220px;max-height:250px;overflow-y:auto;margin-top:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+                <input placeholder="🔍 Rechercher..." oninput="renderArticleDropdown(this.value)" style="width:100%;padding:6px 10px;background:var(--dark3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;margin-bottom:6px">
+                <div id="article-dropdown-list">${catalog.map(a=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:12px" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" ${dashFilters.articles.includes(a.name)?'checked':''} onchange="toggleArticleFilter('${a.name.replace(/'/g,"\'")}',this.checked)" style="accent-color:var(--red)">${esc(a.name)}</label>`).join('')}</div>
+                ${dashFilters.articles.length?`<button onclick="dashFilters.articles=[];renderDashboard(document.getElementById('admin-content'))" style="width:100%;margin-top:6px;padding:4px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:11px;cursor:pointer">✕ Effacer</button>`:''}
+            </div>
+        </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap">${statuts.map(s=>`<button onclick="toggleDashFilter('statut','${s}')" style="padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${dashFilters.statut.includes(s)?'var(--red)':'var(--border)'};background:${dashFilters.statut.includes(s)?'rgba(200,21,42,0.2)':'var(--dark)'};color:${dashFilters.statut.includes(s)?'var(--text)':'var(--text-muted)'};font-family:'JetBrains Mono',monospace;letter-spacing:0.5px">${s}</button>`).join('')}</div>
         <div style="display:flex;gap:4px">${[{k:'weapons',l:'Armes'},{k:'others',l:'Équipement'},{k:'munitions',l:'Munitions'}].map(cat=>`<button onclick="toggleDashFilter('cat','${cat.k}')" style="padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${dashFilters.cat.includes(cat.k)?'var(--gold)':'var(--border)'};background:${dashFilters.cat.includes(cat.k)?'rgba(201,168,76,0.15)':'var(--dark)'};color:${dashFilters.cat.includes(cat.k)?'var(--gold)':'var(--text-muted)'};font-family:'JetBrains Mono',monospace">${cat.l}</button>`).join('')}</div>
-        <button onclick="dashFilters={statut:[],cat:[],client:'',vendeur:'',article:''};renderDashboard(document.getElementById('admin-content'))" style="padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--dark);color:var(--text-muted)">✕ Reset</button>
+        <button onclick="dashFilters={statut:[],cat:[],client:'',vendeur:'',articles:[]};renderDashboard(document.getElementById('admin-content'))" style="padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--dark);color:var(--text-muted)">✕ Reset</button>
     </div>
 
     <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
@@ -475,6 +484,30 @@ function renderDashboard(el) {
     </table>
     </div>`
 }
+
+function toggleArticleDropdown() {
+    const d = document.getElementById('article-dropdown')
+    if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none'
+}
+
+function renderArticleDropdown(search) {
+    const list = document.getElementById('article-dropdown-list')
+    if (!list) return
+    const items = search ? catalog.filter(a => a.name.toLowerCase().includes(search.toLowerCase())) : catalog
+    list.innerHTML = items.map(a => `<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:12px" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" ${dashFilters.articles.includes(a.name)?'checked':''} onchange="toggleArticleFilter('${a.name.replace(/'/g,\"\'\")}'.this.checked)" style="accent-color:var(--red)">${esc(a.name)}</label>`).join('')
+}
+
+function toggleArticleFilter(name, checked) {
+    if (checked && !dashFilters.articles.includes(name)) dashFilters.articles.push(name)
+    else if (!checked) dashFilters.articles = dashFilters.articles.filter(n => n !== name)
+    renderDashboard(document.getElementById('admin-content'))
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+    const dd = document.getElementById('article-dropdown')
+    if (dd && !dd.parentElement?.contains(e.target)) dd.style.display = 'none'
+})
 
 function toggleDashFilter(type, value) {
     const arr = dashFilters[type]
