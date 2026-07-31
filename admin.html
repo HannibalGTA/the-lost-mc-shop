@@ -304,8 +304,13 @@ async function init(){
     if(!profile?.role_admin){window.location.href='catalogue.html';return}
 
     // Charger le premier onglet
-    await loadForTab(activeAdminTab)
-    renderAdminTab()
+    const ok = await loadForTab(activeAdminTab)
+    if (ok) {
+        try { renderAdminTab() }
+        catch(e) {
+            document.getElementById('admin-content').innerHTML = '<div style="color:var(--red);padding:40px;text-align:center">❌ Erreur rendu : ' + e.message + '<br><button onclick="reloadCurrentTab()" style="margin-top:12px;padding:8px 16px;background:var(--dark3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;">🔄 Réessayer</button></div>'
+        }
+    }
 }
 
 async function callApi(action,payload={}){
@@ -369,16 +374,18 @@ async function loadForTab(tab) {
     }
     } catch(e) {
         console.error('loadForTab error:', e)
-        el.innerHTML = '<div style="color:var(--red);padding:40px;text-align:center">❌ Erreur de chargement : ' + e.message + '<br><br><button onclick="reloadCurrentTab()" class="btn btn-secondary btn-sm" style="margin-top:12px">🔄 Réessayer</button></div>'
+        el.innerHTML = '<div style="color:var(--red);padding:40px;text-align:center">❌ Erreur chargement : ' + e.message + '<br><button onclick="reloadCurrentTab()" style="margin-top:12px;padding:8px 16px;background:var(--dark3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;">🔄 Réessayer</button></div>'
+        return false
     }
+    return true
 }
 
 async function switchAdminTab(tab){
     activeAdminTab=tab
     document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'))
     document.getElementById('atab-'+tab).classList.add('active')
-    await loadForTab(tab)
-    renderAdminTab()
+    const ok = await loadForTab(tab)
+    if (ok) { try { renderAdminTab() } catch(e) { document.getElementById('admin-content').innerHTML = '❌ Erreur : '+e.message } }
 }
 
 function renderAdminTab(){
@@ -394,8 +401,8 @@ function renderAdminTab(){
 // Reload current tab data (after save/delete)
 async function reloadCurrentTab(){
     tabLoaded[activeAdminTab]=false
-    await loadForTab(activeAdminTab)
-    renderAdminTab()
+    const ok = await loadForTab(activeAdminTab)
+    if (ok) { try { renderAdminTab() } catch(e) { document.getElementById('admin-content').innerHTML = '❌ Erreur : '+e.message } }
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────
