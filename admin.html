@@ -487,21 +487,35 @@ function renderDashboard(el) {
 
 function toggleArticleDropdown() {
     const d = document.getElementById('article-dropdown')
-    if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none'
+    if (!d) return
+    const isOpen = d.style.display !== 'none'
+    d.style.display = isOpen ? 'none' : 'block'
+    if (!isOpen) {
+        _articleDropdownItems = catalog
+        renderArticleDropdown('')
+    }
 }
 
 function renderArticleDropdown(search) {
     const list = document.getElementById('article-dropdown-list')
     if (!list) return
     const items = search ? catalog.filter(a => a.name.toLowerCase().includes(search.toLowerCase())) : catalog
-    list.innerHTML = items.map(a => `<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:12px" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" ${dashFilters.articles.includes(a.name)?'checked':''} onchange="toggleArticleFilter('${a.name.replace(/'/g,\"\'\")}'.this.checked)" style="accent-color:var(--red)">${esc(a.name)}</label>`).join('')
+    list.innerHTML = items.map((a,i) => {
+        const checked = dashFilters.articles.includes(a.name) ? 'checked' : ''
+        return '<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:12px"><input type="checkbox" data-idx="'+i+'" '+checked+' onchange="toggleArticleFilterByIdx('+i+',this.checked)" style="accent-color:var(--red)"> '+esc(a.name)+'</label>'
+    }).join('')
 }
 
-function toggleArticleFilter(name, checked) {
+let _articleDropdownItems = []
+function toggleArticleFilterByIdx(idx, checked) {
+    const name = _articleDropdownItems[idx]?.name
+    if (!name) return
     if (checked && !dashFilters.articles.includes(name)) dashFilters.articles.push(name)
     else if (!checked) dashFilters.articles = dashFilters.articles.filter(n => n !== name)
     renderDashboard(document.getElementById('admin-content'))
 }
+
+
 
 // Close dropdown on outside click
 document.addEventListener('click', e => {
