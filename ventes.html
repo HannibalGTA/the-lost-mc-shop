@@ -506,16 +506,15 @@ async function saveOrderEdit() {
     const validLines = editLines.filter(d => d.nom_article.trim())
     if (!validLines.length) { showToast('❌ Ajoutez au moins un article', 'error'); return }
     try {
-        // Supprimer les anciens détails et recréer
-        const { error: delErr } = await sb.from('details_commande').delete().eq('id_commande', id)
-        if (delErr) throw new Error(delErr.message)
-        const { error: insErr } = await sb.from('details_commande').insert(validLines.map(d => ({
-            id_commande: id,
-            nom_article: d.nom_article.trim(),
-            quantite: d.quantite,
-            prix_achat: d.prix_achat
-        })))
-        if (insErr) throw new Error(insErr.message)
+        // Sauvegarder les détails via Edge Function (RLS compliant)
+        await callApi('save_order_details', {
+            id,
+            details: validLines.map(d => ({
+                nom_article: d.nom_article.trim(),
+                quantite: d.quantite,
+                prix_achat: d.prix_achat
+            }))
+        })
         // Mettre à jour le montant si ajusté
         await callApi('update_commande', { id, updates: { montant_ajuste: montant } })
         closeVentesModal('modal-edit-order')
