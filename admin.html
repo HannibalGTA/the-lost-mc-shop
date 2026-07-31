@@ -637,47 +637,6 @@ function renderMateriauxParArticle() {
     </div>`
 }
 
-function selectArticleForMat(id){
-    selectedArticleId=id
-    document.querySelectorAll('[id^="matbtn-"]').forEach(b=>b.style.background='var(--dark3)')
-    document.getElementById('matbtn-'+id).style.background='rgba(200,21,42,0.15)'
-    const am=articleMateriaux.filter(x=>x.article_id===id)
-    const el=document.getElementById('mat-editor')
-    el.innerHTML=`<div style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Matériaux</div>
-    ${materiaux.map(m=>{
-        const existing=am.find(x=>x.materiau_id===m.id)
-        return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:10px 12px;background:var(--dark3);border:1px solid var(--border);border-radius:6px">
-            <span style="flex:1;font-size:13px">${esc(m.nom)}</span>
-            <input id="mat-${m.id}-qty" type="number" value="${existing?.quantite||0}" min="0" placeholder="Qté" style="width:80px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
-            ${m.col_type==='prix'?`<input id="mat-${m.id}-prix" type="number" value="${existing?.prix_fabrication||0}" min="0" placeholder="Prix $" style="width:100px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">`:''}
-        </div>`
-    }).join('')}
-    <button class="btn btn-primary" onclick="saveMateriaux()" style="margin-top:8px">💾 SAUVEGARDER</button>`
-}
-
-async function saveMateriaux(){
-    if(!selectedArticleId){showToast('Sélectionnez un article','error');return}
-    const upserts=materiaux.map(m=>({
-        article_id:selectedArticleId,
-        materiau_id:m.id,
-        quantite:parseInt(document.getElementById('mat-'+m.id+'-qty')?.value)||0,
-        prix_fabrication:parseInt(document.getElementById('mat-'+m.id+'-prix')?.value)||0
-    }))
-    // Include all rows (even zeros) so we can upsert properly
-    const allUpserts = upserts.filter(u => u.quantite >= 0)
-    try{
-        // Delete existing first then re-insert
-        await sb.from('article_materiaux').delete().eq('article_id', selectedArticleId)
-        const toInsert = allUpserts.filter(u => u.quantite > 0 || u.prix_fabrication > 0)
-        if(toInsert.length > 0){
-            const{error}=await sb.from('article_materiaux').insert(toInsert)
-            if(error)throw new Error(error.message)
-        }
-        const{data:am}=await sb.from('article_materiaux').select('*')
-        articleMateriaux=am||[]
-        showToast('✅ Matériaux sauvegardés','success')
-    }catch(e){showToast('❌ '+e.message,'error')}
-}
 
 // ── ARCHIVAGE ─────────────────────────────────────────────────────────
 function renderArchive(el){
@@ -831,6 +790,28 @@ async function deleteCommande(id){
     if(!confirm('Supprimer cette commande ?'))return
     try{await callApi('delete_commande',{id});await reloadCurrentTab();showToast('✅ Commande supprimée','success')}
     catch(e){showToast('❌ '+e.message,'error')}
+}
+
+async function saveMateriaux(){
+    if(!selectedArticleId){showToast('Sélectionnez un article','error');return}
+    const upserts=materiaux.map(m=>({
+        article_id:selectedArticleId,
+        materiau_id:m.id,
+        quantite:parseInt(document.getElementById('mat-'+m.id+'-qty')?.value)||0,
+        prix_fabrication:parseInt(document.getElementById('mat-'+m.id+'-prix')?.value)||0
+    }))
+    try{
+        await sb.from('article_materiaux').delete().eq('article_id',selectedArticleId)
+        const toInsert=upserts.filter(u=>u.quantite>0||u.prix_fabrication>0)
+        if(toInsert.length>0){
+            const{error}=await sb.from('article_materiaux').insert(toInsert)
+            if(error)throw new Error(error.message)
+        }
+        const{data:am}=await sb.from('article_materiaux').select('*')
+        articleMateriaux=am||[]
+        showToast('✅ Matériaux sauvegardés','success')
+        selectArticleForMat(selectedArticleId)
+    }catch(e){showToast('❌ '+e.message,'error')}
 }
 
 // ── MATERIAU CRUD ─────────────────────────────────────────────────────
