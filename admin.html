@@ -178,6 +178,28 @@
     </div>
 </main>
 
+<!-- MODAL MATÉRIAU -->
+<div class="modal-overlay" id="modal-materiau">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-title" id="modal-mat-title">➕ NOUVEAU MATÉRIAU</div>
+        <input type="hidden" id="mat-id">
+        <div class="form-grid">
+            <div class="form-group full"><label class="form-label">Nom du matériau</label><input class="form-input" id="mat-nom" placeholder="Métal raffiné, Poudre..."></div>
+            <div class="form-group"><label class="form-label">Type</label>
+                <select class="form-select" id="mat-type">
+                    <option value="qty">📦 Quantité</option>
+                    <option value="prix">💰 Prix</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Ordre d'affichage</label><input class="form-input" id="mat-order" type="number" placeholder="1, 2, 3..."></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('modal-materiau')">Annuler</button>
+            <button class="btn btn-primary" onclick="saveMateriau()">💾 SAUVEGARDER</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL ARTICLE -->
 <div class="modal-overlay" id="modal-article">
     <div class="modal">
@@ -324,7 +346,7 @@ function renderAdminTab(){
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────
-let dashFilters = { statut: [], cat: [], client: '', vendeur: '' }
+let dashFilters = { statut: [], cat: [], client: '', vendeur: '', article: '' }
 
 function renderDashboard(el) {
     const totalCA = commandes.filter(o=>o.statut==='Terminée').reduce((s,o)=>{
@@ -363,8 +385,10 @@ function renderDashboard(el) {
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:14px;background:var(--dark3);border:1px solid var(--border);border-radius:8px">
         <input placeholder="🔍 Client..." value="${dashFilters.client}" oninput="dashFilters.client=this.value;renderDashboard(document.getElementById('admin-content'))" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:140px">
         <input placeholder="🎯 Vendeur..." value="${dashFilters.vendeur}" oninput="dashFilters.vendeur=this.value;renderDashboard(document.getElementById('admin-content'))" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:140px">
+        <input placeholder="🔍 Article..." value="${dashFilters.article}" oninput="dashFilters.article=this.value;renderDashboard(document.getElementById('admin-content'))" style="padding:7px 12px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;width:140px">
         <div style="display:flex;gap:4px;flex-wrap:wrap">${statuts.map(s=>`<button onclick="toggleDashFilter('statut','${s}')" style="padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${dashFilters.statut.includes(s)?'var(--red)':'var(--border)'};background:${dashFilters.statut.includes(s)?'rgba(200,21,42,0.2)':'var(--dark)'};color:${dashFilters.statut.includes(s)?'var(--text)':'var(--text-muted)'};font-family:'JetBrains Mono',monospace;letter-spacing:0.5px">${s}</button>`).join('')}</div>
-        <button onclick="dashFilters={statut:[],cat:[],client:'',vendeur:''};renderDashboard(document.getElementById('admin-content'))" style="padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--dark);color:var(--text-muted)">✕ Reset</button>
+        <div style="display:flex;gap:4px">${[{k:'weapons',l:'Armes'},{k:'others',l:'Équipement'},{k:'munitions',l:'Munitions'}].map(cat=>`<button onclick="toggleDashFilter('cat','${cat.k}')" style="padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${dashFilters.cat.includes(cat.k)?'var(--gold)':'var(--border)'};background:${dashFilters.cat.includes(cat.k)?'rgba(201,168,76,0.15)':'var(--dark)'};color:${dashFilters.cat.includes(cat.k)?'var(--gold)':'var(--text-muted)'};font-family:'JetBrains Mono',monospace">${cat.l}</button>`).join('')}</div>
+        <button onclick="dashFilters={statut:[],cat:[],client:'',vendeur:'',article:''};renderDashboard(document.getElementById('admin-content'))" style="padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--dark);color:var(--text-muted)">✕ Reset</button>
     </div>
 
     <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
@@ -504,22 +528,56 @@ function renderPromos(el){
 }
 
 // ── MATERIAUX ─────────────────────────────────────────────────────────
-function renderMateriaux(el){
-    el.innerHTML=`
-    <div class="section-title">🧱 MATÉRIAUX PAR ARTICLE</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Sélectionnez un article pour configurer ses matériaux de fabrication.</div>
-    <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+let matView = 'liste' // 'liste' or 'articles'
+let selectedArticleId = null
+
+function renderMateriaux(el) {
+    el.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button onclick="matView='liste';renderMateriaux(document.getElementById('admin-content'))" class="btn ${matView==='liste'?'btn-primary':'btn-secondary'}">🧱 Liste des matériaux</button>
+        <button onclick="matView='articles';renderMateriaux(document.getElementById('admin-content'))" class="btn ${matView==='articles'?'btn-primary':'btn-secondary'}">🔗 Par article</button>
+    </div>
+    ${matView === 'liste' ? renderMateriauxListe() : renderMateriauxParArticle()}`
+}
+
+function renderMateriauxListe() {
+    return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:0">🧱 LISTE DES MATÉRIAUX</div>
+        <button class="btn btn-primary" onclick="openMatModal()">➕ AJOUTER</button>
+    </div>
+    <table class="data-table">
+        <thead><tr><th>#</th><th>Nom</th><th>Type de colonne</th><th>Actions</th></tr></thead>
+        <tbody>${materiaux.map(m=>`<tr>
+            <td style="color:var(--text-dim);font-family:'JetBrains Mono',monospace">${m.col_order}</td>
+            <td style="font-weight:600">${esc(m.nom)}</td>
+            <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${m.col_type==='prix'?'var(--gold)':'var(--blue)'}">${m.col_type==='prix'?'💰 Prix':'📦 Quantité'}</span></td>
+            <td style="display:flex;gap:6px">
+                <button class="btn btn-secondary btn-sm" onclick="openMatModal(${m.id})">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteMateriau(${m.id})">🗑️</button>
+            </td>
+        </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:40px">Aucun matériau</td></tr>'}</tbody>
+    </table>`
+}
+
+function renderMateriauxParArticle() {
+    const cats = [{k:'weapons',l:'Armes'},{k:'others',l:'Équipement'},{k:'munitions',l:'Munitions'}]
+    return `
+    <div class="section-title">🔗 MATÉRIAUX PAR ARTICLE</div>
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:20px">
         <div>
             <div style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Articles</div>
-            <div style="display:flex;flex-direction:column;gap:4px">${catalog.map(a=>`
-                <button onclick="selectArticleForMat(${a.id})" id="matbtn-${a.id}" style="text-align:left;padding:8px 12px;background:var(--dark3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">${esc(a.name)}</button>
-            `).join('')}</div>
+            ${cats.map(cat=>`
+                <div style="font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;padding:6px 8px;text-transform:uppercase;margin-top:8px">${cat.l}</div>
+                ${catalog.filter(a=>a.cat===cat.k).map(a=>`
+                <button onclick="selectArticleForMat(${a.id})" id="matbtn-${a.id}" style="text-align:left;width:100%;padding:7px 10px;background:${selectedArticleId===a.id?'rgba(200,21,42,0.15)':'var(--dark3)'};border:1px solid ${selectedArticleId===a.id?'rgba(200,21,42,0.4)':'var(--border)'};border-radius:5px;color:var(--text);font-size:12px;cursor:pointer;margin-bottom:3px;display:block">${esc(a.name)}</button>
+            `).join('')}`).join('')}
         </div>
-        <div id="mat-editor"><div style="color:var(--text-dim);text-align:center;padding:40px">Sélectionnez un article</div></div>
+        <div id="mat-editor"><div style="color:var(--text-dim);text-align:center;padding:60px;font-size:13px">← Sélectionnez un article</div></div>
     </div>`
 }
 
-let selectedArticleId=null
+let selectedArticleId = null=null
 function selectArticleForMat(id){
     selectedArticleId=id
     document.querySelectorAll('[id^="matbtn-"]').forEach(b=>b.style.background='var(--dark3)')
@@ -714,6 +772,78 @@ async function deleteCommande(id){
     if(!confirm('Supprimer cette commande ?'))return
     try{await callApi('delete_commande',{id});await loadAll();showToast('✅ Commande supprimée','success')}
     catch(e){showToast('❌ '+e.message,'error')}
+}
+
+// ── MATERIAU CRUD ─────────────────────────────────────────────────────
+function openMatModal(id=null) {
+    document.getElementById('modal-mat-title').textContent = id ? '✏️ MODIFIER MATÉRIAU' : '➕ NOUVEAU MATÉRIAU'
+    document.getElementById('mat-id').value = id || ''
+    if (id) {
+        const m = materiaux.find(x => x.id === id)
+        if (!m) return
+        document.getElementById('mat-nom').value = m.nom || ''
+        document.getElementById('mat-type').value = m.col_type || 'qty'
+        document.getElementById('mat-order').value = m.col_order || ''
+    } else {
+        document.getElementById('mat-nom').value = ''
+        document.getElementById('mat-type').value = 'qty'
+        document.getElementById('mat-order').value = (Math.max(0, ...materiaux.map(m => m.col_order || 0)) + 1)
+    }
+    document.getElementById('modal-materiau').classList.add('active')
+}
+
+async function saveMateriau() {
+    const id = document.getElementById('mat-id').value
+    const nom = document.getElementById('mat-nom').value.trim()
+    const col_type = document.getElementById('mat-type').value
+    const col_order = parseInt(document.getElementById('mat-order').value) || 0
+    if (!nom) { showToast('Nom requis', 'error'); return }
+    try {
+        if (id) {
+            const { error } = await sb.from('materiaux').update({ nom, col_type, col_order }).eq('id', parseInt(id))
+            if (error) throw new Error(error.message)
+        } else {
+            const { error } = await sb.from('materiaux').insert([{ nom, col_type, col_order }])
+            if (error) throw new Error(error.message)
+        }
+        closeModal('modal-materiau')
+        await loadAll()
+        showToast('✅ Matériau sauvegardé', 'success')
+    } catch(e) { showToast('❌ ' + e.message, 'error') }
+}
+
+async function deleteMateriau(id) {
+    if (!confirm('Supprimer ce matériau ?')) return
+    try {
+        const { error } = await sb.from('materiaux').delete().eq('id', id)
+        if (error) throw new Error(error.message)
+        await loadAll()
+        showToast('✅ Matériau supprimé', 'success')
+    } catch(e) { showToast('❌ ' + e.message, 'error') }
+}
+
+function selectArticleForMat(id) {
+    selectedArticleId = id
+    // Re-render to highlight selected
+    renderMateriaux(document.getElementById('admin-content'))
+    // Then render the editor
+    const am = articleMateriaux.filter(x => x.article_id === id)
+    const el = document.getElementById('mat-editor')
+    if (!el) return
+    const article = catalog.find(a => a.id === id)
+    el.innerHTML = `
+    <div style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Matériaux pour : <strong style="color:var(--text)">${esc(article?.name||'')}</strong></div>
+    ${materiaux.length === 0 ? '<div style="color:var(--text-dim);text-align:center;padding:20px">Créez d'abord des matériaux dans "Liste des matériaux"</div>' : ''}
+    ${materiaux.map(m => {
+        const existing = am.find(x => x.materiau_id === m.id)
+        return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:10px 14px;background:var(--dark3);border:1px solid var(--border);border-radius:6px">
+            <span style="flex:1;font-size:13px;font-weight:500">${esc(m.nom)}</span>
+            <span style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace">${m.col_type==='prix'?'Prix $':'Quantité'}</span>
+            <input id="mat-${m.id}-qty" type="number" value="${existing?.quantite||0}" min="0" placeholder="0" style="width:80px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
+            ${m.col_type==='prix' ? `<input id="mat-${m.id}-prix" type="number" value="${existing?.prix_fabrication||0}" min="0" placeholder="0 $" style="width:100px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">` : ''}
+        </div>`
+    }).join('')}
+    <button class="btn btn-primary" onclick="saveMateriaux()" style="margin-top:12px">💾 SAUVEGARDER</button>`
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('active')}
