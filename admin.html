@@ -843,19 +843,14 @@ async function deleteCommande(id){
 
 async function saveMateriaux(){
     if(!selectedArticleId){showToast('Sélectionnez un article','error');return}
-    const upserts=materiaux.map(m=>({
+    const items=materiaux.map(m=>({
         article_id:selectedArticleId,
         materiau_id:m.id,
         quantite:parseInt(document.getElementById('mat-'+m.id+'-qty')?.value)||0,
         prix_fabrication:parseInt(document.getElementById('mat-'+m.id+'-prix')?.value)||0
-    }))
+    })).filter(u=>u.quantite>0||u.prix_fabrication>0)
     try{
-        await sb.from('article_materiaux').delete().eq('article_id',selectedArticleId)
-        const toInsert=upserts.filter(u=>u.quantite>0||u.prix_fabrication>0)
-        if(toInsert.length>0){
-            const{error}=await sb.from('article_materiaux').insert(toInsert)
-            if(error)throw new Error(error.message)
-        }
+        await callApi('save_article_materiaux',{article_id:selectedArticleId,items})
         const{data:am}=await sb.from('article_materiaux').select('*')
         articleMateriaux=am||[]
         showToast('✅ Matériaux sauvegardés','success')
