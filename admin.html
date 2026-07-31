@@ -840,13 +840,7 @@ async function saveMateriau() {
     const col_order = parseInt(document.getElementById('mat-order').value) || 0
     if (!nom) { showToast('Nom requis', 'error'); return }
     try {
-        if (id) {
-            const { error } = await sb.from('materiaux').update({ nom, col_type, col_order }).eq('id', parseInt(id))
-            if (error) throw new Error(error.message)
-        } else {
-            const { error } = await sb.from('materiaux').insert([{ nom, col_type, col_order }])
-            if (error) throw new Error(error.message)
-        }
+        await callApi('upsert_materiau', { id: id ? parseInt(id) : null, data: { nom, col_type, col_order } })
         closeModal('modal-materiau')
         await reloadCurrentTab()
         showToast('✅ Matériau sauvegardé', 'success')
@@ -856,8 +850,7 @@ async function saveMateriau() {
 async function deleteMateriau(id) {
     if (!confirm('Supprimer ce matériau ?')) return
     try {
-        const { error } = await sb.from('materiaux').delete().eq('id', id)
-        if (error) throw new Error(error.message)
+        await callApi('delete_materiau', { id })
         await reloadCurrentTab()
         showToast('✅ Matériau supprimé', 'success')
     } catch(e) { showToast('❌ ' + e.message, 'error') }
