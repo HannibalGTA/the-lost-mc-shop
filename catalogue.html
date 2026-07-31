@@ -948,7 +948,7 @@ function renderCatalogue() {
             <div class="article-img-wrap">${img}${badge}</div>
             <div class="article-body">
                 <div class="article-name">${esc(a.name)}</div>
-                ${a.mag ? `<div class="article-mag">${esc(a.mag)}</div>` : ''}
+                ${a.mag ? `<div class="article-mag"><span style="color:var(--text-dim)">Chargeur / infos :</span> ${esc(a.mag)}</div>` : ''}
                 ${a.description ? `<div class="article-desc" title="${esc(a.description)}">${esc(a.description)}</div>` : ''}
                 <div class="article-footer">
                     ${prixHtml}
