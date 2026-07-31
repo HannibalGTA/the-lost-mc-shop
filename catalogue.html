@@ -1057,17 +1057,32 @@ async function submitOrder() {
                     actif: appliedPromo.reutilisable ? true : (appliedPromo.uses_count + 1 < (appliedPromo.max_uses || 999))
                 })
             }
-            // Générer la ref
+            // Générer la ref et mettre à jour
             const ref = generateRef(cart, data.data.id)
             await callApi('update_commande', { id: data.data.id, updates: { ref_commande: ref } })
+
+            // Créer le thread Discord automatiquement
+            showToast('⏳ Création du suivi Discord...', '')
+            try {
+                await callApi('create_order_thread', {
+                    ref,
+                    details,
+                    total,
+                    promo_code: appliedPromo?.code || null,
+                    promo_taux: appliedPromo?.taux || null
+                })
+            } catch(discordErr) {
+                console.warn('Thread Discord non créé:', discordErr.message)
+            }
+
             cart = []
             appliedPromo = null
             document.getElementById('promo-input').value = ''
             document.getElementById('promo-applied').style.display = 'none'
             updateCart()
             toggleCart()
-            showToast('✅ Commande ' + ref + ' transmise !', 'success')
-            setTimeout(() => window.location.href = 'commandes.html', 2000)
+            showToast('✅ Commande ' + ref + ' transmise ! Vérifiez Discord 🏍️', 'success')
+            setTimeout(() => window.location.href = 'commandes.html', 2500)
         }
     } catch(e) {
         showToast('❌ ' + e.message, 'error')
