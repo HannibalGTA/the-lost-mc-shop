@@ -24,6 +24,7 @@
         .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
         .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; text-decoration: none; }
         .nav-item:hover { background: var(--dark3); color: var(--text); }
+        .nav-item .icon { font-style: normal; }
         .nav-item.active { background: rgba(200,21,42,0.15); color: var(--text); border-left: 2px solid var(--red); }
         .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
         .nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
@@ -283,13 +284,14 @@ async function callApi(action, payload = {}) {
 
 async function loadProfile() {
     try {
-        const data = await callApi('get_profile')
-        profile = data.profile
-        const role = profile?.role_admin ? 'ADMIN' : profile?.role_vendeur ? 'VENDEUR' : 'CLIENT'
-        document.getElementById('user-role').textContent = role
-        if (profile?.role_vendeur || profile?.role_admin) document.getElementById('nav-ventes').classList.remove('hidden')
-        if (profile?.role_admin) document.getElementById('nav-admin').classList.remove('hidden')
-    } catch(e) { await sb.auth.signOut(); window.location.href = 'index.html' }
+        const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
+        profile=prof
+        if(!profile){await sb.auth.signOut();window.location.href='index.html';return}
+        const role=profile.role_admin?'ADMIN':profile.role_vendeur?'VENDEUR':'CLIENT'
+        document.getElementById('user-role').textContent=role
+        if(profile.role_vendeur||profile.role_admin) document.getElementById('nav-ventes').classList.remove('hidden')
+        if(profile.role_admin) document.getElementById('nav-admin').classList.remove('hidden')
+    }catch(e){await sb.auth.signOut();window.location.href='index.html'}
 }
 
 async function loadOrders() {
