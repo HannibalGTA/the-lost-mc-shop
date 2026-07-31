@@ -872,9 +872,11 @@ function selectArticleForMat(id) {
         const existing = am.find(x => x.materiau_id === m.id)
         return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:10px 14px;background:var(--dark3);border:1px solid var(--border);border-radius:6px">
             <span style="flex:1;font-size:13px;font-weight:500">${esc(m.nom)}</span>
-            <span style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace">${m.col_type==='prix'?'Prix $':'Quantité'}</span>
-            <input id="mat-${m.id}-qty" type="number" value="${existing?.quantite||0}" min="0" placeholder="0" style="width:80px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
-            ${m.col_type==='prix' ? `<input id="mat-${m.id}-prix" type="number" value="${existing?.prix_fabrication||0}" min="0" placeholder="0 $" style="width:100px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">` : ''}
+            <span style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace">${m.col_type==='prix'?'💰 Prix $':'📦 Qté'}</span>
+            ${m.col_type==='prix'
+                ? `<input id="mat-${m.id}-prix" type="number" value="${existing?.prix_fabrication||0}" min="0" placeholder="0" style="width:100px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">`
+                : `<input id="mat-${m.id}-qty" type="number" value="${existing?.quantite||0}" min="0" placeholder="0" style="width:80px;padding:6px 10px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">`
+            }
         </div>`
     }).join('')}
     <button class="btn btn-primary" onclick="saveMateriaux()" style="margin-top:12px">💾 SAUVEGARDER</button>`
