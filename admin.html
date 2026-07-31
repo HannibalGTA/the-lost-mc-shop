@@ -329,7 +329,7 @@ async function loadAll() {
 async function loadForTab(tab) {
     const el = document.getElementById('admin-content')
     el.innerHTML = '<div class="loading"><div class="spinner"></div> Chargement...</div>'
-
+    try {
     if (tab === 'dashboard') {
         const [{ data: cmd }, { data: cat }] = await Promise.all([
             sb.from('commandes').select('*, details_commande(*)').order('date_commande', { ascending: false }),
@@ -366,6 +366,10 @@ async function loadForTab(tab) {
         const { data: cmd } = await sb.from('commandes').select('*, details_commande(*)').order('date_commande', { ascending: false })
         commandes = cmd || []
         tabLoaded.archive = true
+    }
+    } catch(e) {
+        console.error('loadForTab error:', e)
+        el.innerHTML = '<div style="color:var(--red);padding:40px;text-align:center">❌ Erreur de chargement : ' + e.message + '<br><br><button onclick="reloadCurrentTab()" class="btn btn-secondary btn-sm" style="margin-top:12px">🔄 Réessayer</button></div>'
     }
 }
 
