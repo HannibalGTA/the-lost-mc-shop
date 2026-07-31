@@ -309,10 +309,19 @@ async function callApi(action,payload={}){
 
 async function loadProfile(){
     try{
-        const data=await callApi('get_profile')
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 8000)
+        const data=await callApi('get_profile',{})
+        clearTimeout(timeout)
         profile=data.profile
         if(!profile?.role_admin){window.location.href='catalogue.html';return}
-    }catch(e){await sb.auth.signOut();window.location.href='index.html'}
+    }catch(e){
+        console.error('loadProfile error:', e)
+        // Si timeout ou erreur réseau, tenter de lire le profil directement
+        const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
+        profile=prof
+        if(!profile?.role_admin){window.location.href='catalogue.html';return}
+    }
 }
 
 // Cache par onglet pour éviter de recharger inutilement
