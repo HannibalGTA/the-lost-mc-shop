@@ -292,12 +292,20 @@ let archiveCandidates=[]
 async function init(){
     const{data:{session}}=await sb.auth.getSession()
     if(!session){window.location.href='index.html';return}
-    currentUser=session.user;accessToken=session.access_token
+    currentUser=session.user
+    accessToken=session.access_token
     document.getElementById('user-name').textContent=currentUser.user_metadata?.full_name||'—'
     const avatar=currentUser.user_metadata?.avatar_url
     if(avatar)document.getElementById('user-avatar').src=avatar
-    await loadProfile()
-    ;await reloadCurrentTab()
+
+    // Lire le profil directement (pas via Edge Function pour aller vite)
+    const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
+    profile=prof
+    if(!profile?.role_admin){window.location.href='catalogue.html';return}
+
+    // Charger le premier onglet
+    await loadForTab(activeAdminTab)
+    renderAdminTab()
 }
 
 async function callApi(action,payload={}){
@@ -307,22 +315,7 @@ async function callApi(action,payload={}){
     return data
 }
 
-async function loadProfile(){
-    try{
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 8000)
-        const data=await callApi('get_profile',{})
-        clearTimeout(timeout)
-        profile=data.profile
-        if(!profile?.role_admin){window.location.href='catalogue.html';return}
-    }catch(e){
-        console.error('loadProfile error:', e)
-        // Si timeout ou erreur réseau, tenter de lire le profil directement
-        const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
-        profile=prof
-        if(!profile?.role_admin){window.location.href='catalogue.html';return}
-    }
-}
+// loadProfile intégré dans init()
 
 // Cache par onglet pour éviter de recharger inutilement
 const tabLoaded = { dashboard: false, catalogue: false, membres: false, promos: false, materiaux: false, archive: false }
