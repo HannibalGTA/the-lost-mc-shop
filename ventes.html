@@ -132,6 +132,12 @@
         /* NOTIFICATION SOUND */
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Matériaux modal */
+        .mat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+        .mat-item { background: var(--dark3); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .mat-nom { font-size: 13px; font-weight: 600; }
+        .mat-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--green); }
+
         /* MODAL RÉAFFECTATION / MODIFICATION */
         .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;align-items:center;justify-content:center; }
         .modal-overlay.active { display:flex; }
@@ -229,6 +235,17 @@
         <div class="modal-actions">
             <button class="btn btn-secondary btn-sm" onclick="closeVentesModal('modal-edit-order')">Annuler</button>
             <button class="btn btn-primary btn-sm" onclick="saveOrderEdit()">💾 SAUVEGARDER</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MATÉRIAUX COMMANDE -->
+<div class="modal-overlay" id="modal-mat-order">
+    <div class="modal">
+        <div class="modal-title">🧱 MATÉRIAUX NÉCESSAIRES</div>
+        <div id="mat-order-content"><div style="color:var(--text-dim);text-align:center;padding:20px">Chargement...</div></div>
+        <div class="modal-actions" style="margin-top:16px">
+            <button class="btn btn-secondary btn-sm" onclick="closeVentesModal('modal-mat-order')">Fermer</button>
         </div>
     </div>
 </div>
@@ -392,6 +409,7 @@ function renderOrders() {
                             <input class="montant-input" id="montant-${o.id}" type="number" value="${o.montant_ajuste || baseTotal}" placeholder="Montant">
                             <button class="btn-montant" onclick="saveMontant(${o.id})">💰 APPLIQUER</button>
                         </div>` : ''}
+                        ${(profile?.role_vendeur || profile?.role_admin) ? `<button class="btn btn-secondary" onclick="showMateriauxCommande(${o.id})" style="font-size:11px;padding:7px 12px">🧱 Matériaux</button>` : ''}
                         ${discordUrl ? `<a href="${discordUrl}" target="_blank" class="btn-discord">💬 Thread Discord</a>` : ''}
                     </div>
                 </div>
@@ -531,6 +549,62 @@ async function deleteCommande(id) {
         showToast('✅ Commande supprimée', 'success')
         await loadOrders()
     } catch(e) { showToast('❌ ' + e.message, 'error') }
+}
+
+async function showMateriauxCommande(orderId) {
+    const order = allOrders.find(o => o.id === orderId)
+    if (!order) return
+    document.getElementById('modal-mat-order').classList.add('active')
+    const el = document.getElementById('mat-order-content')
+
+    // Charger les matériaux depuis Supabase
+    const details = order.details_commande || []
+    if (!details.length) {
+        el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px">Aucun article dans cette commande.</div>'
+        return
+    }
+
+    // Récupérer les articles et leurs matériaux
+    const { data: articles } = await sb.from('articles').select('id, name').in('name', details.map(d => d.nom_article))
+    const { data: materiaux } = await sb.from('materiaux').select('*').order('col_order')
+    
+    if (!articles?.length || !materiaux?.length) {
+        el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px">Aucun matériau configuré pour ces articles.</div>'
+        return
+    }
+
+    const articleIds = articles.map(a => a.id)
+    const { data: artMat } = await sb.from('article_materiaux').select('*').in('article_id', articleIds)
+
+    if (!artMat?.length) {
+        el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px">Aucun matériau associé à ces articles.</div>'
+        return
+    }
+
+    // Calculer les totaux par matériau
+    const totals = {}
+    for (const detail of details) {
+        const art = articles.find(a => a.name === detail.nom_article)
+        if (!art) continue
+        const mats = artMat.filter(am => am.article_id === art.id)
+        for (const am of mats) {
+            if (!totals[am.materiau_id]) totals[am.materiau_id] = { qty: 0, prix: 0 }
+            totals[am.materiau_id].qty += am.quantite * detail.quantite
+            totals[am.materiau_id].prix += am.prix_fabrication * detail.quantite
+        }
+    }
+
+    const items = materiaux.filter(m => totals[m.id])
+    if (!items.length) {
+        el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px">Aucun matériau nécessaire.</div>'
+        return
+    }
+
+    el.innerHTML = `<div class="mat-grid">${items.map(m => {
+        const t = totals[m.id]
+        const val = m.col_type === 'prix' ? `${t.prix.toLocaleString()} $` : `x${t.qty}`
+        return `<div class="mat-item"><span class="mat-nom">${esc(m.nom)}</span><span class="mat-val">${val}</span></div>`
+    }).join('')}</div>`
 }
 
 function closeVentesModal(id) { document.getElementById(id).classList.remove('active') }
