@@ -456,8 +456,8 @@
                     showError('❌ ' + data.error)
                     return
                 }
-                sessionStorage.setItem('session_start', Date.now())
-                sessionStorage.setItem('session_active', '1')
+                sessionStorage.setItem('s','1')
+                sessionStorage.setItem('t',Date.now())
                 window.location.href = 'catalogue.html'
             } catch(e) {
                 showLoading(false)
