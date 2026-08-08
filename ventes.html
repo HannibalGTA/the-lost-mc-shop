@@ -267,6 +267,11 @@ async function init() {
     if (!session) { window.location.href = 'index.html'; return }
     currentUser = session.user
     accessToken = session.access_token
+    // Si retour OAuth Discord, initialiser la session
+    if (window.location.hash.includes('access_token')) {
+        sessionStorage.setItem('s','1')
+        sessionStorage.setItem('t', Date.now())
+    }
     // Session : fermeture onglet = deconnexion
     if (!sessionStorage.getItem('s')) {
         await sb.auth.signOut()
