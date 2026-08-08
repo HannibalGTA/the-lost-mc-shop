@@ -263,6 +263,15 @@ async function init() {
     if (!session) { window.location.href = 'index.html'; return }
     currentUser = session.user
     accessToken = session.access_token
+    // Session check - fermeture onglet ou 24h
+    if (!sessionStorage.getItem('session_active')) {
+        sessionStorage.setItem('session_active', '1')
+        sessionStorage.setItem('session_start', Date.now())
+    }
+    const sessionStart = parseInt(sessionStorage.getItem('session_start') || '0')
+    if (sessionStart && Date.now() - sessionStart > 24 * 60 * 60 * 1000) {
+        sessionStorage.clear(); await sb.auth.signOut(); window.location.href = 'index.html'; return
+    }
     document.getElementById('user-name').textContent = currentUser.user_metadata?.full_name || '—'
     const avatar = currentUser.user_metadata?.avatar_url
     if (avatar) document.getElementById('user-avatar').src = avatar
@@ -282,16 +291,31 @@ async function callApi(action, payload = {}) {
     return data
 }
 
+function applyProfile(profile) {
+    const role = profile.role_admin ? 'ADMIN' : profile.role_vendeur ? 'VENDEUR' : 'CLIENT'
+    document.getElementById('user-role').textContent = role
+    if (profile.role_vendeur || profile.role_admin) document.getElementById('nav-ventes').classList.remove('hidden')
+    else document.getElementById('nav-ventes').classList.add('hidden')
+    if (profile.role_admin) document.getElementById('nav-admin').classList.remove('hidden')
+    else document.getElementById('nav-admin').classList.add('hidden')
+}
+
 async function loadProfile() {
     try {
+        const cached = sessionStorage.getItem('profile_cache')
+        if (cached) {
+            const { profile: p, ts } = JSON.parse(cached)
+            if (Date.now() - ts < 5 * 60 * 1000) { profile = p; applyProfile(p); return }
+        }
+        const data = await callApi('get_profile', {})
+        profile = data.profile
+        sessionStorage.setItem('profile_cache', JSON.stringify({ profile: data.profile, ts: Date.now() }))
+        applyProfile(data.profile)
+    } catch(e) {
         const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
-        profile=prof
-        if(!profile){await sb.auth.signOut();window.location.href='index.html';return}
-        const role=profile.role_admin?'ADMIN':profile.role_vendeur?'VENDEUR':'CLIENT'
-        document.getElementById('user-role').textContent=role
-        if(profile.role_vendeur||profile.role_admin) document.getElementById('nav-ventes').classList.remove('hidden')
-        if(profile.role_admin) document.getElementById('nav-admin').classList.remove('hidden')
-    }catch(e){await sb.auth.signOut();window.location.href='index.html'}
+        if (prof) { profile = prof; applyProfile(prof) }
+        else { await sb.auth.signOut(); window.location.href='index.html' }
+    }
 }
 
 async function loadOrders() {
@@ -410,6 +434,11 @@ function showToast(msg, type = '') {
 async function logout() { await sb.auth.signOut(); window.location.href = 'index.html' }
 
 init()
+
+// Déconnexion à la fermeture de l'onglet/fenêtre
+window.addEventListener('beforeunload', () => {
+    sessionStorage.removeItem('session_active')
+})
 </script>
 </body>
 </html>
