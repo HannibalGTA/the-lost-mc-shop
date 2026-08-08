@@ -296,7 +296,8 @@ async function init(){
     if(!session){window.location.href='index.html';return}
     currentUser=session.user
     accessToken=session.access_token
-    if (window.location.hash.includes('access_token')) { sessionStorage.setItem('s','1'); sessionStorage.setItem('t',Date.now()) }
+    const _lastLogin=new Date(session.user.last_sign_in_at).getTime()
+    if (Date.now()-_lastLogin<120000) { sessionStorage.setItem('s','1'); sessionStorage.setItem('t',Date.now()) }
     if (!sessionStorage.getItem('s')) { await sb.auth.signOut(); window.location.href='index.html'; return }
     const _st=parseInt(sessionStorage.getItem('t')||'0')
     if (_st && Date.now()-_st>86400000) { sessionStorage.clear(); await sb.auth.signOut(); window.location.href='index.html'; return }
