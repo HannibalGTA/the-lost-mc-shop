@@ -575,6 +575,48 @@ document.addEventListener('click', e => {
     if (dd && !dd.parentElement?.contains(e.target)) dd.style.display = 'none'
 })
 
+// ── GENERIC DROPDOWN FILTER ───────────────────────────────────────────
+function makeDropdown(key, label, items) {
+    const count = dashFilters[key].length
+    const sel = dashFilters[key]
+    return `<div style="position:relative;display:inline-block">
+        <button onclick="toggleDropdown('dd-${key}')" style="padding:7px 12px;background:var(--dark);border:1px solid ${count?'var(--red)':'var(--border)'};border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;min-width:120px;text-align:left">
+            ${label}${count?` <span style="background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px">${count}</span>`:''} ▾
+        </button>
+        <div id="dd-${key}" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:8px;min-width:200px;max-height:260px;overflow-y:auto;margin-top:4px;box-shadow:0 8px 24px rgba(0,0,0,0.6)">
+            <input placeholder="🔍 Rechercher..." oninput="filterDropdownItems('dd-${key}',this.value)" style="width:100%;padding:6px 10px;background:var(--dark3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;margin-bottom:6px;box-sizing:border-box">
+            <div id="dd-${key}-list">${items.map(v=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:12px;white-space:nowrap"><input type="checkbox" ${sel.includes(v)?'checked':''} onchange="toggleDropdownFilter('${key}','${v.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this.checked)" style="accent-color:var(--red);flex-shrink:0"> ${esc(v)}</label>`).join('')}</div>
+            ${count?`<button onclick="dashFilters['${key}']=[];renderDashboard(document.getElementById('admin-content'))" style="width:100%;margin-top:6px;padding:4px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:11px;cursor:pointer">✕ Effacer</button>`:''}
+        </div>
+    </div>`
+}
+
+function toggleDropdown(id) {
+    document.querySelectorAll('[id^="dd-"]').forEach(d => { if (d.id !== id) d.style.display = 'none' })
+    const d = document.getElementById(id)
+    if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none'
+}
+
+function filterDropdownItems(ddId, search) {
+    const list = document.getElementById(ddId + '-list')
+    if (!list) return
+    list.querySelectorAll('label').forEach(l => {
+        l.style.display = l.textContent.toLowerCase().includes(search.toLowerCase()) ? '' : 'none'
+    })
+}
+
+function toggleDropdownFilter(key, value, checked) {
+    if (checked && !dashFilters[key].includes(value)) dashFilters[key].push(value)
+    else if (!checked) dashFilters[key] = dashFilters[key].filter(n => n !== value)
+    renderDashboard(document.getElementById('admin-content'))
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('[id^="dd-"]') && !e.target.closest('button[onclick^="toggleDropdown"]')) {
+        document.querySelectorAll('[id^="dd-"]').forEach(d => d.style.display = 'none')
+    }
+})
+
 function toggleDashFilter(type, value) {
     const arr = dashFilters[type]
     const idx = arr.indexOf(value)
