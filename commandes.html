@@ -265,7 +265,7 @@ async function init() {
     accessToken = session.access_token
     // Login frais (< 2 min) ou navigation normale
     const _lastLogin = new Date(session.user.last_sign_in_at).getTime()
-    const _isFresh = Date.now() - _lastLogin < 120000
+    const _isFresh = Date.now() - _lastLogin < 30000
     if (_isFresh) {
         sessionStorage.setItem('s','1')
         sessionStorage.setItem('t', Date.now())
