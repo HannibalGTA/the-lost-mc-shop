@@ -263,10 +263,8 @@ async function init() {
     if (!session) { window.location.href = 'index.html'; return }
     currentUser = session.user
     accessToken = session.access_token
-    // Login frais (< 2 min) ou navigation normale
     // Session active via sessionStorage (vide a la fermeture d'onglet)
     sessionStorage.setItem('s', '1')
-    }
 
     document.getElementById('user-name').textContent = currentUser.user_metadata?.full_name || '—'
     const avatar = currentUser.user_metadata?.avatar_url
