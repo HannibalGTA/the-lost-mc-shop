@@ -271,7 +271,11 @@ async function init() {
     if (avatar) document.getElementById('user-avatar').src = avatar
     await loadProfile()
     await loadOrders()
+    await loadNotifs()
+    // Marquer les notifs statut comme lues
+    callApi('mark_notifs_read', { type: 'statut' }).catch(() => {})
     setInterval(loadOrders, 60000)
+    setInterval(loadNotifs, 30000)
 }
 
 async function callApi(action, payload = {}) {
@@ -425,6 +429,21 @@ function showToast(msg, type = '') {
     setTimeout(() => el.className = 'toast', 3000)
 }
 
+
+async function loadNotifs() {
+    const username = currentUser?.user_metadata?.full_name
+    if (!username) return
+    try {
+        const { data: notifs } = await sb.from('notifications')
+            .select('*').eq('login', username).eq('lu', false).eq('type', 'statut')
+        const count = (notifs || []).length
+        const badge = document.getElementById('badge-commandes')
+        if (badge) {
+            if (count > 0) { badge.textContent = count; badge.classList.remove('hidden') }
+            else badge.classList.add('hidden')
+        }
+    } catch(e) {}
+}
 async function logout() { await sb.auth.signOut(); window.location.href = 'index.html' }
 
 init()
