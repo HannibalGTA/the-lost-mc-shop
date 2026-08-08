@@ -441,118 +441,88 @@ function renderDashboard(el) {
         return s+(o.montant_ajuste??details.reduce((a,d)=>a+d.prix_achat*d.quantite,0))
     },0)
 
-    // Apply filters
     let filtered = commandes
-    if (dashFilters.statut.length) filtered = filtered.filter(o => dashFilters.statut.includes(o.statut))
-    if (dashFilters.cat.length) filtered = filtered.filter(o => {
+    if (dashFilters.statut && dashFilters.statut.length) filtered = filtered.filter(o => dashFilters.statut.includes(o.statut))
+    if (dashFilters.clients && dashFilters.clients.length) filtered = filtered.filter(o => dashFilters.clients.includes(o.client_pseudo))
+    if (dashFilters.vendeurs && dashFilters.vendeurs.length) filtered = filtered.filter(o => dashFilters.vendeurs.includes(o.vendeur_affecte))
+    if (dashFilters.articles && dashFilters.articles.length) filtered = filtered.filter(o => {
         const details = o.details_commande || []
-        // We can't easily filter by cat here without article data, skip for now
-        return true
+        return details.some(d => dashFilters.articles.includes(d.nom_article))
     })
-    if (dashFilters.clients.length) filtered = filtered.filter(o => dashFilters.clients.includes(o.client_pseudo))
-    if (dashFilters.vendeurs.length) filtered = filtered.filter(o => dashFilters.vendeurs.includes(o.vendeur_affecte))
+    if (dashFilters.cat && dashFilters.cat.length) filtered = filtered.filter(o => {
+        const details = o.details_commande || []
+        return details.some(d => {
+            const art = catalog.find(a => a.name === d.nom_article)
+            return art && dashFilters.cat.includes(art.cat)
+        })
+    })
 
-    const statuts = ['En attente','En cours','Préparée','Terminée','Annulée']
-    // Build dynamic filter options from data
     const uniqueClients = [...new Set(commandes.map(o=>o.client_pseudo).filter(Boolean))].sort()
     const uniqueVendeurs = [...new Set(commandes.map(o=>o.vendeur_affecte).filter(Boolean))].sort()
     const uniqueArticles = [...new Set(commandes.flatMap(o=>(o.details_commande||[]).map(d=>d.nom_article)).filter(Boolean))].sort()
-    // Store in global arrays for index-based checkbox access
-    ddItems_clients = uniqueClients
-    ddItems_vendeurs = uniqueVendeurs
-    ddItems_articles = uniqueArticles
-    ddItems_cat = ['weapons','others','munitions']
-    ddItems_statut = ['En attente','En cours','Préparée','Terminée','Annulée']
-    
 
+    const totalFiltered = filtered.reduce((s,o)=>{
+        const details=o.details_commande||[]
+        return s+(o.montant_ajuste??details.reduce((a,d)=>a+d.prix_achat*d.quantite,0))
+    },0)
+    const totalArticles = filtered.reduce((s,o)=>(o.details_commande||[]).reduce((a,d)=>a+d.quantite,0)+s,0)
 
+    const statsHtml = '<div class="stats-grid">'
+        +'<div class="stat-card"><div class="stat-label">Membres</div><div class="stat-value blue">'+membres.length+'</div></div>'
+        +'<div class="stat-card"><div class="stat-label">Articles</div><div class="stat-value">'+catalog.length+'</div></div>'
+        +'<div class="stat-card"><div class="stat-label">En attente</div><div class="stat-value red">'+commandes.filter(o=>o.statut==='En attente').length+'</div></div>'
+        +'<div class="stat-card"><div class="stat-label">En cours</div><div class="stat-value blue">'+commandes.filter(o=>o.statut==='En cours').length+'</div></div>'
+        +'<div class="stat-card"><div class="stat-label">Terminées</div><div class="stat-value green">'+commandes.filter(o=>o.statut==='Terminée').length+'</div></div>'
+        +'<div class="stat-card"><div class="stat-label">CA Total</div><div class="stat-value gold">'+(totalCA/1000).toFixed(0)+'k$</div></div>'
+        +'</div>'
 
+    const filtersHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:12px;background:var(--dark3);border:1px solid var(--border);border-radius:8px;align-items:center">'
+        + makeDropdown('statut','📊 Statut',['En attente','En cours','Préparée','Terminée','Annulée'])
+        + makeDropdown('clients','👤 Clients',uniqueClients)
+        + makeDropdown('vendeurs','🎯 Vendeurs',uniqueVendeurs)
+        + makeDropdown('articles','🔫 Articles',uniqueArticles)
+        + makeDropdown('cat','📂 Catégorie',['weapons','others','munitions'],{weapons:'Armes à feu',others:'Équipement',munitions:'Munitions'})
+        + '<button onclick="dashFilters={statut:[],clients:[],vendeurs:[],articles:[],cat:[]};renderDashboard(document.getElementById(\'admin-content\'))" style="padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--dark);color:var(--text-muted)">✕ Reset</button>'
+        +'</div>'
 
+    const bilanHtml = '<div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">'
+        +'<div style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-size:12px">📦 <strong style="color:var(--text)">'+filtered.length+'</strong> <span style="color:var(--text-muted)">commandes</span></div>'
+        +'<div style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-size:12px">💰 <strong style="color:var(--green)">'+totalFiltered.toLocaleString()+' $</strong> <span style="color:var(--text-muted)">total</span></div>'
+        +'<div style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-size:12px">🔫 <strong style="color:var(--gold)">'+totalArticles+'</strong> <span style="color:var(--text-muted)">articles</span></div>'
+        +'</div>'
 
-let _articleDropdownItems = []
-function toggleArticleFilterByIdx(idx, checked) {
-    const name = _articleDropdownItems[idx]?.name
-    if (!name) return
-    if (checked && !dashFilters.articles.includes(name)) dashFilters.articles.push(name)
-    else if (!checked) dashFilters.articles = dashFilters.articles.filter(n => n !== name)
-    renderDashboard(document.getElementById('admin-content'))
-}
-
-
-
-// Close dropdown on outside click
-document.addEventListener('click', e => {
-    const dd = document.getElementById('article-dropdown')
-    if (dd && !dd.parentElement?.contains(e.target)) dd.style.display = 'none'
-})
-
-// ── DROPDOWN FILTERS ──────────────────────────────────────────────────
-function makeDropdown(key, label, items, labelMap) {
-    const count = dashFilters[key] ? dashFilters[key].length : 0
-    let btn = '<div class="dd-wrap" style="position:relative;display:inline-block">'
-    btn += '<button class="dd-btn" data-dd="dd_' + key + '" style="padding:7px 12px;background:var(--dark);border:1px solid ' + (count ? 'var(--red)' : 'var(--border)') + ';border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;min-width:120px;text-align:left">'
-    btn += label
-    if (count) btn += ' <span style="background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px">' + count + '</span>'
-    btn += ' ▾</button>'
-    btn += '<div id="dd_' + key + '" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:500;background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:8px;min-width:200px;max-height:260px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.7)">'
-    btn += '<input class="dd-search" placeholder="Rechercher..." style="width:100%;padding:6px 10px;background:var(--dark3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;margin-bottom:6px;box-sizing:border-box">'
-    items.forEach(function(v) {
-        const disp = labelMap && labelMap[v] ? labelMap[v] : v
-        const chk = dashFilters[key] && dashFilters[key].includes(v) ? ' checked' : ''
-        btn += '<label class="dd-item" style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:4px;cursor:pointer;font-size:12px">'
-        btn += '<input type="checkbox" data-key="' + key + '" data-value="' + v.replace(/"/g,'&quot;') + '"' + chk + ' style="accent-color:var(--red)"> '
-        btn += '<span>' + esc(disp) + '</span></label>'
+    let rowsHtml = ''
+    const statusColors = {'En attente':'gold','En cours':'blue','Préparée':'purple','Terminée':'green','Annulée':'red'}
+    filtered.slice(0,20).forEach(o => {
+        const details = o.details_commande||[]
+        const total = (o.montant_ajuste??details.reduce((s,d)=>s+d.prix_achat*d.quantite,0)).toLocaleString()
+        const articlesStr = details.slice(0,2).map(d=>d.nom_article+(d.quantite>1?' x'+d.quantite:'')).join(', ')+(details.length>2?'...':'')
+        const sc = statusColors[o.statut]||'text-muted'
+        rowsHtml += '<tr>'
+            +'<td><span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--red)">'+esc(o.ref_commande||'CMD-'+o.id)+'</span></td>'
+            +'<td style="font-size:12px">'+esc(o.client_pseudo)+'</td>'
+            +'<td style="font-size:12px;color:var(--text-muted)">'+esc(o.vendeur_affecte||'—')+'</td>'
+            +'<td style="font-size:11px;color:var(--text-muted);max-width:160px">'+esc(articlesStr)+'</td>'
+            +'<td style="font-family:\'Bebas Neue\',sans-serif;color:var(--green)">'+total+' $</td>'
+            +'<td><span style="color:var(--'+sc+');font-size:10px;font-family:\'JetBrains Mono\',monospace;font-weight:700">'+esc(o.statut)+'</span></td>'
+            +'<td style="color:var(--text-dim);font-size:11px">'+new Date(o.date_commande).toLocaleDateString('fr-FR')+'</td>'
+            +'<td><button class="btn btn-danger btn-sm" onclick="deleteCommande('+o.id+')">🗑️</button></td>'
+            +'</tr>'
     })
-    if (count) btn += '<button class="dd-clear" data-key="' + key + '" style="width:100%;margin-top:6px;padding:4px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:11px;cursor:pointer">✕ Effacer</button>'
-    btn += '</div></div>'
-    return btn
+
+    el.innerHTML = '<div class="section-title">📊 TABLEAU DE BORD</div>'
+        + statsHtml
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px">'
+        + '<div class="section-title" style="margin-bottom:0">📋 TOUTES LES COMMANDES <span style="font-size:14px;color:var(--text-muted)">('+filtered.length+')</span></div>'
+        + '</div>'
+        + filtersHtml
+        + bilanHtml
+        + '<div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">'
+        + '<table class="data-table" style="border:none">'
+        + '<thead style="position:sticky;top:0;background:var(--dark2);z-index:10"><tr><th>Référence</th><th>Client</th><th>Vendeur</th><th>Articles</th><th>Total</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>'
+        + '<tbody>'+rowsHtml+'</tbody>'
+        + '</table></div>'
 }
-
-// Single event delegation for all dropdowns
-document.addEventListener('click', function(e) {
-    // Toggle dropdown
-    const btn = e.target.closest('.dd-btn')
-    if (btn) {
-        e.stopPropagation()
-        const id = btn.getAttribute('data-dd')
-        document.querySelectorAll('[id^="dd_"]').forEach(d => { if (d.id !== id) d.style.display = 'none' })
-        const dd = document.getElementById(id)
-        if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none'
-        return
-    }
-    // Checkbox change
-    const chk = e.target.closest('input[type="checkbox"][data-key]')
-    if (chk) {
-        const key = chk.getAttribute('data-key')
-        const val = chk.getAttribute('data-value')
-        if (!dashFilters[key]) dashFilters[key] = []
-        if (chk.checked) { if (!dashFilters[key].includes(val)) dashFilters[key].push(val) }
-        else dashFilters[key] = dashFilters[key].filter(n => n !== val)
-        renderDashboard(document.getElementById('admin-content'))
-        return
-    }
-    // Clear button
-    const clr = e.target.closest('.dd-clear[data-key]')
-    if (clr) {
-        dashFilters[clr.getAttribute('data-key')] = []
-        renderDashboard(document.getElementById('admin-content'))
-        return
-    }
-    // Close on outside click
-    if (!e.target.closest('.dd-wrap')) {
-        document.querySelectorAll('[id^="dd_"]').forEach(d => d.style.display = 'none')
-    }
-}, true)
-
-// Search in dropdown
-document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('dd-search')) {
-        const search = e.target.value.toLowerCase()
-        e.target.closest('[id^="dd_"]').querySelectorAll('.dd-item').forEach(l => {
-            l.style.display = l.textContent.toLowerCase().includes(search) ? '' : 'none'
-        })
-    }
-})
 
 
 function toggleDashFilter(type, value) {
@@ -965,7 +935,7 @@ function showToast(msg,type=''){const el=document.getElementById('toast');el.tex
 async function logout(){await sb.auth.signOut();window.location.href='index.html'}
 
 init()
-window.addEventListener('beforeunload', () => { sessionStorage.removeItem('session_active') })
+window.addEventListener('pagehide', () => { sessionStorage.removeItem('s') })
 </script>
 </body>
 </html>
