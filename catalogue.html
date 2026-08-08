@@ -871,20 +871,8 @@ async function init() {
     currentUser = session.user
     accessToken = session.access_token
     // Login frais (< 2 min) ou navigation normale
-    const _lastLogin = new Date(session.user.last_sign_in_at).getTime()
-    const _isFresh = Date.now() - _lastLogin < 30000
-    if (_isFresh) {
-        sessionStorage.setItem('s','1')
-        sessionStorage.setItem('t', Date.now())
-    }
-    if (!sessionStorage.getItem('s')) {
-        await sb.auth.signOut()
-        window.location.href = 'index.html'
-        return
-    }
-    const _st = parseInt(sessionStorage.getItem('t') || '0')
-    if (_st && Date.now() - _st > 86400000) {
-        sessionStorage.clear(); await sb.auth.signOut(); window.location.href = 'index.html'; return
+    // Session active via sessionStorage (vide a la fermeture d'onglet)
+    sessionStorage.setItem('s', '1')
     }
 
 
