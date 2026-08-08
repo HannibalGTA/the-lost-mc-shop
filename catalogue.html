@@ -1162,16 +1162,28 @@ function generateRef(items, dbId) {
 async function loadNotifs() {
     const username = currentUser?.user_metadata?.full_name
     if (!username) return
-    const { data } = await sb.from('notifications').select('*').eq('login', username).eq('lu', false)
-    const notifs = data || []
-    const nS = notifs.filter(n => n.type === 'statut').length
-    const nM = notifs.filter(n => n.type === 'message').length
-    const badge = document.getElementById('badge-commandes')
-    if (nS > 0) { badge.textContent = nS; badge.classList.remove('hidden') }
-    else badge.classList.add('hidden')
-    const bv = document.getElementById('badge-ventes')
-    if (nM > 0 && (profile?.role_vendeur || profile?.role_admin)) { bv.textContent = nM; bv.classList.remove('hidden') }
-    else bv.classList.add('hidden')
+    try {
+        // Badge client : notifs statut non lues
+        const { data: notifs } = await sb.from('notifications')
+            .select('*').eq('login', username).eq('lu', false).eq('type', 'statut')
+        const count = (notifs || []).length
+        const badge = document.getElementById('badge-commandes')
+        if (badge) {
+            if (count > 0) { badge.textContent = count; badge.classList.remove('hidden') }
+            else badge.classList.add('hidden')
+        }
+        // Badge vendeur : commandes En attente sans vendeur
+        if (profile?.role_vendeur || profile?.role_admin) {
+            const { data: pending } = await sb.from('commandes')
+                .select('id').eq('statut', 'En attente').is('vendeur_affecte', null)
+            const pendingCount = (pending || []).length
+            const bv = document.getElementById('badge-ventes')
+            if (bv) {
+                if (pendingCount > 0) { bv.textContent = pendingCount; bv.classList.remove('hidden') }
+                else bv.classList.add('hidden')
+            }
+        }
+    } catch(e) {}
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────
