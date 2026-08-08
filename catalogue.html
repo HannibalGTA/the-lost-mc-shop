@@ -870,20 +870,7 @@ async function init() {
     if (!session) { window.location.href = 'index.html'; return }
     currentUser = session.user
     accessToken = session.access_token
-    // Session check - si pas de session active (onglet fermé) → déconnexion
-    if (!sessionStorage.getItem('session_active')) {
-        await sb.auth.signOut()
-        window.location.href = 'index.html'
-        return
-    }
-    // 24h max
-    const sessionStart = parseInt(sessionStorage.getItem('session_start') || '0')
-    if (sessionStart && Date.now() - sessionStart > 24 * 60 * 60 * 1000) {
-        sessionStorage.clear()
-        await sb.auth.signOut()
-        window.location.href = 'index.html'
-        return
-    }
+
 
     // Afficher infos user
     document.getElementById('user-name').textContent = currentUser.user_metadata?.full_name || 'Inconnu'
