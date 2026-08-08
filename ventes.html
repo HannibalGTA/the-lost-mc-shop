@@ -444,6 +444,16 @@ async function prendreEnCharge(id) {
     try {
         const username = currentUser.user_metadata?.full_name
         await callApi('update_commande', { id, updates: { statut: 'En cours', vendeur_affecte: username, vendeur_id: currentUser.id } })
+        // Notifier le client
+        const order = allOrders.find(o => o.id === id)
+        if (order?.client_pseudo) {
+            await callApi('push_notif', {
+                login: order.client_pseudo,
+                id_commande: id,
+                type: 'statut',
+                contenu: `Votre commande ${order.ref_commande||'CMD-'+id} est prise en charge par ${username}`
+            }).catch(() => {})
+        }
         showToast('✅ Commande prise en charge', 'success')
         await loadOrders()
     } catch(e) { showToast('❌ '+e.message, 'error') }
@@ -455,6 +465,16 @@ async function setStatut(id, statut) {
         const updates = { statut }
         if (['Terminée','Annulée'].includes(statut)) updates.date_fin = new Date().toISOString()
         await callApi('update_commande', { id, updates })
+        // Notifier le client du changement de statut
+        const order = allOrders.find(o => o.id === id)
+        if (order?.client_pseudo) {
+            await callApi('push_notif', {
+                login: order.client_pseudo,
+                id_commande: id,
+                type: 'statut',
+                contenu: `Votre commande ${order.ref_commande||'CMD-'+id} est maintenant : ${statut}`
+            }).catch(() => {})
+        }
         showToast(`✅ Statut mis à jour : ${statut}`, 'success')
         await loadOrders()
     } catch(e) { showToast('❌ '+e.message, 'error') }
@@ -627,6 +647,19 @@ async function showMateriauxCommande(orderId) {
 
 function closeVentesModal(id) { document.getElementById(id).classList.remove('active') }
 
+
+async function loadNotifs() {
+    try {
+        const { data: pending } = await sb.from('commandes')
+            .select('id').eq('statut', 'En attente').is('vendeur_affecte', null)
+        const pendingCount = (pending || []).length
+        const bv = document.getElementById('badge-ventes')
+        if (bv) {
+            if (pendingCount > 0) { bv.textContent = pendingCount; bv.classList.remove('hidden') }
+            else bv.classList.add('hidden')
+        }
+    } catch(e) {}
+}
 async function logout() { await sb.auth.signOut(); window.location.href = 'index.html' }
 
 init()
