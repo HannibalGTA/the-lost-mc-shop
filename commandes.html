@@ -263,12 +263,13 @@ async function init() {
     if (!session) { window.location.href = 'index.html'; return }
     currentUser = session.user
     accessToken = session.access_token
-    // Si retour OAuth Discord, initialiser la session
-    if (window.location.hash.includes('access_token')) {
+    // Login frais (< 2 min) ou navigation normale
+    const _lastLogin = new Date(session.user.last_sign_in_at).getTime()
+    const _isFresh = Date.now() - _lastLogin < 120000
+    if (_isFresh) {
         sessionStorage.setItem('s','1')
         sessionStorage.setItem('t', Date.now())
     }
-    // Session : fermeture onglet = deconnexion
     if (!sessionStorage.getItem('s')) {
         await sb.auth.signOut()
         window.location.href = 'index.html'
