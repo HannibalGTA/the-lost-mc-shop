@@ -997,7 +997,6 @@ function showToast(msg,type=''){const el=document.getElementById('toast');el.tex
 async function logout(){await sb.auth.signOut();window.location.href='index.html'}
 
 init()
-window.addEventListener('pagehide', () => { sessionStorage.removeItem('s') })
 </script>
 </body>
 </html>
