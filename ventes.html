@@ -285,7 +285,7 @@ async function callApi(action, payload = {}) {
         body: JSON.stringify({ action, payload })
     })
     const data = await res.json()
-    if (data.error) throw new Error(data.error)
+    if (res.status === 403 || data.error) throw new Error(data.error || 'Acces refuse')
     return data
 }
 
@@ -309,16 +309,16 @@ async function loadProfile() {
         sessionStorage.setItem('profile_cache', JSON.stringify({ profile: data.profile, ts: Date.now() }))
         applyProfile(data.profile)
     } catch(e) {
-        // Si accès refusé par la Edge Function (pas membre du serveur) → déconnexion
-        if (e.message && (e.message.includes('refuse') || e.message.includes('refus'))) {
+        // Si accès refusé → déconnexion + throw pour stopper init()
+        if (e.message && (e.message.includes('refuse') || e.message.includes('refus') || e.message.includes('membre'))) {
             await sb.auth.signOut()
             window.location.href = 'index.html'
-            return
+            throw new Error('ACCESS_DENIED')
         }
         // Autre erreur réseau → fallback DB
         const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
         if (prof) { profile = prof; applyProfile(prof) }
-        else { await sb.auth.signOut(); window.location.href='index.html' }
+        else { await sb.auth.signOut(); window.location.href='index.html'; throw new Error('NO_PROFILE') }
     }
 }
 
