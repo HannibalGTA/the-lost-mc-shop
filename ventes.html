@@ -153,7 +153,11 @@
         .article-edit-row { display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 12px;background:var(--dark3);border:1px solid var(--border);border-radius:6px; }
     </style>
 </head>
-<body style="opacity:0">
+<body>
+<div id="auth-overlay" style="position:fixed;inset:0;background:#080A0E;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+    <div style="width:32px;height:32px;border:3px solid #2A3347;border-top-color:#C8152A;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+    <div style="color:#6B7A99;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px">VÉRIFICATION...</div>
+</div>
 
 <aside class="sidebar">
     <div class="sidebar-logo" style="padding:20px 16px 16px;">
@@ -276,8 +280,7 @@ async function init() {
     const avatar = currentUser.user_metadata?.avatar_url
     if (avatar) document.getElementById('user-avatar').src = avatar
     await loadProfile()
-    document.body.style.transition = 'opacity 0.15s ease'
-    document.body.style.opacity = '1'
+    document.getElementById('auth-overlay').remove()
     await loadOrders()
     setInterval(autoRefresh, 60000)
 }
