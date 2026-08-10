@@ -732,7 +732,7 @@
         }
     </style>
 </head>
-<body class="page-loading">
+<body style="opacity:0">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -883,8 +883,8 @@ async function init() {
 
     // Charger profil depuis Edge Function (vérifie les rôles Discord)
     await loadProfile()
-    document.body.classList.remove('page-loading')
-    document.body.classList.add('page-ready')
+    document.body.style.transition = 'opacity 0.15s ease'
+    document.body.style.opacity = '1'
     await loadCatalogue()
     await loadNotifs()
 }
