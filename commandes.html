@@ -270,19 +270,20 @@ async function init() {
     currentUser = session.user
     accessToken = session.access_token
     // Session active via sessionStorage (vide a la fermeture d'onglet)
-    // Vider le cache si changement d'utilisateur
-    const _storedId = sessionStorage.getItem('uid')
-    const _currentId = session.user.user_metadata?.provider_id
-    if (_storedId && _storedId !== _currentId) {
-        sessionStorage.removeItem('profile_cache')
-    }
-    sessionStorage.setItem('uid', _currentId || '')
+    // Vider le cache profil à chaque chargement pour rôles toujours frais
+    sessionStorage.removeItem('profile_cache')
     sessionStorage.setItem('s', '1')
 
     document.getElementById('user-name').textContent = currentUser.user_metadata?.full_name || '—'
     const avatar = currentUser.user_metadata?.avatar_url
     if (avatar) document.getElementById('user-avatar').src = avatar
     await loadProfile()
+    // Double vérification explicite des menus
+    console.log('[AUTH] Profile role:', profile?.role_admin ? 'ADMIN' : profile?.role_vendeur ? 'VENDEUR' : 'CLIENT')
+    const _isVendeur = profile?.role_vendeur || profile?.role_admin
+    const _isAdmin = profile?.role_admin
+    if (!_isVendeur) document.getElementById('nav-ventes')?.classList.add('hidden')
+    if (!_isAdmin) document.getElementById('nav-admin')?.classList.add('hidden')
     document.getElementById('auth-overlay').remove()
     await loadOrders()
     await loadNotifs()
@@ -324,16 +325,28 @@ async function loadProfile() {
         sessionStorage.setItem('profile_cache', JSON.stringify({ profile: data.profile, ts: Date.now() }))
         applyProfile(data.profile)
     } catch(e) {
-        // Si accès refusé → déconnexion + throw pour stopper init()
+        // Si accès refusé → déconnexion
         if (e.message && (e.message.includes('refuse') || e.message.includes('refus') || e.message.includes('membre'))) {
             await sb.auth.signOut()
             window.location.href = 'index.html?denied=1'
             throw new Error('ACCESS_DENIED')
         }
-        // Autre erreur réseau → fallback DB
-        const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
-        if (prof) { profile = prof; applyProfile(prof) }
-        else { await sb.auth.signOut(); window.location.href='index.html'; throw new Error('NO_PROFILE') }
+        // Cold start ou erreur réseau → retry une fois après 1.5s
+        try {
+            await new Promise(r => setTimeout(r, 1500))
+            const data2 = await callApi('get_profile', {})
+            profile = data2.profile
+            sessionStorage.setItem('profile_cache', JSON.stringify({ profile: data2.profile, ts: Date.now() }))
+            applyProfile(data2.profile)
+        } catch(e2) {
+            // Retry échoue → permissions minimales (sécurité par défaut)
+            const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
+            if (prof) {
+                const safeProfile = { ...prof, role_admin: false, role_vendeur: false }
+                profile = safeProfile
+                applyProfile(safeProfile)
+            } else { await sb.auth.signOut(); window.location.href='index.html'; throw new Error('NO_PROFILE') }
+        }
     }
 }
 
