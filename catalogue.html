@@ -889,12 +889,6 @@ async function init() {
 
     // Charger profil depuis Edge Function (vérifie les rôles Discord)
     await loadProfile()
-    // Double vérification explicite des menus
-    console.log('[AUTH] Profile role:', profile?.role_admin ? 'ADMIN' : profile?.role_vendeur ? 'VENDEUR' : 'CLIENT')
-    const _isVendeur = profile?.role_vendeur || profile?.role_admin
-    const _isAdmin = profile?.role_admin
-    if (!_isVendeur) document.getElementById('nav-ventes')?.classList.add('hidden')
-    if (!_isAdmin) document.getElementById('nav-admin')?.classList.add('hidden')
     document.getElementById('auth-overlay').remove()
     await loadCatalogue()
     await loadNotifs()
