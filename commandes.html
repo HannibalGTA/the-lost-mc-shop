@@ -195,7 +195,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="page-loading">
+<body style="opacity:0">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -272,8 +272,8 @@ async function init() {
     const avatar = currentUser.user_metadata?.avatar_url
     if (avatar) document.getElementById('user-avatar').src = avatar
     await loadProfile()
-    document.body.classList.remove('page-loading')
-    document.body.classList.add('page-ready')
+    document.body.style.transition = 'opacity 0.15s ease'
+    document.body.style.opacity = '1'
     await loadOrders()
     await loadNotifs()
     // Marquer les notifs statut comme lues
