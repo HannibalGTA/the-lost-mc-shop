@@ -303,8 +303,8 @@ function applyProfile(profile) {
     if (!profile.role_vendeur && !profile.role_admin) { window.location.href = 'catalogue.html'; return }
     const role = profile.role_admin ? 'ADMIN' : 'VENDEUR'
     document.getElementById('user-role').textContent = role
-    if (profile.role_admin) document.getElementById('nav-admin').classList.remove('hidden')
-    else document.getElementById('nav-admin').classList.add('hidden')
+    const _navA = document.getElementById('nav-admin')
+    if (_navA) _navA.style.display = profile.role_admin ? '' : 'none'
 }
 
 async function loadProfile() {
