@@ -732,7 +732,7 @@
         }
     </style>
 </head>
-<body>
+<body class="page-loading">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -883,6 +883,8 @@ async function init() {
 
     // Charger profil depuis Edge Function (vérifie les rôles Discord)
     await loadProfile()
+    document.body.classList.remove('page-loading')
+    document.body.classList.add('page-ready')
     await loadCatalogue()
     await loadNotifs()
 }
@@ -926,7 +928,7 @@ async function loadProfile() {
         // Si accès refusé → déconnexion + throw pour stopper init()
         if (e.message && (e.message.includes('refuse') || e.message.includes('refus') || e.message.includes('membre'))) {
             await sb.auth.signOut()
-            window.location.href = 'index.html'
+            window.location.href = 'index.html?denied=1'
             throw new Error('ACCESS_DENIED')
         }
         // Autre erreur réseau → fallback DB
