@@ -302,10 +302,10 @@ async function callApi(action, payload = {}) {
 function applyProfile(profile) {
     const role = profile.role_admin ? 'ADMIN' : profile.role_vendeur ? 'VENDEUR' : 'CLIENT'
     document.getElementById('user-role').textContent = role
-    if (profile.role_vendeur || profile.role_admin) document.getElementById('nav-ventes').classList.remove('hidden')
-    else document.getElementById('nav-ventes').classList.add('hidden')
-    if (profile.role_admin) document.getElementById('nav-admin').classList.remove('hidden')
-    else document.getElementById('nav-admin').classList.add('hidden')
+    const _navV = document.getElementById('nav-ventes')
+    const _navA = document.getElementById('nav-admin')
+    if (_navV) _navV.style.display = (profile.role_vendeur || profile.role_admin) ? '' : 'none'
+    if (_navA) _navA.style.display = profile.role_admin ? '' : 'none'
 }
 
 async function loadProfile() {
