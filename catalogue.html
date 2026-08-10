@@ -889,11 +889,11 @@ async function init() {
 
     // Charger profil depuis Edge Function (vérifie les rôles Discord)
     await loadProfile()
-    // Garantir que les menus sont corrects selon le profil
-    if (profile?.role_vendeur === true || profile?.role_admin === true) document.getElementById('nav-ventes').classList.remove('hidden')
-    else document.getElementById('nav-ventes').classList.add('hidden')
-    if (profile?.role_admin === true) document.getElementById('nav-admin').classList.remove('hidden')
-    else document.getElementById('nav-admin').classList.add('hidden')
+    // Forcer affichage menus via style inline (priorité absolue)
+    const _navV = document.getElementById('nav-ventes')
+    const _navA = document.getElementById('nav-admin')
+    if (_navV) _navV.style.display = (profile?.role_vendeur === true || profile?.role_admin === true) ? '' : 'none'
+    if (_navA) _navA.style.display = (profile?.role_admin === true) ? '' : 'none'
     document.getElementById('auth-overlay').remove()
     await loadCatalogue()
     await loadNotifs()
