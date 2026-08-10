@@ -270,6 +270,13 @@ async function init() {
     currentUser = session.user
     accessToken = session.access_token
     // Session active via sessionStorage (vide a la fermeture d'onglet)
+    // Vider le cache si changement d'utilisateur
+    const _storedId = sessionStorage.getItem('uid')
+    const _currentId = session.user.user_metadata?.provider_id
+    if (_storedId && _storedId !== _currentId) {
+        sessionStorage.removeItem('profile_cache')
+    }
+    sessionStorage.setItem('uid', _currentId || '')
     sessionStorage.setItem('s', '1')
 
     document.getElementById('user-name').textContent = currentUser.user_metadata?.full_name || '—'
@@ -458,7 +465,7 @@ async function loadNotifs() {
         }
     } catch(e) {}
 }
-async function logout() { await sb.auth.signOut(); window.location.href = 'index.html' }
+async function logout() { sessionStorage.removeItem('profile_cache'); sessionStorage.removeItem('s'); await sb.auth.signOut(); window.location.href = 'index.html' }
 
 init()
 
