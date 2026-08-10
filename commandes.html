@@ -310,6 +310,13 @@ async function loadProfile() {
         sessionStorage.setItem('profile_cache', JSON.stringify({ profile: data.profile, ts: Date.now() }))
         applyProfile(data.profile)
     } catch(e) {
+        // Si accès refusé par la Edge Function (pas membre du serveur) → déconnexion
+        if (e.message && (e.message.includes('refuse') || e.message.includes('refus'))) {
+            await sb.auth.signOut()
+            window.location.href = 'index.html'
+            return
+        }
+        // Autre erreur réseau → fallback DB
         const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle()
         if (prof) { profile = prof; applyProfile(prof) }
         else { await sb.auth.signOut(); window.location.href='index.html' }
