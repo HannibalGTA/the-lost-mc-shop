@@ -296,13 +296,8 @@ async function init(){
     if(!session){window.location.href='index.html';return}
     currentUser=session.user
     accessToken=session.access_token
-    // Vider le cache si changement d'utilisateur
-    const _storedId = sessionStorage.getItem('uid')
-    const _currentId = session.user.user_metadata?.provider_id
-    if (_storedId && _storedId !== _currentId) {
-        sessionStorage.removeItem('profile_cache')
-    }
-    sessionStorage.setItem('uid', _currentId || '')
+    // Vider le cache profil à chaque chargement pour rôles toujours frais
+    sessionStorage.removeItem('profile_cache')
     sessionStorage.setItem('s', '1')
     const _st=parseInt(sessionStorage.getItem('t')||'0')
 
